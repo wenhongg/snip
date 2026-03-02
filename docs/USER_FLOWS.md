@@ -590,46 +590,74 @@ Detailed user flows for every feature in Snip. Each flow describes preconditions
 
 ## 8. Settings
 
-### 8.1 Setting Up Your AI Assistant
+### 8.1 Setting Up Your AI Assistant (Inline Overlay)
+
+The setup wizard appears as a **full-window inline overlay** inside the home window (not a separate popup). It auto-shows on first launch if Ollama is not fully ready, and can be reopened from the Settings "Set up" button.
+
+**Overlay structure:** Three views — Steps (install/running/model), Welcome, Failed. Only one visible at a time. Step cards show numbered indicators (pending → active → done with checkmark).
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
-| 1 | Navigate to Settings page | "Setting Up Your AI Assistant" section shown |
-| 2 | -- | App checks for system Ollama (running server, then installed binary, then not found) |
+| 1 | App launches without Ollama ready | Inline overlay covers home window with step-by-step wizard |
+| 2 | -- | App auto-detects current state and shows appropriate step |
 
-**State: Ollama Not Installed**
+**Step: Install Ollama**
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
-| 1 | Ollama not detected on system | Setup card: "Ollama Required" with "Install Ollama" button |
-| 2 | Click "Install Ollama" | Download begins, scissors progress bar animates across track |
+| 1 | Ollama not detected on system | Step 1 card active with "Install Ollama" button |
+| 2 | Click "Install Ollama" | Download begins, progress bar animates with accent gradient fill |
 | 3 | -- | Progress: Downloading → Extracting → Installing → Launching |
 | 4 | -- | Ollama.app moved to `/Applications/` and launched automatically |
-| 5 | -- | Transitions to model download state or ready state |
+| 5 | -- | Auto-advances to running step, then model step |
 
-**State: Ollama Running, Model Needed**
-
-| Step | Action | Expected Result |
-|------|--------|-----------------|
-| 1 | Ollama running but minicpm-v not found | Setup card: "Download AI Model" with "Download Model" button |
-| 2 | Click "Download Model" | Model pull begins (~5 GB), scissors progress bar shows progress |
-| 3 | -- | Progress: percentage + downloaded MB / total MB |
-| 4 | Download completes | Transitions to ready state |
-
-**State: Ready**
+**Step: Ollama Running**
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
-| 1 | Ollama running and model available | Green status dot, "Running" text |
-| 2 | -- | Model card: active model name (minicpm-v) with info button |
-| 3 | Click info button | Tooltip with specs table (model, parameters, size, quantization, description) |
+| 1 | Ollama installed but starting | Step 2 active with spinner "Waiting for Ollama to start..." |
+| 2 | -- | Auto-advances when server responds |
+
+**Step: Download Model**
+
+| Step | Action | Expected Result |
+|------|--------|-----------------|
+| 1 | Ollama running but minicpm-v not found | Step 3 card active with "Download MiniCPM-V" button |
+| 2 | Click "Download MiniCPM-V" | Model pull begins (~5 GB), progress bar shows MB / total MB |
+| 3 | Download completes | Transitions to Welcome screen |
+
+**Welcome Screen**
+
+| Step | Action | Expected Result |
+|------|--------|-----------------|
+| 1 | All steps complete | Welcome view: purple magic wand SVG with pop-in animation, "Welcome to Snip" title |
+| 2 | -- | Sparkle particles float upward in background (circles and 4-point stars) |
+| 3 | Click "Get Started" | Overlay dismissed, user lands on gallery |
+
+**Failed Screen**
+
+| Step | Action | Expected Result |
+|------|--------|-----------------|
+| 1 | 3+ consecutive errors during install/download | Failed view: "Snip works great without AI too" |
+| 2 | Click "Continue without AI" | Overlay dismissed, app works normally without AI |
+| 3 | Click "Try again" | Resets failure count, returns to appropriate setup step |
+
+**Settings "Set up" Button**
+
+| Step | Action | Expected Result |
+|------|--------|-----------------|
+| 1 | Navigate to Settings page | Checklist shows installed/running/model status |
+| 2 | If not all ready, "Set up" button visible | Click reopens inline overlay at correct step |
+| 3 | If all ready | "Set up" button hidden, model info card shown |
 
 **Edge cases:**
 
 | Condition | Expected Behavior |
 |-----------|-------------------|
-| No internet during install/pull | Fails gracefully, error shown, button re-enabled |
-| Ollama installed but not running | Auto-started via `open -a Ollama` or `ollama serve` |
+| No internet during install/pull | Inline error with retry button. After 3 failures → failed screen |
+| Ollama installed but not running | Auto-started; overlay shows spinner while waiting |
+| Skip button clicked | Overlay dismissed, setup continues in background |
+| "Continue in background" | Shown when download is active, dismisses overlay |
 | App works without Ollama | Capture/annotate work normally, no AI organization |
 
 ### 8.3 Theme Toggle

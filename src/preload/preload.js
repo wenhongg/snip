@@ -68,9 +68,12 @@ contextBridge.exposeInMainWorld('snip', {
     ipcRenderer.invoke('segment-at-point', { points, cssWidth, cssHeight }),
   checkSegmentSupport: () => ipcRenderer.invoke('check-segment-support'),
 
-  // Setup window
-  closeSetupWindow: () => ipcRenderer.invoke('close-setup-window'),
-  openSetupWindow: () => ipcRenderer.invoke('open-setup-window'),
+  // Setup overlay
+  closeSetupOverlay: () => ipcRenderer.invoke('close-setup-overlay'),
+  openSetupOverlay: () => ipcRenderer.invoke('open-setup-overlay'),
+  onShowSetupOverlay: (callback) => {
+    ipcRenderer.on('show-setup-overlay', () => callback());
+  },
 
   // External URL
   openExternalUrl: (url) => ipcRenderer.invoke('open-external-url', url),

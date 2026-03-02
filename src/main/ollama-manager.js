@@ -8,6 +8,7 @@
 const path = require('path');
 const fs = require('fs');
 const { spawn, execFile } = require('child_process');
+const { Notification } = require('electron');
 const { Ollama } = require('ollama');
 const https = require('https');
 
@@ -95,6 +96,27 @@ function emitPullProgress(progress) {
       } catch (_) { /* ignore destroyed windows */ }
     }
   }
+}
+
+/**
+ * Show a notification that opens the setup overlay on click.
+ */
+function showInstallNotification(body) {
+  var n = new Notification({ title: 'Snip', body: body });
+  n.on('click', function() {
+    var { BrowserWindow } = require('electron');
+    var wins = BrowserWindow.getAllWindows();
+    for (var i = 0; i < wins.length; i++) {
+      if (!wins[i].isDestroyed()) {
+        try {
+          wins[i].webContents.send('show-setup-overlay');
+          wins[i].show();
+          wins[i].focus();
+        } catch (_) {}
+      }
+    }
+  });
+  n.show();
 }
 
 /**
@@ -240,6 +262,7 @@ async function installOllama() {
   }
 
   installInProgress = true;
+  // Single continuous progress: download 0-85%, extract 85-90%, install 90-95%, launch 95-100%
   installProgress = { status: 'downloading', percent: 0 };
   emitInstallProgress(installProgress);
 
@@ -249,13 +272,15 @@ async function installOllama() {
   var extractDir = path.join(tmpDir, 'Ollama-extract');
 
   try {
-    // Download the zip
+    // Download the zip (0% – 85%)
     await downloadFile('https://ollama.com/download/Ollama-darwin.zip', zipPath, function (percent) {
-      installProgress = { status: 'downloading', percent: percent };
+      var scaled = Math.round(percent * 0.85);
+      installProgress = { status: 'downloading', percent: scaled };
       emitInstallProgress(installProgress);
     });
 
-    installProgress = { status: 'extracting', percent: 100 };
+    showInstallNotification('Ollama downloaded — unpacking...');
+    installProgress = { status: 'extracting', percent: 87 };
     emitInstallProgress(installProgress);
 
     // Clean extract dir if it exists
@@ -280,7 +305,8 @@ async function installOllama() {
       throw new Error('Ollama.app not found in downloaded archive');
     }
 
-    installProgress = { status: 'installing', percent: 100 };
+    showInstallNotification('Ollama unpacked — installing...');
+    installProgress = { status: 'installing', percent: 92 };
     emitInstallProgress(installProgress);
 
     // Remove existing Ollama.app if present, then move
@@ -303,7 +329,8 @@ async function installOllama() {
 
     // Launch it
     ollamaInstalled = true;
-    installProgress = { status: 'launching', percent: 100 };
+    showInstallNotification('Ollama installed — launching...');
+    installProgress = { status: 'launching', percent: 96 };
     emitInstallProgress(installProgress);
 
     await autoStartOllama({ type: 'app', path: OLLAMA_APP_PATH });
@@ -321,6 +348,7 @@ async function installOllama() {
     emitStatus();
     if (onInstallComplete) onInstallComplete();
 
+    showInstallNotification('Ollama is ready!');
     console.log('[Ollama] Installed and running');
     return { success: true };
   } catch (err) {
@@ -378,11 +406,38 @@ function downloadFile(url, destPath, onProgress) {
  * Pull the configured model. Called explicitly by user action.
  */
 async function pullModel() {
-  if (!client) {
-    return { success: false, error: 'Ollama is not running' };
-  }
   if (pullInProgress) {
     return { success: false, error: 'Pull already in progress' };
+  }
+
+  // Verify server is still alive; try to reconnect if not
+  var host = getOllamaUrl() || DEFAULT_HOST;
+  var alive = await checkServer(host);
+  if (!alive) {
+    console.log('[Ollama] Server not responding — attempting reconnect...');
+    var install = findOllamaInstall();
+    if (install) {
+      try {
+        await autoStartOllama(install);
+        await waitForServer(host, 15000);
+        serverRunning = true;
+        client = new Ollama({ host: host });
+        emitStatus();
+      } catch (err) {
+        serverRunning = false;
+        emitStatus();
+        return { success: false, error: 'Ollama is not running. Please restart Ollama and try again.' };
+      }
+    } else {
+      serverRunning = false;
+      client = null;
+      emitStatus();
+      return { success: false, error: 'Ollama is not installed.' };
+    }
+  }
+
+  if (!client) {
+    return { success: false, error: 'Ollama is not running' };
   }
 
   var modelName = getOllamaModel();
@@ -394,18 +449,40 @@ async function pullModel() {
 
   try {
     var stream = await client.pull({ model: modelName, stream: true });
+    // Track per-digest progress to accumulate across all layers
+    var digestSizes = {};    // digest → total bytes
+    var digestDone = {};     // digest → completed bytes
+    var lastDigest = null;
+
     for await (var event of stream) {
-      if (event.total && event.total > 0) {
+      var digest = event.digest || null;
+      var evtStatus = event.status || 'downloading';
+
+      if (digest && event.total && event.total > 0) {
+        digestSizes[digest] = event.total;
+        digestDone[digest] = event.completed || 0;
+        lastDigest = digest;
+
+        // Sum all layers for overall progress
+        var sumTotal = 0;
+        var sumDone = 0;
+        var digests = Object.keys(digestSizes);
+        for (var d = 0; d < digests.length; d++) {
+          sumTotal += digestSizes[digests[d]];
+          sumDone += (digestDone[digests[d]] || 0);
+        }
+        var overallPercent = sumTotal > 0 ? Math.round((sumDone / sumTotal) * 100) : 0;
+
         pullProgress = {
-          status: event.status || 'downloading',
+          status: evtStatus,
           model: modelName,
-          percent: Math.round((event.completed / event.total) * 100),
-          total: event.total,
-          completed: event.completed
+          percent: overallPercent,
+          total: sumTotal,
+          completed: sumDone
         };
       } else {
         pullProgress = {
-          status: event.status || 'downloading',
+          status: evtStatus,
           model: modelName,
           percent: pullProgress.percent,
           total: pullProgress.total,
@@ -421,6 +498,7 @@ async function pullModel() {
     pullProgress = { status: 'ready', model: modelName, percent: 100, total: 0, completed: 0 };
     emitPullProgress(pullProgress);
     emitStatus();
+    showInstallNotification('Model downloaded — your AI assistant is ready!');
     return { success: true };
   } catch (err) {
     console.error('[Ollama] Pull failed:', err.message);

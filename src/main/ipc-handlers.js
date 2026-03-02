@@ -15,7 +15,7 @@ const ollamaManager = require('./ollama-manager');
 let pendingEditorData = null;
 let editorWindowRef = null;
 
-function registerIpcHandlers(getOverlayWindow, createEditorWindowFn, { openSetupWindow, closeSetupWindow } = {}) {
+function registerIpcHandlers(getOverlayWindow, createEditorWindowFn) {
   // Copy annotated image to clipboard
   ipcMain.handle('copy-to-clipboard', async (event, dataURL) => {
     const image = nativeImage.createFromDataURL(dataURL);
@@ -123,14 +123,18 @@ function registerIpcHandlers(getOverlayWindow, createEditorWindowFn, { openSetup
     return ollamaManager.checkModel();
   });
 
-  // Setup window controls
-  ipcMain.handle('close-setup-window', async () => {
-    if (closeSetupWindow) closeSetupWindow();
+  // Setup overlay controls (broadcast to all windows)
+  ipcMain.handle('close-setup-overlay', async () => {
+    for (const win of BrowserWindow.getAllWindows()) {
+      if (!win.isDestroyed()) win.webContents.send('hide-setup-overlay');
+    }
     return true;
   });
 
-  ipcMain.handle('open-setup-window', async () => {
-    if (openSetupWindow) openSetupWindow();
+  ipcMain.handle('open-setup-overlay', async () => {
+    for (const win of BrowserWindow.getAllWindows()) {
+      if (!win.isDestroyed()) win.webContents.send('show-setup-overlay');
+    }
     return true;
   });
 

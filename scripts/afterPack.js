@@ -7,6 +7,8 @@
  *   2. Removes non-macOS onnxruntime binaries (used by @huggingface/transformers)
  *   3. Removes wrong-arch darwin binaries (keep only the target arch)
  *   4. Pre-signs remaining .node and .dylib files with Developer ID cert
+ *
+ * Note: Ollama is NOT bundled — users install it separately via ollama.com.
  */
 
 const path = require('path');
@@ -117,6 +119,29 @@ module.exports = async function afterPack(context) {
   }
 
   // ---------------------------------------------------------------
+  // 2c. Remove wrong-platform/arch @img/sharp-* packages
+  //     npm only installs the matching platform, but strip any
+  //     that don't match darwin-{targetArch} as a safety net.
+  // ---------------------------------------------------------------
+  var imgDir = path.join(nmDir, '@img');
+  if (fs.existsSync(imgDir)) {
+    var keepSuffix = 'darwin-' + targetArch;
+    var imgPackages = fs.readdirSync(imgDir);
+    for (var si = 0; si < imgPackages.length; si++) {
+      var pkg = imgPackages[si];
+      // Only strip platform-specific packages (sharp-<platform>-<arch>, sharp-libvips-<platform>-<arch>)
+      // Keep non-platform packages like "colour"
+      if ((pkg.startsWith('sharp-darwin-') || pkg.startsWith('sharp-libvips-darwin-') ||
+           pkg.startsWith('sharp-linux') || pkg.startsWith('sharp-libvips-linux') ||
+           pkg.startsWith('sharp-win32') || pkg.startsWith('sharp-wasm') ||
+           pkg.startsWith('sharp-linuxmusl') || pkg.startsWith('sharp-libvips-linuxmusl')) &&
+          pkg.indexOf(keepSuffix) === -1) {
+        removeDir(path.join(imgDir, pkg), '@img/' + pkg + ' (not needed for ' + keepSuffix + ')');
+      }
+    }
+  }
+
+  // ---------------------------------------------------------------
   // 4. Pre-sign remaining native binaries
   //    electron-builder will sign the whole app bundle after this
   //    hook, but third-party .dylib/.node files sometimes need to
@@ -142,18 +167,6 @@ module.exports = async function afterPack(context) {
 
   var nativeDir = path.join(resourcesDir, 'native');
   findFiles(nativeDir, nativeBinaryPattern, binaries);
-
-  // Also sign the bundled Ollama binary and its support libraries (.dylib, .so, .metallib)
-  var ollamaDir = path.join(resourcesDir, 'ollama');
-  if (fs.existsSync(ollamaDir)) {
-    var ollamaBinaryPattern = /\.(dylib|so|metallib)$/;
-    findFiles(ollamaDir, ollamaBinaryPattern, binaries);
-    // Sign the main ollama executable too
-    var ollamaExe = path.join(ollamaDir, 'ollama');
-    if (fs.existsSync(ollamaExe)) {
-      binaries.push(ollamaExe);
-    }
-  }
 
   if (binaries.length === 0) {
     console.log('[afterPack] No native binaries found to pre-sign');
