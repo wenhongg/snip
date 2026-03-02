@@ -1,4 +1,4 @@
-const { app, BrowserWindow, screen } = require('electron');
+const { app, BrowserWindow, screen, systemPreferences } = require('electron');
 const path = require('path');
 const { registerShortcuts, unregisterShortcuts } = require('./shortcuts');
 const { createTray } = require('./tray');
@@ -332,6 +332,23 @@ app.whenReady().then(() => {
 
   // Open home window on startup
   showHomeWindow();
+
+  // Push screen recording permission status to home window
+  if (process.platform === 'darwin') {
+    var permStatus = systemPreferences.getMediaAccessStatus('screen');
+    if (permStatus !== 'granted' && homeWindow && !homeWindow.isDestroyed()) {
+      var sendStatus = function() {
+        if (homeWindow && !homeWindow.isDestroyed()) {
+          homeWindow.webContents.send('screen-permission-status', permStatus);
+        }
+      };
+      if (homeWindow.webContents.isLoading()) {
+        homeWindow.webContents.once('did-finish-load', sendStatus);
+      } else {
+        sendStatus();
+      }
+    }
+  }
 });
 
 app.on('will-quit', () => {

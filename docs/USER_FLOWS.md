@@ -122,21 +122,33 @@ Detailed user flows for every feature in Snip. Each flow describes preconditions
 - Native module sets `NSWindowCollectionBehaviorMoveToActiveSpace` on overlay
 - `homeWindow.hide()` called before capture
 
-### 2.6 No Screen Recording Permission
+### 2.6 Screen Recording Permission
+
+Permission is checked proactively at launch in the home window and reactively before each capture.
+
+#### Proactive check (home window)
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
-| 1 | Revoke Screen Recording permission for the app | -- |
-| 2 | Press Cmd+Shift+2 | Permission pre-check detects `denied` status |
-| 3 | -- | Dialog appears: "Snip needs Screen Recording permission to capture snips." |
-| 4 | -- | Dialog buttons: "Open System Settings" and "Cancel" |
-| 5 | Click "Open System Settings" | macOS System Settings opens to Privacy > Screen Recording |
-| 6 | -- | Home window does NOT re-show (permission errors skip home window restore) |
+| 1 | Launch Snip | Home window opens, `systemPreferences.getMediaAccessStatus('screen')` checked |
+| 2a | Status is `granted` | Normal empty state: "No snips yet. Press Cmd+Shift+2 to capture." |
+| 2b | Status is `not-determined` | Soft banner: "macOS will ask for Screen Recording access on your first snip." |
+| 2c | Status is `denied`/`restricted` | Full banner with "Open System Settings" + "Relaunch Snip" buttons |
+| 3 | (denied) Click "Open System Settings" | macOS System Settings opens to Privacy > Screen Recording |
+| 4 | (denied) Grant permission in System Settings | App polls every 2s, auto-relaunches when `granted` detected |
+| 5 | (denied) Click "Relaunch Snip" | App relaunches immediately via `app.relaunch()` |
+
+#### Reactive check (capture attempt)
+
+| Step | Action | Expected Result |
+|------|--------|-----------------|
+| 1 | Press Cmd+Shift+2 | `captureScreen()` pre-checks permission status |
+| 2 | If `denied`/`restricted` | Dialog: "Open System Settings" / "Cancel" (no blank capture attempted) |
+| 3 | If `not-determined` | Capture proceeds, macOS shows native permission prompt |
 
 **Edge cases:**
-- First launch (`not-determined` status): capture proceeds, macOS shows its native permission prompt
-- Blank thumbnails (macOS 15+): secondary check detects blank capture and shows the same dialog
-- After granting permission: user must restart Snip for the change to take effect
+- Blank thumbnails (macOS 15+): secondary check in capturer still detects blank captures as a fallback
+- Banner only shows inside the empty state — once screenshots exist, it naturally disappears
 
 ---
 

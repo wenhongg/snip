@@ -103,7 +103,24 @@
         </button>
       </div>
       <div id="file-grid"></div>
-      <div id="empty-folder" class="hidden">No snips yet. Press Cmd+Shift+2 to capture.</div>
+      <div id="empty-folder" class="hidden">
+        <div id="permission-banner" class="permission-banner hidden">
+          <div class="permission-icon">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+              <line x1="8" y1="21" x2="16" y2="21"/>
+              <line x1="12" y1="17" x2="12" y2="21"/>
+            </svg>
+          </div>
+          <div id="permission-title" class="permission-title"></div>
+          <div id="permission-desc" class="permission-desc"></div>
+          <div class="permission-actions">
+            <button id="permission-open-settings" class="permission-btn hidden">Open System Settings</button>
+            <button id="permission-relaunch" class="permission-btn permission-btn-secondary hidden">Relaunch Snip</button>
+          </div>
+        </div>
+        <div id="empty-default-text">No snips yet. Press <kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>2</kbd> to capture.</div>
+      </div>
     </div>
 
     <!-- Search page -->

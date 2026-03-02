@@ -233,6 +233,10 @@ The preload script (`preload.js`) exposes `window.snip` with these methods:
 | `onAnimateProgress(cb)` | M -> R | Animation progress (upload, queue, generate, encode) |
 | `saveAnimation(data)` | R -> M | Save GIF/APNG to disk |
 | `openExternalUrl(url)` | R -> M | Open URL in default browser |
+| `getScreenPermission()` | R -> M | Check screen recording permission status |
+| `openScreenRecordingSettings()` | R -> M | Open macOS Privacy > Screen Recording |
+| `relaunchApp()` | R -> M | Relaunch the app (after permission grant) |
+| `onScreenPermissionStatus(cb)` | M -> R | Push permission status on startup |
 
 *(R = Renderer, M = Main)*
 

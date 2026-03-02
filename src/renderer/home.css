@@ -227,10 +227,80 @@ body {
 #empty-folder {
   flex: 1;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   color: var(--text-muted);
   font-size: 14px;
+  gap: 12px;
+}
+
+/* Permission banner */
+.permission-banner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 32px;
+  max-width: 400px;
+  text-align: center;
+}
+
+.permission-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  background: var(--accent-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.permission-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-bright);
+}
+
+.permission-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.permission-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.permission-btn {
+  padding: 8px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--accent);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.permission-btn:hover {
+  background: var(--accent-hover);
+}
+
+.permission-btn:active {
+  transform: scale(0.97);
+}
+
+.permission-btn-secondary {
+  background: var(--btn-secondary-bg);
+  color: var(--text-dim);
+}
+
+.permission-btn-secondary:hover {
+  background: var(--btn-secondary-hover);
 }
 
 /* ── Search page ── */

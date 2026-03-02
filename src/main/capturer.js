@@ -1,4 +1,4 @@
-const { app, desktopCapturer, screen, dialog, shell } = require('electron');
+const { app, desktopCapturer, screen, dialog, shell, systemPreferences } = require('electron');
 const path = require('path');
 
 // Load native addon for macOS Space behavior.
@@ -32,6 +32,15 @@ function showPermissionDialog(detail) {
 }
 
 async function captureScreen(createOverlayFn, getOverlayFn) {
+  // Pre-check permission status (avoids blank capture attempt on denied)
+  if (process.platform === 'darwin') {
+    const permStatus = systemPreferences.getMediaAccessStatus('screen');
+    if (permStatus === 'denied' || permStatus === 'restricted') {
+      showPermissionDialog('Grant Screen Recording permission in System Settings > Privacy & Security > Screen Recording, then restart Snip.');
+      throw new Error('Screen recording permission denied');
+    }
+  }
+
   // 1. Capture screenshot FIRST (before overlay appears)
   // Use whichever display the cursor is currently on
   const cursorDisplay = screen.getDisplayNearestPoint(screen.getCursorScreenPoint());

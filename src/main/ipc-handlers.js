@@ -1,4 +1,4 @@
-const { ipcMain, clipboard, nativeImage, app, Notification, shell, BrowserWindow } = require('electron');
+const { ipcMain, clipboard, nativeImage, app, Notification, shell, BrowserWindow, systemPreferences } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const {
@@ -414,6 +414,22 @@ function registerIpcHandlers(getOverlayWindow, createEditorWindowFn, { openSetup
     console.log('[Snip] Saved animation: animations/%s (%s KB)', filename, (buf.length / 1024).toFixed(1));
 
     return filepath;
+  });
+
+  // Screen recording permission
+  ipcMain.handle('get-screen-permission', async () => {
+    if (process.platform !== 'darwin') return 'granted';
+    return systemPreferences.getMediaAccessStatus('screen');
+  });
+
+  ipcMain.handle('open-screen-recording-settings', async () => {
+    shell.openExternal('x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture');
+    return true;
+  });
+
+  ipcMain.handle('relaunch-app', async () => {
+    app.relaunch();
+    app.exit(0);
   });
 
   // Theme

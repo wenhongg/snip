@@ -48,11 +48,88 @@
   // ── Screenshots page ──
   async function init() {
     screenshotsDir = await window.snip.getScreenshotsDir();
+    initPermissionCheck();
     loadFolder('');
     initOllamaSettings();
     initAnimationSettings();
     loadTags();
     initThemeToggle();
+  }
+
+  // ── Screen recording permission check ──
+  var permissionPollTimer = null;
+
+  function initPermissionCheck() {
+    // Listen for status pushed from main at startup
+    if (window.snip.onScreenPermissionStatus) {
+      window.snip.onScreenPermissionStatus(function(status) {
+        applyPermissionStatus(status);
+      });
+    }
+
+    // Also check proactively
+    window.snip.getScreenPermission().then(function(status) {
+      applyPermissionStatus(status);
+    });
+
+    // Wire up buttons
+    document.getElementById('permission-open-settings').addEventListener('click', function() {
+      window.snip.openScreenRecordingSettings();
+    });
+    document.getElementById('permission-relaunch').addEventListener('click', function() {
+      window.snip.relaunchApp();
+    });
+  }
+
+  function applyPermissionStatus(status) {
+    var banner = document.getElementById('permission-banner');
+    var defaultText = document.getElementById('empty-default-text');
+    var title = document.getElementById('permission-title');
+    var desc = document.getElementById('permission-desc');
+    var settingsBtn = document.getElementById('permission-open-settings');
+    var relaunchBtn = document.getElementById('permission-relaunch');
+
+    if (!banner) return;
+
+    if (status === 'granted') {
+      banner.classList.add('hidden');
+      if (defaultText) defaultText.classList.remove('hidden');
+      if (permissionPollTimer) {
+        clearInterval(permissionPollTimer);
+        permissionPollTimer = null;
+      }
+      return;
+    }
+
+    // Show banner, hide default text
+    banner.classList.remove('hidden');
+    if (defaultText) defaultText.classList.add('hidden');
+
+    if (status === 'not-determined') {
+      title.textContent = 'Screen Recording Permission';
+      desc.textContent = 'macOS will ask for Screen Recording access on your first snip. After granting, Snip will restart to apply the change.';
+      settingsBtn.classList.add('hidden');
+      relaunchBtn.classList.add('hidden');
+    } else {
+      // 'denied' or 'restricted'
+      title.textContent = 'Screen Recording Permission Required';
+      desc.textContent = 'Enable Snip in System Settings \u2192 Privacy & Security \u2192 Screen Recording, then relaunch.';
+      settingsBtn.classList.remove('hidden');
+      relaunchBtn.classList.remove('hidden');
+
+      // Poll for permission change and auto-relaunch
+      if (!permissionPollTimer) {
+        permissionPollTimer = setInterval(function() {
+          window.snip.getScreenPermission().then(function(newStatus) {
+            if (newStatus === 'granted') {
+              clearInterval(permissionPollTimer);
+              permissionPollTimer = null;
+              window.snip.relaunchApp();
+            }
+          });
+        }, 2000);
+      }
+    }
   }
 
   // ── Theme toggle ──

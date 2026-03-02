@@ -97,6 +97,14 @@ contextBridge.exposeInMainWorld('snip', {
   // Editor resize
   resizeEditor: (minWidth) => ipcRenderer.invoke('resize-editor', { minWidth }),
 
+  // Screen recording permission
+  getScreenPermission: () => ipcRenderer.invoke('get-screen-permission'),
+  openScreenRecordingSettings: () => ipcRenderer.invoke('open-screen-recording-settings'),
+  relaunchApp: () => ipcRenderer.invoke('relaunch-app'),
+  onScreenPermissionStatus: (callback) => {
+    ipcRenderer.on('screen-permission-status', (event, status) => callback(status));
+  },
+
   // Theme
   getTheme: () => ipcRenderer.invoke('get-theme'),
   setTheme: (theme) => ipcRenderer.invoke('set-theme', theme),
