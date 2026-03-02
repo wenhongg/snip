@@ -13,7 +13,7 @@ Capture a region of your screen, annotate with shapes, text, blur, or AI segment
 ## Install
 
 ```bash
-brew install --cask rixinhahaha/snip/snip
+brew install --cask rixinhahaha/tap/snip-app
 ```
 
 Or download the DMG directly from [Releases](https://github.com/rixinhahaha/snip/releases) (Apple Silicon only).
