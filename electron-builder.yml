@@ -21,6 +21,8 @@ mac:
     LSUIElement: true
     NSScreenCaptureUsageDescription: "Snip needs screen recording permission to capture screenshots."
 
+artifactName: "Snip-${version}-${arch}.${ext}"
+
 dmg:
   title: "Snip"
   sign: false

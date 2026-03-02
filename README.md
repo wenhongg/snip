@@ -10,7 +10,15 @@ macOS screenshot tool with annotation and AI-powered organization.
 
 Capture a region of your screen, annotate with shapes, text, blur, or AI segmentation, then save. An AI agent automatically categorizes, names, and tags each screenshot. Semantic search lets you find any screenshot by description.
 
-## Quick Start
+## Install
+
+```bash
+brew install --cask rixinhahaha/snip/snip
+```
+
+Or download the DMG directly from [Releases](https://github.com/rixinhahaha/snip/releases) (Apple Silicon and Intel builds available).
+
+## Quick Start (Development)
 
 ```bash
 npm install

@@ -118,7 +118,18 @@ npm run build
    - Removes wrong-arch `electron-liquid-glass` prebuilds
    - Pre-signs remaining `.node`, `.dylib`, `.so`, `.metallib` files (including bundled Ollama binary)
 4. No `CSC_LINK` detected -> `sign:adhoc` runs `codesign --force --deep --sign -`
-5. Output: `dist/mac-arm64/Snip.app` + `.dmg`
+5. Output: `dist/mac-arm64/Snip.app` + `Snip-{version}-arm64.dmg`
+
+### DMG Naming Convention
+
+All DMGs use the format `Snip-{version}-{arch}.dmg` (configured via `artifactName` in `electron-builder.yml`):
+
+| Architecture | Example |
+|-------------|---------|
+| Apple Silicon | `Snip-1.0.8-arm64.dmg` |
+| Intel | `Snip-1.0.8-x64.dmg` |
+
+The CI release workflow renames the x64 build to include the `-x64` suffix (electron-builder omits it by default). The Homebrew cask URL template `Snip-#{version}-#{arch}.dmg` relies on this convention.
 
 ### Production Build (Signed + Notarized)
 
@@ -150,12 +161,37 @@ base64 -i certificate.p12 | tr -d '\n' | pbcopy
 4. `afterPack` hook cleans unused modules, removes wrong-arch prebuilds, pre-signs all native binaries + Ollama binary
 5. App submitted to Apple notary service
 6. Notarization ticket stapled to DMG on success
-7. Output: signed + notarized `dist/*.dmg`
+7. Output: signed + notarized `dist/Snip-{version}-{arch}.dmg`
 
 **Error cases**:
 - Wrong cert type -> build exits early with error
 - Missing env vars -> build exits listing what's missing
 - Notarization rejected -> Apple error log with specific binary paths
+
+---
+
+## Distribution
+
+### GitHub Releases
+
+Push a `v*` tag to trigger the Release workflow (`.github/workflows/release.yml`):
+
+```bash
+git tag v1.0.9
+git push origin v1.0.9
+```
+
+The workflow builds DMGs for both `arm64` and `x64`, creates a GitHub release, and auto-updates the Homebrew cask.
+
+### Homebrew
+
+Users install via:
+
+```bash
+brew install --cask rixinhahaha/snip/snip
+```
+
+The cask is hosted at [`rixinhahaha/homebrew-snip`](https://github.com/rixinhahaha/homebrew-snip). The `update-cask` job in the release workflow automatically updates the cask version and checksums after each release.
 
 ---
 
@@ -195,7 +231,7 @@ base64 -i certificate.p12 | tr -d '\n' | pbcopy
 | No tray icon visible | Check `assets/tray-iconTemplate.png` exists (Template suffix = auto dark/light) |
 | Screen capture blank | Grant Screen Recording permission, restart app |
 | SAM segment tool hidden | Needs 4GB+ RAM and system Node.js (not Electron's bundled one) |
-| Animation (2GIF) fails | Check fal.ai API key is set in Settings → Animation, and internet connection is available |
+| Animation (Animate) fails | Check fal.ai API key is set in Settings → Animation, and internet connection is available |
 | `electron-liquid-glass` fails | Only works on macOS 26+; older macOS falls back to vibrancy |
 | App switches Spaces on capture | Ensure `app.dock.hide()` is running and native module built |
 | Glass theme looks opaque | Native glass layer failed — check console for `[Snip] Liquid glass` messages |

@@ -47,7 +47,7 @@ Power users on macOS who take 5-50 screenshots per day: developers, designers, P
 | Tag | G | Two-click callout: draggable label group + draggable anchor tip with leader line |
 | Blur Brush | B | Paint to pixelate sensitive info |
 | Segment | S | AI-powered object selection (SlimSAM) — Apply Cutout or Tag Segment (4-color palette: Red/Yellow/Green/Blue) |
-| 2GIF | — | Animate a segment cutout into GIF/APNG via fal.ai cloud API |
+| Animate | — | Animate a segment cutout into GIF/APNG via fal.ai cloud API |
 
 ### Save & Export
 - **Esc/Enter/Done**: Copy annotated PNG to clipboard, close editor
@@ -61,7 +61,7 @@ Power users on macOS who take 5-50 screenshots per day: developers, designers, P
 - New category suggestions via macOS notification
 - Default model: `minicpm-v` (8B, Metal-accelerated on Apple Silicon) — pulled on first launch, not bundled. If user already has minicpm-v in system Ollama, blobs are symlinked (no re-download).
 
-### Animation (2GIF)
+### Animation (Animate)
 - Requires internet connection and a fal.ai API key (configured in Settings > Animation)
 - Uses fal.ai Wan 2.2 image-to-video cloud API with text-based animation prompts
 - AI-generated presets: Ollama (minicpm-v) analyzes the cutout and suggests 3 animation motions tailored to the subject (e.g., "wag tail" for a dog, "sway in wind" for a plant). Falls back to 6 static presets (Breathe, Sway, Bounce, Wobble, Float, Zoom In) if Ollama is unavailable.
