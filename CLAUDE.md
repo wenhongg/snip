@@ -72,6 +72,9 @@ These are non-negotiable rules. Violating them causes crashes or broken UX:
 - The native `NSGlassEffectView` layer is always active on macOS 26+. Dark/Light themes cover it with opaque backgrounds. The Glass theme reveals it.
 - `--glass-blur: 0px` in Glass theme because the native layer handles blur.
 
+### Releases
+- **Before creating a new release tag**, always bump the version in **both** `package.json` and `package-lock.json` (run `npm install --package-lock-only` to sync the lock file) **and** `site/script.js` (`SNIP_VERSION`). Commit the version bump before tagging.
+
 ---
 
 ## Project Overview
