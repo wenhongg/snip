@@ -12,14 +12,8 @@ jobs:
   build:
     strategy:
       matrix:
-        include:
-          - runner: macos-latest
-            arch: arm64
-            electron_arch: --arm64
-          - runner: macos-13
-            arch: x64
-            electron_arch: --x64
-    runs-on: ${{ matrix.runner }}
+        arch: [arm64, x64]
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -33,6 +27,9 @@ jobs:
 
       - run: npm ci
 
+      - name: Rebuild native modules for target arch
+        run: node-gyp rebuild --arch=${{ matrix.arch }}
+
       - name: Download HuggingFace models
         run: node scripts/download-models.js
 
@@ -43,7 +40,7 @@ jobs:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-        run: npx electron-builder --mac dmg ${{ matrix.electron_arch }} --publish never
+        run: npx electron-builder --mac dmg --${{ matrix.arch }} --publish never
 
       - uses: actions/upload-artifact@v4
         with:
