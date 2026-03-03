@@ -8,18 +8,7 @@
 
   // --- Download constants (update here for version bumps) ---
   var SNIP_VERSION = '1.0.13';
-  var DOWNLOAD_BASE = 'https://github.com/rixinhahaha/snip/releases/latest/download/';
-
-  // Default to Apple Silicon — most Mac users are on ARM now
-  var selectedArch = 'arm64';
-
-  function archLabel(arch) {
-    return arch === 'x64' ? 'Intel' : 'Apple Silicon';
-  }
-
-  function dmgUrl(arch) {
-    return DOWNLOAD_BASE + 'Snip-' + SNIP_VERSION + '-' + arch + '.dmg';
-  }
+  var DOWNLOAD_URL = 'https://github.com/rixinhahaha/snip/releases/latest/download/Snip-' + SNIP_VERSION + '-arm64.dmg';
 
   // --- Nav scroll effect ---
   var nav = document.getElementById('nav');
@@ -117,72 +106,16 @@
     });
   }
 
-  // --- Populate download links & dropdown ---
-  function updateDownloadButtons() {
-    // Update main download links
+  // --- Populate download links ---
+  function initDownloadLinks() {
     var links = document.querySelectorAll('.download-link');
     links.forEach(function (link) {
-      link.href = dmgUrl(selectedArch);
-      var svg = link.querySelector('svg');
-      if (svg) {
-        link.innerHTML = '';
-        link.appendChild(svg);
-        link.appendChild(document.createTextNode(' Download for macOS (' + archLabel(selectedArch) + ')'));
-      }
-    });
-
-    // Update dropdown option URLs
-    var options = document.querySelectorAll('.download-option');
-    options.forEach(function (opt) {
-      var arch = opt.getAttribute('data-arch');
-      opt.href = dmgUrl(arch);
-    });
-  }
-
-  function initDownloadLinks() {
-    updateDownloadButtons();
-
-    // Toggle dropdown on chevron click
-    var toggles = document.querySelectorAll('.download-toggle');
-    toggles.forEach(function (btn) {
-      btn.addEventListener('click', function (e) {
-        e.stopPropagation();
-        var split = btn.closest('.download-split');
-        // Close other open dropdowns
-        document.querySelectorAll('.download-split.open').forEach(function (s) {
-          if (s !== split) s.classList.remove('open');
-        });
-        split.classList.toggle('open');
-      });
-    });
-
-    // Handle option selection — switch arch and download
-    var options = document.querySelectorAll('.download-option');
-    options.forEach(function (opt) {
-      opt.addEventListener('click', function (e) {
-        e.preventDefault();
-        selectedArch = opt.getAttribute('data-arch');
-        updateDownloadButtons();
-        // Close dropdown
-        document.querySelectorAll('.download-split.open').forEach(function (s) {
-          s.classList.remove('open');
-        });
-        // Trigger download
-        window.location.href = dmgUrl(selectedArch);
-      });
-    });
-
-    // Close dropdown on outside click
-    document.addEventListener('click', function () {
-      document.querySelectorAll('.download-split.open').forEach(function (s) {
-        s.classList.remove('open');
-      });
+      link.href = DOWNLOAD_URL;
     });
   }
 
   // --- Smooth scroll for anchor links ---
   document.querySelectorAll('a[href^="#"]').forEach(function (anchor) {
-    if (anchor.classList.contains('download-link')) return;
     anchor.addEventListener('click', function (e) {
       var href = this.getAttribute('href');
       if (href === '#') return;
