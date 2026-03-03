@@ -82,11 +82,11 @@ The **Glass** theme (`[data-theme="glass"]`) is a third theme option with lavend
 |------|-------|-------|
 | **Accent** | `#A78BFA` (Violet 400) | Lighter purple for glass contrast |
 | **Accent hover** | `#8B5CF6` (Violet 500) | Hover/pressed states |
-| **Background body** | `rgba(28, 14, 52, 0.18)` | Subtle deep-purple wash |
-| **Background primary** | `rgba(28, 14, 52, 0.28)` | Main content area (readable tint) |
-| **Background secondary** | `rgba(28, 14, 52, 0.38)` | Sidebar (strong structural tint) |
-| **Background elevated** | `rgba(35, 18, 65, 0.36)` | Cards/panels (accent-tinted) |
-| **Background toolbar** | `rgba(28, 14, 52, 0.35)` | Toolbar with strong tint |
+| **Background body** | `rgba(22, 10, 42, 0.24)` | Subtle deep-purple wash |
+| **Background primary** | `rgba(22, 10, 42, 0.34)` | Main content area (readable tint) |
+| **Background secondary** | `rgba(22, 10, 42, 0.44)` | Sidebar (strong structural tint) |
+| **Background elevated** | `rgba(28, 14, 55, 0.42)` | Cards/panels (accent-tinted) |
+| **Background toolbar** | `rgba(22, 10, 42, 0.40)` | Toolbar with strong tint |
 | **Text primary** | `#f0eafa` | Bright lavender body text |
 | **Text muted** | `#9a90b0` | Secondary labels (~4.2:1 contrast) |
 | **Text bright** | `#ffffff` | Headings, active labels |
