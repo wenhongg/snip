@@ -1649,6 +1649,23 @@ kbd {
   .ai-callout-gallery {
     right: 4px;
   }
+
+  .hero-actions {
+    flex-direction: column;
+    width: 100%;
+    padding: 0 16px;
+  }
+
+  .hero-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .animate-setup,
+  .ai-privacy {
+    flex-direction: column;
+    gap: 12px;
+  }
 }
 
 @media (max-width: 640px) {
@@ -1729,8 +1746,105 @@ kbd {
   }
 
   .brew-install {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     padding: 8px 12px 8px 14px;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  .brew-install code {
+    font-size: 0.72rem;
+  }
+
+  .hero-visual {
+    margin: 0 -12px;
+  }
+
+  .hero-video-wrapper {
+    border-radius: var(--radius-sm);
+  }
+
+  .hero-video {
+    border-radius: var(--radius-sm);
+  }
+
+  .section-header h2 {
+    font-size: 1.5rem;
+  }
+
+  .section-header p {
+    font-size: 0.92rem;
+  }
+
+  .ai-screenshot-img-wrapper {
+    border-radius: var(--radius-sm);
+  }
+
+  .ai-screenshot-img-wrapper img {
+    border-radius: var(--radius-sm);
+  }
+
+  .ai-callout {
+    display: none;
+  }
+
+  .step-number {
+    width: 40px;
+    height: 40px;
+    font-size: 0.95rem;
+  }
+
+  .step:not(:last-child)::after {
+    left: 19px;
+    top: 64px;
+  }
+
+  .cta-section {
+    padding: 80px 0;
+  }
+
+  .features, .how-it-works, .tools-section, .ai-section {
+    padding: 80px 0;
+  }
+
+  .segment-tag-demo, .animate-demo {
+    padding: 80px 0;
+  }
+}
+
+@media (max-width: 400px) {
+  h1 {
+    font-size: 1.8rem;
+  }
+
+  .hero-subtitle {
+    font-size: 0.9rem;
+  }
+
+  .tools-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tech-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .nav-logo span {
+    display: none;
+  }
+
+  .brew-install {
+    font-size: 0.68rem;
+    gap: 6px;
+  }
+
+  .brew-install code {
+    font-size: 0.65rem;
+  }
+
+  .footer-links {
+    flex-direction: column;
+    gap: 12px;
   }
 }
 
