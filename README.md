@@ -4,7 +4,7 @@
 
 # Snip
 
-**[rixinhahaha.github.io/snip](https://rixinhahaha.github.io/snip/)**
+**[snipit.dev](https://snipit.dev)**
 
 macOS screenshot tool with annotation and AI-powered organization.
 
