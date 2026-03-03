@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Snip Setup Guide — macOS Screen Recording Permissions & AI Configuration</title>
+  <meta name="description" content="Step-by-step guide to set up Snip on your Mac. Enable Screen Recording permissions, configure local AI with Ollama for automatic screenshot naming, tagging, and semantic search.">
+  <meta name="theme-color" content="#8B5CF6">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Snip Setup Guide — macOS Permissions & AI Configuration">
+  <meta property="og:description" content="Get Snip working perfectly on your Mac. Step-by-step guide for Screen Recording permissions and local AI setup with Ollama.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://snipit.dev/guide">
+  <meta property="og:image" content="https://snipit.dev/assets/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:site_name" content="Snip">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Snip Setup Guide — macOS Permissions & AI Configuration">
+  <meta name="twitter:description" content="Get Snip working perfectly on your Mac. Step-by-step guide for Screen Recording permissions and local AI setup.">
+  <meta name="twitter:image" content="https://snipit.dev/assets/og-image.png">
+
+  <link rel="canonical" href="https://snipit.dev/guide">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="icon" type="image/png" href="assets/icon.png">
+  <link rel="stylesheet" href="styles.css">
+
+  <style>
+    /* --- Guide-specific styles --- */
+    .guide-hero {
+      padding: 140px 24px 60px;
+      text-align: center;
+      position: relative;
+    }
+
+    .guide-hero h1 {
+      margin-bottom: 16px;
+    }
+
+    .guide-hero p {
+      font-size: 1.15rem;
+      max-width: 560px;
+      margin: 0 auto;
+    }
+
+    .guide-content {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 0 24px 120px;
+    }
+
+    .guide-section {
+      margin-bottom: 64px;
+    }
+
+    .guide-section-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .guide-section-icon {
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--accent-dim);
+      border-radius: var(--radius-sm);
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .guide-section-header h2 {
+      font-size: 1.5rem;
+      margin: 0;
+    }
+
+    .guide-section-header p {
+      font-size: 0.9rem;
+      margin-top: 4px;
+    }
+
+    .guide-why {
+      padding: 20px 24px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      margin-bottom: 24px;
+    }
+
+    .guide-why strong {
+      color: #fff;
+      font-size: 0.9rem;
+    }
+
+    .guide-why p {
+      font-size: 0.9rem;
+      margin-top: 6px;
+    }
+
+    .guide-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .guide-step {
+      display: flex;
+      gap: 16px;
+      padding: 20px 24px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      transition: border-color var(--transition);
+    }
+
+    .guide-step:hover {
+      border-color: var(--border-hover);
+    }
+
+    .guide-step-num {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--accent-dim);
+      border: 1px solid rgba(139, 92, 246, 0.25);
+      border-radius: 50%;
+      color: var(--accent);
+      font-size: 0.85rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .guide-step-content h4 {
+      margin-bottom: 4px;
+    }
+
+    .guide-step-content p {
+      font-size: 0.88rem;
+    }
+
+    .guide-path {
+      display: inline;
+      padding: 2px 8px;
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 0.82em;
+      color: #c4b5fd;
+      background: rgba(139, 92, 246, 0.15);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+      border-radius: 5px;
+      white-space: nowrap;
+      margin: 0 4px;
+    }
+
+    .guide-callout {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 20px 24px;
+      background: var(--accent-dim);
+      border: 1px solid rgba(139, 92, 246, 0.2);
+      border-radius: var(--radius-md);
+      margin-top: 20px;
+    }
+
+    .guide-callout svg {
+      flex-shrink: 0;
+      margin-top: 2px;
+      color: var(--accent);
+    }
+
+    .guide-callout strong {
+      display: block;
+      color: #fff;
+      margin-bottom: 4px;
+      font-size: 0.9rem;
+    }
+
+    .guide-callout p {
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+      margin: 0;
+    }
+
+    .guide-callout-warning {
+      background: rgba(234, 179, 8, 0.08);
+      border-color: rgba(234, 179, 8, 0.2);
+    }
+
+    .guide-callout-warning svg {
+      color: #eab308;
+    }
+
+    .guide-callout-warning strong {
+      color: #fde047;
+    }
+
+    .guide-shortcut-list {
+      display: flex;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .guide-shortcut-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      background: rgba(139, 92, 246, 0.08);
+      border: 1px solid rgba(139, 92, 246, 0.15);
+      border-radius: 8px;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    .guide-shortcut-item kbd {
+      font-size: 0.82em;
+    }
+
+    .guide-shortcut-item > span {
+      color: var(--text-muted);
+      font-size: 0.85em;
+    }
+
+    .guide-image {
+      position: relative;
+      margin: 24px 0;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .guide-image img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .guide-checklist {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+
+    .guide-checklist-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 20px;
+    }
+
+    .guide-checklist-row + .guide-checklist-row {
+      border-top: 1px solid var(--border);
+    }
+
+    .guide-check-icon {
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .guide-checklist-label {
+      font-weight: 600;
+      font-size: 0.92rem;
+      color: #fff;
+      white-space: nowrap;
+    }
+
+    .guide-checklist-row .guide-path {
+      margin-left: auto;
+    }
+
+    .guide-optional-badge {
+      font-size: 0.5em;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: var(--accent-dim);
+      border: 1px solid rgba(139, 92, 246, 0.25);
+      padding: 3px 10px;
+      border-radius: 20px;
+      vertical-align: middle;
+      position: relative;
+      top: -2px;
+    }
+
+    .guide-nav-active {
+      color: #fff !important;
+    }
+
+    .guide-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-secondary);
+      font-size: 0.88rem;
+      font-weight: 500;
+      margin-bottom: 32px;
+      transition: color var(--transition);
+    }
+
+    .guide-back:hover {
+      color: #fff;
+    }
+
+    .guide-cta {
+      text-align: center;
+      padding: 60px 0;
+      border-top: 1px solid var(--border);
+      margin-top: 40px;
+    }
+
+    .guide-cta h3 {
+      font-size: 1.4rem;
+      margin-bottom: 12px;
+    }
+
+    .guide-cta p {
+      font-size: 1rem;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 640px) {
+      .guide-hero {
+        padding-top: 100px;
+      }
+
+      .guide-section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+
+      .guide-step {
+        flex-direction: column;
+        gap: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Ambient sparkle canvas -->
+  <canvas id="sparkle-canvas" aria-hidden="true"></canvas>
+
+  <!-- Navigation -->
+  <nav class="nav" id="nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="32" height="32" role="img" aria-label="Snip logo">
+          <defs>
+            <linearGradient id="n-bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0f0a1e"/><stop offset="100%" stop-color="#1a1030"/></linearGradient>
+            <linearGradient id="n-bl" x1="0.3" y1="0" x2="0.7" y2="1"><stop offset="0%" stop-color="#93c5fd"/><stop offset="60%" stop-color="#818cf8"/><stop offset="100%" stop-color="#6366f1"/></linearGradient>
+            <linearGradient id="n-br" x1="0.7" y1="0" x2="0.3" y2="1"><stop offset="0%" stop-color="#93c5fd"/><stop offset="60%" stop-color="#818cf8"/><stop offset="100%" stop-color="#6366f1"/></linearGradient>
+            <linearGradient id="n-h" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#818cf8"/><stop offset="100%" stop-color="#6366f1"/></linearGradient>
+            <filter id="n-g" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="1.5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <rect width="100" height="100" rx="22.5" fill="url(#n-bg)"/>
+          <g transform="translate(50,46)">
+            <g><animateTransform attributeName="transform" type="rotate" values="0;-15;0;-15;0;0;0;0;0;0" dur="3s" repeatCount="indefinite" keyTimes="0;0.08;0.16;0.24;0.32;0.4;0.5;0.6;0.8;1"/><path d="M-2,2 L-13,-22 Q-11.5,-25 -8,-23 L1,-1 Z" fill="url(#n-bl)" opacity="0.95"/></g>
+            <g><animateTransform attributeName="transform" type="rotate" values="0;15;0;15;0;0;0;0;0;0" dur="3s" repeatCount="indefinite" keyTimes="0;0.08;0.16;0.24;0.32;0.4;0.5;0.6;0.8;1"/><path d="M2,2 L13,-22 Q11.5,-25 8,-23 L-1,-1 Z" fill="url(#n-br)" opacity="0.95"/></g>
+            <circle cx="0" cy="1" r="2.8" fill="#a5b4fc" opacity="0.85" filter="url(#n-g)"/>
+            <circle cx="-7" cy="16" r="9.5" fill="none" stroke="url(#n-h)" stroke-width="3.5" opacity="0.9"/>
+            <circle cx="7" cy="16" r="9.5" fill="none" stroke="url(#n-h)" stroke-width="3.5" opacity="0.8"/>
+          </g>
+          <g transform="translate(42,18)"><path d="M0,-5.5 L1.1,-1.1 L5.5,0 L1.1,1.1 L0,5.5 L-1.1,1.1 L-5.5,0 L-1.1,-1.1 Z" fill="#93c5fd"><animateTransform attributeName="transform" type="scale" values="1;0.4;1;1.3;1" dur="2.5s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.9;0.3;0.9;1;0.9" dur="2.5s" repeatCount="indefinite"/></path></g>
+          <g transform="translate(62,14)"><path d="M0,-4 L0.8,-0.8 L4,0 L0.8,0.8 L0,4 L-0.8,0.8 L-4,0 L-0.8,-0.8 Z" fill="#93c5fd"><animateTransform attributeName="transform" type="scale" values="0.5;1.3;0.5;1;0.5" dur="2.8s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.5;1;0.5;0.8;0.5" dur="2.8s" repeatCount="indefinite"/></path></g>
+          <g transform="translate(28,24)"><path d="M0,-3.5 L0.7,-0.7 L3.5,0 L0.7,0.7 L0,3.5 L-0.7,0.7 L-3.5,0 L-0.7,-0.7 Z" fill="#a5b4fc"><animateTransform attributeName="transform" type="scale" values="1;1.4;1;0.3;1" dur="3.2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.7;1;0.7;0.15;0.7" dur="3.2s" repeatCount="indefinite"/></path></g>
+          <g transform="translate(73,24)"><path d="M0,-2.5 L0.5,-0.5 L2.5,0 L0.5,0.5 L0,2.5 L-0.5,0.5 L-2.5,0 L-0.5,-0.5 Z" fill="#c4b5fd"><animateTransform attributeName="transform" type="scale" values="0.8;1.5;0.8;0.2;0.8" dur="2.2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.8;0.3;0.8;0.1;0.8" dur="2.2s" repeatCount="indefinite"/></path></g>
+          <g transform="translate(20,32)"><path d="M0,-2 L0.4,-0.4 L2,0 L0.4,0.4 L0,2 L-0.4,0.4 L-2,0 L-0.4,-0.4 Z" fill="#93c5fd"><animateTransform attributeName="transform" type="scale" values="1;0.2;1;1.6;1" dur="3.8s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.5;0.1;0.5;0.9;0.5" dur="3.8s" repeatCount="indefinite"/></path></g>
+          <circle cx="35" cy="12" r="0.9" fill="#93c5fd"><animate attributeName="opacity" values="0.3;0.9;0.3;0.1;0.3" dur="4s" repeatCount="indefinite"/></circle>
+          <circle cx="55" cy="10" r="0.7" fill="#a5b4fc"><animate attributeName="opacity" values="0.2;0.8;0.2;0.5;0.2" dur="3.5s" repeatCount="indefinite"/></circle>
+          <circle cx="70" cy="18" r="0.6" fill="#93c5fd"><animate attributeName="opacity" values="0.6;0.1;0.6;0.8;0.6" dur="2.9s" repeatCount="indefinite"/></circle>
+          <circle cx="25" cy="14" r="0.5" fill="#c4b5fd"><animate attributeName="opacity" values="0.4;0.8;0.4;0.1;0.4" dur="3.3s" repeatCount="indefinite"/></circle>
+          <circle cx="48" cy="8" r="0.6" fill="#818cf8"><animate attributeName="opacity" values="0.5;0.15;0.5;0.9;0.5" dur="4.2s" repeatCount="indefinite"/></circle>
+        </svg>
+        <span>Snip</span>
+      </a>
+      <div class="nav-links">
+        <a href="index.html#features">Features</a>
+        <a href="index.html#how-it-works">How It Works</a>
+        <a href="index.html#tools">Tools</a>
+        <a href="index.html#ai">AI</a>
+        <a href="guide.html" class="guide-nav-active">Guide</a>
+        <a href="https://github.com/rixinhahaha/snip" class="nav-cta" target="_blank" rel="noopener">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+          GitHub
+        </a>
+      </div>
+      <button class="nav-mobile-toggle" id="nav-toggle" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <div class="guide-hero">
+    <div class="hero-glow"></div>
+    <div class="section-badge">Setup Guide</div>
+    <h1>Get Snip <span class="hero-gradient">up and running</span></h1>
+    <p>Snip needs a couple of macOS permissions to capture your screen and register global shortcuts. Here's how to set everything up.</p>
+  </div>
+
+  <!-- Guide Content -->
+  <div class="guide-content">
+
+    <!-- Section 1: Screen Recording -->
+    <div class="guide-section" id="screen-recording">
+      <div class="guide-section-header">
+        <div class="guide-section-icon">
+          <!-- Monitor icon -->
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        </div>
+        <div>
+          <h2>Screen Recording</h2>
+          <p>Required — this is how Snip captures your screen</p>
+        </div>
+      </div>
+
+      <div class="guide-image">
+        <img src="assets/enable-screen-recording.jpg" alt="macOS Screen Recording permission settings with Snip enabled" width="978" height="604" loading="lazy">
+      </div>
+
+      <div class="guide-why">
+        <strong>Why does Snip need this?</strong>
+        <p>macOS requires Screen Recording permission for any app that captures your screen.</p>
+      </div>
+
+      <div class="guide-steps">
+        <div class="guide-step">
+          <div class="guide-step-num">1</div>
+          <div class="guide-step-content">
+            <h4>Open System Settings</h4>
+            <p>Go to <span class="guide-path">System Settings → Privacy & Security → Screen Recording</span>.</p>
+          </div>
+        </div>
+        <div class="guide-step">
+          <div class="guide-step-num">2</div>
+          <div class="guide-step-content">
+            <h4>Enable Snip</h4>
+            <p>Find <strong>Snip</strong> in the list and toggle it <strong>on</strong>.</p>
+          </div>
+        </div>
+        <div class="guide-step">
+          <div class="guide-step-num">3</div>
+          <div class="guide-step-content">
+            <h4>Restart Snip</h4>
+            <p>Quit and reopen Snip to apply the permission.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="guide-callout guide-callout-warning">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <div>
+          <strong>Blank screenshots on macOS 15+</strong>
+          <p>macOS 15+ may silently return blank images if this permission isn't granted. Make sure to restart Snip after enabling it.</p>
+        </div>
+      </div>
+
+      <div class="guide-callout">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <div>
+          <strong>Shortcuts not working?</strong>
+          <p>Check that no other app is using the same shortcut in <span class="guide-path">System Settings → Keyboard → Keyboard Shortcuts</span>.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 2: Files & Folders -->
+    <div class="guide-section" id="files">
+      <div class="guide-section-header">
+        <div class="guide-section-icon">
+          <!-- Folder icon -->
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        </div>
+        <div>
+          <h2>Files & Folders</h2>
+          <p>Where Snip saves your screenshots</p>
+        </div>
+      </div>
+
+      <div class="guide-why">
+        <strong>Screenshot storage</strong>
+        <p>Screenshots save to <span class="guide-path">~/Documents/snip/screenshots/</span>. Created automatically on first save.</p>
+      </div>
+
+      <div class="guide-callout">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <div>
+          <strong>Can't save screenshots?</strong>
+          <p>If saves fail, check <span class="guide-path">System Settings → Privacy & Security → Files & Folders</span> and ensure Snip has access to the Documents folder.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 3: AI Setup (Optional) -->
+    <div class="guide-section" id="ai-setup">
+      <div class="guide-section-header">
+        <div class="guide-section-icon">
+          <!-- Sparkle/AI icon -->
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L9.5 9.5L2 12L9.5 14.5L12 22L14.5 14.5L22 12L14.5 9.5L12 2Z"/></svg>
+        </div>
+        <div>
+          <h2>AI Setup <span class="guide-optional-badge">Optional</span></h2>
+          <p>Automatic naming, tagging, and search</p>
+        </div>
+      </div>
+
+      <div class="guide-image">
+        <img src="assets/ollama-setup.jpg" alt="Snip AI settings showing Ollama setup" width="1774" height="946" loading="lazy">
+      </div>
+
+      <div class="guide-why">
+        <strong>AI is completely optional</strong>
+        <p>Snip works without AI. Enable it for automatic naming, tagging, and semantic search.</p>
+      </div>
+
+      <div class="guide-steps">
+        <div class="guide-step">
+          <div class="guide-step-num">1</div>
+          <div class="guide-step-content">
+            <h4>Install Ollama</h4>
+            <p>Download <a href="https://ollama.com/download" class="inline-link" target="_blank" rel="noopener">Ollama</a> and install it. All AI runs locally on your Mac.</p>
+          </div>
+        </div>
+        <div class="guide-step">
+          <div class="guide-step-num">2</div>
+          <div class="guide-step-content">
+            <h4>Open Snip Settings</h4>
+            <p>Click the Snip menu bar icon → <strong>Settings</strong>. Snip will detect Ollama and download the model.</p>
+          </div>
+        </div>
+        <div class="guide-step">
+          <div class="guide-step-num">3</div>
+          <div class="guide-step-content">
+            <h4>Start organizing</h4>
+            <p>Snip will auto-name, tag, and categorize every screenshot. Search with <kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>F</kbd>.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="guide-callout">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <div>
+          <strong>100% private and local</strong>
+          <p>Everything runs on-device via Ollama. No data leaves your Mac.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Reference -->
+    <div class="guide-section" id="quick-reference">
+      <div class="guide-section-header">
+        <div class="guide-section-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        </div>
+        <div>
+          <h2>Quick Reference</h2>
+          <p>All permissions at a glance</p>
+        </div>
+      </div>
+
+      <div class="guide-checklist">
+        <div class="guide-checklist-row">
+          <svg class="guide-check-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          <span class="guide-checklist-label">Screen Recording</span>
+          <span class="guide-path">System Settings → Privacy & Security → Screen Recording</span>
+        </div>
+        <div class="guide-checklist-row">
+          <svg class="guide-check-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          <span class="guide-checklist-label">Files & Folders</span>
+          <span class="guide-path">Usually auto-granted</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Still Having Issues CTA -->
+    <div class="guide-cta">
+      <h3>Still having issues?</h3>
+      <p>Open an issue on GitHub and we'll help you out.</p>
+      <a href="https://github.com/rixinhahaha/snip/issues" class="btn btn-secondary" target="_blank" rel="noopener">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        Open an Issue
+      </a>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="24" height="24" role="img" aria-label="Snip logo">
+          <defs>
+            <linearGradient id="f-bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0f0a1e"/><stop offset="100%" stop-color="#1a1030"/></linearGradient>
+            <linearGradient id="f-bl" x1="0.3" y1="0" x2="0.7" y2="1"><stop offset="0%" stop-color="#93c5fd"/><stop offset="60%" stop-color="#818cf8"/><stop offset="100%" stop-color="#6366f1"/></linearGradient>
+            <linearGradient id="f-br" x1="0.7" y1="0" x2="0.3" y2="1"><stop offset="0%" stop-color="#93c5fd"/><stop offset="60%" stop-color="#818cf8"/><stop offset="100%" stop-color="#6366f1"/></linearGradient>
+            <linearGradient id="f-h" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#818cf8"/><stop offset="100%" stop-color="#6366f1"/></linearGradient>
+            <filter id="f-g" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="1.5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <rect width="100" height="100" rx="22.5" fill="url(#f-bg)"/>
+          <g transform="translate(50,46)">
+            <g><animateTransform attributeName="transform" type="rotate" values="0;-15;0;-15;0;0;0;0;0;0" dur="3s" repeatCount="indefinite" keyTimes="0;0.08;0.16;0.24;0.32;0.4;0.5;0.6;0.8;1"/><path d="M-2,2 L-13,-22 Q-11.5,-25 -8,-23 L1,-1 Z" fill="url(#f-bl)" opacity="0.95"/></g>
+            <g><animateTransform attributeName="transform" type="rotate" values="0;15;0;15;0;0;0;0;0;0" dur="3s" repeatCount="indefinite" keyTimes="0;0.08;0.16;0.24;0.32;0.4;0.5;0.6;0.8;1"/><path d="M2,2 L13,-22 Q11.5,-25 8,-23 L-1,-1 Z" fill="url(#f-br)" opacity="0.95"/></g>
+            <circle cx="0" cy="1" r="2.8" fill="#a5b4fc" opacity="0.85" filter="url(#f-g)"/>
+            <circle cx="-7" cy="16" r="9.5" fill="none" stroke="url(#f-h)" stroke-width="3.5" opacity="0.9"/>
+            <circle cx="7" cy="16" r="9.5" fill="none" stroke="url(#f-h)" stroke-width="3.5" opacity="0.8"/>
+          </g>
+          <g transform="translate(42,18)"><path d="M0,-5.5 L1.1,-1.1 L5.5,0 L1.1,1.1 L0,5.5 L-1.1,1.1 L-5.5,0 L-1.1,-1.1 Z" fill="#93c5fd"><animateTransform attributeName="transform" type="scale" values="1;0.4;1;1.3;1" dur="2.5s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.9;0.3;0.9;1;0.9" dur="2.5s" repeatCount="indefinite"/></path></g>
+          <g transform="translate(62,14)"><path d="M0,-4 L0.8,-0.8 L4,0 L0.8,0.8 L0,4 L-0.8,0.8 L-4,0 L-0.8,-0.8 Z" fill="#93c5fd"><animateTransform attributeName="transform" type="scale" values="0.5;1.3;0.5;1;0.5" dur="2.8s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.5;1;0.5;0.8;0.5" dur="2.8s" repeatCount="indefinite"/></path></g>
+          <g transform="translate(28,24)"><path d="M0,-3.5 L0.7,-0.7 L3.5,0 L0.7,0.7 L0,3.5 L-0.7,0.7 L-3.5,0 L-0.7,-0.7 Z" fill="#a5b4fc"><animateTransform attributeName="transform" type="scale" values="1;1.4;1;0.3;1" dur="3.2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.7;1;0.7;0.15;0.7" dur="3.2s" repeatCount="indefinite"/></path></g>
+          <circle cx="35" cy="12" r="0.9" fill="#93c5fd"><animate attributeName="opacity" values="0.3;0.9;0.3;0.1;0.3" dur="4s" repeatCount="indefinite"/></circle>
+          <circle cx="55" cy="10" r="0.7" fill="#a5b4fc"><animate attributeName="opacity" values="0.2;0.8;0.2;0.5;0.2" dur="3.5s" repeatCount="indefinite"/></circle>
+          <circle cx="48" cy="8" r="0.6" fill="#818cf8"><animate attributeName="opacity" values="0.5;0.15;0.5;0.9;0.5" dur="4.2s" repeatCount="indefinite"/></circle>
+        </svg>
+        <span>Snip</span>
+      </div>
+      <p class="footer-copy">Open source. Built with
+        <span class="claude-code-badge">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2L9.5 9.5L2 12L9.5 14.5L12 22L14.5 14.5L22 12L14.5 9.5L12 2Z" fill="#D97757"/>
+          </svg>
+          Claude Code
+        </span>
+        on macOS.
+      </p>
+      <div class="footer-links">
+        <a href="https://github.com/rixinhahaha/snip" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://github.com/rixinhahaha/snip/issues" target="_blank" rel="noopener">Issues</a>
+        <a href="https://github.com/rixinhahaha/snip/releases" target="_blank" rel="noopener">Releases</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

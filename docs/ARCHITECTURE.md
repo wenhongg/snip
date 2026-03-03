@@ -78,6 +78,13 @@ src/
     window_utils.mm          # Obj-C++ N-API addon for macOS Space behavior
 
 assets/                      # App icons, tray icons
+site/                        # Marketing site (GitHub Pages, snipit.dev)
+  index.html                   # Landing page
+  guide.html                   # Setup guide (permissions, AI setup)
+  styles.css                   # Shared styles
+  script.js                    # Download links, scroll animations, sparkle canvas
+  CNAME                        # Custom domain config (snipit.dev)
+  assets/                      # Hero video, screenshots, OG image
 scripts/                     # Build and generation scripts
   download-models.js           # Download MiniLM + SlimSAM to vendor/models/
   afterPack.js                 # electron-builder afterPack hook (strip unused native modules, pre-sign)

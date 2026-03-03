@@ -438,6 +438,15 @@ kbd {
   margin-top: 16px;
 }
 
+.btn.btn-sm {
+  padding: 8px 18px;
+  font-size: 0.82rem;
+}
+
+.hero-guide-link {
+  margin-top: 20px;
+}
+
 .hero-visual {
   position: relative;
   z-index: 1;

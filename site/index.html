@@ -3,16 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Snip — Capture. Annotate. Find anything.</title>
-  <meta name="description" content="Snip is a macOS screenshot tool with annotation and AI-powered organization. Capture, annotate, and find any screenshot instantly with semantic search.">
+  <title>Snip — macOS Screenshot Tool with Annotation & AI Organization</title>
+  <meta name="description" content="Snip is a free, open-source macOS screenshot tool. Capture your screen, annotate with arrows, text, and blur, then find any screenshot instantly with on-device AI semantic search. No cloud, no API keys.">
   <meta name="theme-color" content="#8B5CF6">
 
   <!-- Open Graph -->
-  <meta property="og:title" content="Snip — Capture, Annotate, Find.">
-  <meta property="og:description" content="macOS screenshot tool with annotation and AI-powered organization. Find any screenshot by describing it.">
+  <meta property="og:title" content="Snip — macOS Screenshot Tool with AI Organization">
+  <meta property="og:description" content="Capture, annotate, and find any screenshot instantly. On-device AI names, tags, and organizes every snip. Semantic search finds screenshots by description.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://snipit.dev">
   <meta property="og:image" content="https://snipit.dev/assets/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:site_name" content="Snip">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Snip — macOS Screenshot Tool with AI Organization">
+  <meta name="twitter:description" content="Capture, annotate, and find any screenshot instantly. On-device AI names, tags, and organizes every snip.">
+  <meta name="twitter:image" content="https://snipit.dev/assets/og-image.png">
 
   <link rel="canonical" href="https://snipit.dev">
 
@@ -23,6 +32,28 @@
 
   <link rel="icon" type="image/png" href="assets/icon.png">
   <link rel="stylesheet" href="styles.css">
+
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Snip",
+    "description": "macOS screenshot tool with annotation and AI-powered organization. Capture, annotate, and find any screenshot instantly with semantic search.",
+    "url": "https://snipit.dev",
+    "applicationCategory": "UtilitiesApplication",
+    "operatingSystem": "macOS 14+",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "screenshot": "https://snipit.dev/assets/og-image.png",
+    "softwareRequirements": "macOS 14+ with Apple M-series chip",
+    "downloadUrl": "https://github.com/rixinhahaha/snip/releases",
+    "featureList": "Screen capture, Annotation tools, AI-powered organization, Semantic search, Object segmentation, Blur brush, Auto-tagging, Auto-categorization"
+  }
+  </script>
 </head>
 <body>
 
@@ -67,6 +98,7 @@
         <a href="#how-it-works">How It Works</a>
         <a href="#tools">Tools</a>
         <a href="#ai">AI</a>
+        <a href="guide.html">Guide</a>
         <a href="https://github.com/rixinhahaha/snip" class="nav-cta" target="_blank" rel="noopener">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
           GitHub
@@ -118,6 +150,9 @@
         </button>
       </div>
       <p class="hero-note">Requires macOS 14+ with Apple M-series chip (M1, M2, M3, M4). Free and open source.</p>
+      <div class="hero-guide-link">
+        <a href="guide.html" class="btn btn-secondary btn-sm">Setup Guide</a>
+      </div>
     </div>
     <div class="hero-visual">
       <div class="hero-video-wrapper">
