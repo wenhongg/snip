@@ -6,9 +6,10 @@
 (function () {
   'use strict';
 
-  // --- Download constants (update here for version bumps) ---
-  var SNIP_VERSION = '1.0.15';
-  var DOWNLOAD_URL = 'https://github.com/rixinhahaha/snip/releases/latest/download/Snip-' + SNIP_VERSION + '-arm64.dmg';
+  // --- Download constants ---
+  var REPO = 'rixinhahaha/snip';
+  var FALLBACK_URL = 'https://github.com/' + REPO + '/releases/latest';
+  var ASSET_PATTERN = /Snip-.*-arm64\.dmg$/;
 
   // --- Nav scroll effect ---
   var nav = document.getElementById('nav');
@@ -107,11 +108,30 @@
   }
 
   // --- Populate download links ---
-  function initDownloadLinks() {
-    var links = document.querySelectorAll('.download-link');
-    links.forEach(function (link) {
-      link.href = DOWNLOAD_URL;
+  function setDownloadHref(url) {
+    document.querySelectorAll('.download-link').forEach(function (link) {
+      link.href = url;
     });
+  }
+
+  function initDownloadLinks() {
+    // Start with fallback so buttons are never broken
+    setDownloadHref(FALLBACK_URL);
+
+    // Fetch latest release from GitHub API and update with direct DMG link
+    fetch('https://api.github.com/repos/' + REPO + '/releases/latest')
+      .then(function (res) { return res.json(); })
+      .then(function (release) {
+        var asset = (release.assets || []).find(function (a) {
+          return ASSET_PATTERN.test(a.name);
+        });
+        if (asset && asset.browser_download_url) {
+          setDownloadHref(asset.browser_download_url);
+        }
+      })
+      .catch(function () {
+        // Fallback URL already set — nothing to do
+      });
   }
 
   // --- Smooth scroll for anchor links ---
