@@ -271,6 +271,21 @@ kbd {
   margin-bottom: 60px;
 }
 
+.ph-badge {
+  display: inline-block;
+  margin-bottom: 20px;
+  transition: transform var(--transition), opacity var(--transition);
+}
+
+.ph-badge:hover {
+  transform: translateY(-2px);
+  opacity: 0.9;
+}
+
+.ph-badge img {
+  display: block;
+}
+
 .hero-badge {
   display: inline-flex;
   align-items: center;
