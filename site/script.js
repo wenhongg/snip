@@ -7,7 +7,7 @@
   'use strict';
 
   // --- Download constants (update here for version bumps) ---
-  var SNIP_VERSION = '1.0.14';
+  var SNIP_VERSION = '1.0.15';
   var DOWNLOAD_URL = 'https://github.com/rixinhahaha/snip/releases/latest/download/Snip-' + SNIP_VERSION + '-arm64.dmg';
 
   // --- Nav scroll effect ---
