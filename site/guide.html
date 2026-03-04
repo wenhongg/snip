@@ -4,34 +4,92 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Snip Setup Guide — macOS Screen Recording Permissions & AI Configuration</title>
-  <meta name="description" content="Step-by-step guide to set up Snip on your Mac. Enable Screen Recording permissions, configure local AI with Ollama for automatic screenshot naming, tagging, and semantic search.">
+  <meta name="description" content="Step-by-step guide to set up Snip on macOS. Enable Screen Recording permissions, configure local AI with Ollama for automatic naming, tagging, and search.">
   <meta name="theme-color" content="#8B5CF6">
 
   <!-- Open Graph -->
   <meta property="og:title" content="Snip Setup Guide — macOS Permissions & AI Configuration">
   <meta property="og:description" content="Get Snip working perfectly on your Mac. Step-by-step guide for Screen Recording permissions and local AI setup with Ollama.">
-  <meta property="og:type" content="website">
+  <meta property="og:type" content="article">
   <meta property="og:url" content="https://snipit.dev/guide">
   <meta property="og:image" content="https://snipit.dev/assets/og-image.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Snip setup guide showing macOS permissions and AI configuration">
   <meta property="og:site_name" content="Snip">
+  <meta property="og:locale" content="en_US">
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Snip Setup Guide — macOS Permissions & AI Configuration">
   <meta name="twitter:description" content="Get Snip working perfectly on your Mac. Step-by-step guide for Screen Recording permissions and local AI setup.">
   <meta name="twitter:image" content="https://snipit.dev/assets/og-image.png">
+  <meta name="twitter:image:alt" content="Snip setup guide showing macOS permissions and AI configuration">
 
   <link rel="canonical" href="https://snipit.dev/guide">
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="dns-prefetch" href="https://github.com">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
   <link rel="icon" type="image/png" href="assets/icon.png">
+  <link rel="apple-touch-icon" href="assets/icon.png">
   <link rel="stylesheet" href="styles.css">
+
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    "name": "How to Set Up Snip on macOS",
+    "description": "Step-by-step guide to set up Snip on macOS. Enable Screen Recording permissions and configure local AI with Ollama.",
+    "url": "https://snipit.dev/guide",
+    "image": "https://snipit.dev/assets/og-image.png",
+    "totalTime": "PT5M",
+    "step": [
+      {
+        "@type": "HowToStep",
+        "name": "Grant Screen Recording Permission",
+        "text": "Snip asks you to allow Screen Recording. Click Allow, grant permission in the macOS dialog, then restart Snip when prompted.",
+        "url": "https://snipit.dev/guide#screen-recording"
+      },
+      {
+        "@type": "HowToStep",
+        "name": "Choose AI Setup",
+        "text": "After restart, Snip shows an AI choice screen. Pick Set up AI for automatic naming, tagging, and search, or Continue without AI to skip.",
+        "url": "https://snipit.dev/guide#ai-setup"
+      },
+      {
+        "@type": "HowToStep",
+        "name": "Automatic Ollama Install and Model Download",
+        "text": "If you chose AI, Snip downloads and installs Ollama automatically, then pulls the vision model. A progress bar shows each step.",
+        "url": "https://snipit.dev/guide#first-launch"
+      }
+    ]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Snip",
+        "item": "https://snipit.dev"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Setup Guide",
+        "item": "https://snipit.dev/guide"
+      }
+    ]
+  }
+  </script>
 
   <style>
     /* --- Guide-specific styles --- */
@@ -39,6 +97,7 @@
       padding: 140px 24px 60px;
       text-align: center;
       position: relative;
+      overflow: hidden;
     }
 
     .guide-hero h1 {
@@ -55,6 +114,7 @@
       max-width: 760px;
       margin: 0 auto;
       padding: 0 24px 120px;
+      overflow-wrap: break-word;
     }
 
     .guide-section {
@@ -101,7 +161,7 @@
     }
 
     .guide-why strong {
-      color: #fff;
+      color: var(--text-primary);
       font-size: 0.9rem;
     }
 
@@ -138,7 +198,7 @@
       align-items: center;
       justify-content: center;
       background: var(--accent-dim);
-      border: 1px solid rgba(139, 92, 246, 0.25);
+      border: 1px solid var(--border-hover);
       border-radius: 50%;
       color: var(--accent);
       font-size: 0.85rem;
@@ -146,7 +206,8 @@
       flex-shrink: 0;
     }
 
-    .guide-step-content h4 {
+    .guide-step-content h3 {
+      font-size: 1rem;
       margin-bottom: 4px;
     }
 
@@ -159,12 +220,12 @@
       padding: 2px 8px;
       font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
       font-size: 0.82em;
-      color: #c4b5fd;
-      background: rgba(139, 92, 246, 0.15);
-      border: 1px solid rgba(139, 92, 246, 0.3);
+      color: var(--accent);
+      background: var(--accent-dim);
+      border: 1px solid var(--border-hover);
       border-radius: 5px;
-      white-space: nowrap;
       margin: 0 4px;
+      word-break: break-all;
     }
 
     .guide-callout {
@@ -173,7 +234,7 @@
       gap: 14px;
       padding: 20px 24px;
       background: var(--accent-dim);
-      border: 1px solid rgba(139, 92, 246, 0.2);
+      border: 1px solid var(--border-hover);
       border-radius: var(--radius-md);
       margin-top: 20px;
     }
@@ -186,7 +247,7 @@
 
     .guide-callout strong {
       display: block;
-      color: #fff;
+      color: var(--text-primary);
       margin-bottom: 4px;
       font-size: 0.9rem;
     }
@@ -221,9 +282,9 @@
       align-items: center;
       gap: 8px;
       padding: 6px 14px;
-      background: rgba(139, 92, 246, 0.08);
-      border: 1px solid rgba(139, 92, 246, 0.15);
-      border-radius: 8px;
+      background: var(--accent-dim);
+      border: 1px solid var(--border-hover);
+      border-radius: var(--radius-sm);
       font-size: 0.85rem;
       color: var(--text-secondary);
     }
@@ -245,7 +306,8 @@
       border: 1px solid var(--border);
     }
 
-    .guide-image img {
+    .guide-image img,
+    .guide-image video {
       display: block;
       width: 100%;
       height: auto;
@@ -263,6 +325,7 @@
       align-items: center;
       gap: 14px;
       padding: 16px 20px;
+      flex-wrap: wrap;
     }
 
     .guide-checklist-row + .guide-checklist-row {
@@ -277,8 +340,7 @@
     .guide-checklist-label {
       font-weight: 600;
       font-size: 0.92rem;
-      color: #fff;
-      white-space: nowrap;
+      color: var(--text-primary);
     }
 
     .guide-checklist-row .guide-path {
@@ -292,7 +354,7 @@
       text-transform: uppercase;
       color: var(--accent);
       background: var(--accent-dim);
-      border: 1px solid rgba(139, 92, 246, 0.25);
+      border: 1px solid var(--border-hover);
       padding: 3px 10px;
       border-radius: 20px;
       vertical-align: middle;
@@ -301,7 +363,7 @@
     }
 
     .guide-nav-active {
-      color: #fff !important;
+      color: var(--text-primary) !important;
     }
 
     .guide-back {
@@ -316,7 +378,15 @@
     }
 
     .guide-back:hover {
-      color: #fff;
+      color: var(--text-primary);
+    }
+
+    .guide-section-label {
+      margin-bottom: 16px;
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
 
     .guide-cta {
@@ -350,8 +420,6 @@
       }
 
       .guide-section-header {
-        flex-direction: column;
-        align-items: flex-start;
         gap: 12px;
       }
 
@@ -366,8 +434,6 @@
 
       .guide-path {
         font-size: 0.72em;
-        word-break: break-all;
-        white-space: normal;
       }
 
       .guide-callout {
@@ -376,7 +442,6 @@
       }
 
       .guide-checklist-row {
-        flex-wrap: wrap;
         gap: 8px;
       }
 
@@ -392,6 +457,8 @@
   </style>
 </head>
 <body>
+
+  <a href="#guide-content" class="skip-link">Skip to content</a>
 
   <!-- Ambient sparkle canvas -->
   <canvas id="sparkle-canvas" aria-hidden="true"></canvas>
@@ -435,34 +502,36 @@
         <a href="index.html#tools">Tools</a>
         <a href="index.html#ai">AI</a>
         <a href="guide.html" class="guide-nav-active">Guide</a>
-        <a href="https://github.com/rixinhahaha/snip" class="nav-cta" target="_blank" rel="noopener">
+        <a href="https://github.com/rixinhahaha/snip" class="nav-cta" target="_blank" rel="noopener noreferrer">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
           GitHub
         </a>
       </div>
-      <button class="nav-mobile-toggle" id="nav-toggle" aria-label="Toggle menu">
+      <button class="nav-mobile-toggle" id="nav-toggle" aria-label="Toggle menu" aria-expanded="false">
         <span></span><span></span><span></span>
       </button>
     </div>
   </nav>
 
+  <main id="guide-content">
+
   <!-- Hero -->
-  <div class="guide-hero">
-    <div class="hero-glow"></div>
+  <header class="guide-hero">
+    <div class="hero-glow" aria-hidden="true"></div>
     <div class="section-badge">Setup Guide</div>
     <h1>Get Snip <span class="hero-gradient">up and running</span></h1>
     <p>Snip guides you through setup automatically on first launch. This page covers what happens and how to troubleshoot if needed.</p>
-  </div>
+  </header>
 
   <!-- Guide Content -->
-  <div class="guide-content">
+  <article class="guide-content">
 
     <!-- Section 0: First Launch -->
-    <div class="guide-section" id="first-launch">
+    <section class="guide-section" id="first-launch">
       <div class="guide-section-header">
         <div class="guide-section-icon">
           <!-- Rocket icon -->
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>
+          <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>
         </div>
         <div>
           <h2>First Launch</h2>
@@ -475,25 +544,31 @@
         <p>When you open Snip for the first time, it walks you through everything — permissions, AI setup, and model downloads. Most users won't need the manual steps below.</p>
       </div>
 
+      <div class="guide-image">
+        <video controls muted playsinline preload="metadata" width="1640" height="1080" poster="assets/setup-poster.jpg" aria-label="Snip first launch setup walkthrough">
+          <source src="assets/setup.mp4" type="video/mp4">
+        </video>
+      </div>
+
       <div class="guide-steps">
         <div class="guide-step">
           <div class="guide-step-num">1</div>
           <div class="guide-step-content">
-            <h4>Screen Recording permission</h4>
+            <h3>Screen Recording permission</h3>
             <p>Snip asks you to allow Screen Recording. Click <strong>Allow</strong>, grant permission in the macOS dialog, then <strong>Restart Snip</strong> when prompted.</p>
           </div>
         </div>
         <div class="guide-step">
           <div class="guide-step-num">2</div>
           <div class="guide-step-content">
-            <h4>Choose AI setup</h4>
+            <h3>Choose AI setup</h3>
             <p>After restart, Snip shows an AI choice screen. Pick <strong>"Set up AI"</strong> for automatic naming, tagging, and search — or <strong>"Continue without AI"</strong> to skip.</p>
           </div>
         </div>
         <div class="guide-step">
           <div class="guide-step-num">3</div>
           <div class="guide-step-content">
-            <h4>Automatic Ollama install &amp; model download</h4>
+            <h3>Automatic Ollama install &amp; model download</h3>
             <p>If you chose AI, Snip downloads and installs Ollama automatically, then pulls the vision model (~5 GB). A progress bar shows each step. No terminal commands needed.</p>
           </div>
         </div>
@@ -506,14 +581,14 @@
           <p>You can enable or disable AI anytime in Settings. If you skipped AI during first launch, click "Set up" in Settings to start the guided install.</p>
         </div>
       </div>
-    </div>
+    </section>
 
     <!-- Section 1: Screen Recording -->
-    <div class="guide-section" id="screen-recording">
+    <section class="guide-section" id="screen-recording">
       <div class="guide-section-header">
         <div class="guide-section-icon">
           <!-- Monitor icon -->
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
         </div>
         <div>
           <h2>Screen Recording</h2>
@@ -538,26 +613,26 @@
         <p>macOS requires Screen Recording permission for any app that captures your screen.</p>
       </div>
 
-      <h4 style="margin-bottom: 16px; color: var(--text-secondary); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;">Manual setup</h4>
+      <p class="guide-section-label">Manual setup</p>
       <div class="guide-steps">
         <div class="guide-step">
           <div class="guide-step-num">1</div>
           <div class="guide-step-content">
-            <h4>Open System Settings</h4>
+            <h3>Open System Settings</h3>
             <p>Go to <span class="guide-path">System Settings → Privacy & Security → Screen Recording</span>.</p>
           </div>
         </div>
         <div class="guide-step">
           <div class="guide-step-num">2</div>
           <div class="guide-step-content">
-            <h4>Enable Snip</h4>
+            <h3>Enable Snip</h3>
             <p>Find <strong>Snip</strong> in the list and toggle it <strong>on</strong>.</p>
           </div>
         </div>
         <div class="guide-step">
           <div class="guide-step-num">3</div>
           <div class="guide-step-content">
-            <h4>Restart Snip</h4>
+            <h3>Restart Snip</h3>
             <p>Quit and reopen Snip to apply the permission.</p>
           </div>
         </div>
@@ -578,14 +653,14 @@
           <p>Check that no other app is using the same shortcut in <span class="guide-path">System Settings → Keyboard → Keyboard Shortcuts</span>.</p>
         </div>
       </div>
-    </div>
+    </section>
 
     <!-- Section 2: Files & Folders -->
-    <div class="guide-section" id="files">
+    <section class="guide-section" id="files">
       <div class="guide-section-header">
         <div class="guide-section-icon">
           <!-- Folder icon -->
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+          <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
         </div>
         <div>
           <h2>Files & Folders</h2>
@@ -605,14 +680,14 @@
           <p>If saves fail, check <span class="guide-path">System Settings → Privacy & Security → Files & Folders</span> and ensure Snip has access to the Documents folder.</p>
         </div>
       </div>
-    </div>
+    </section>
 
     <!-- Section 3: AI Setup (Optional) -->
-    <div class="guide-section" id="ai-setup">
+    <section class="guide-section" id="ai-setup">
       <div class="guide-section-header">
         <div class="guide-section-icon">
           <!-- Sparkle/AI icon -->
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L9.5 9.5L2 12L9.5 14.5L12 22L14.5 14.5L22 12L14.5 9.5L12 2Z"/></svg>
+          <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L9.5 9.5L2 12L9.5 14.5L12 22L14.5 14.5L22 12L14.5 9.5L12 2Z"/></svg>
         </div>
         <div>
           <h2>AI Setup <span class="guide-optional-badge">Optional</span></h2>
@@ -637,26 +712,26 @@
         <p>Snip works without AI. Enable it for automatic naming, tagging, and semantic search.</p>
       </div>
 
-      <h4 style="margin-bottom: 16px; color: var(--text-secondary); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;">Manual setup</h4>
+      <p class="guide-section-label">Manual setup</p>
       <div class="guide-steps">
         <div class="guide-step">
           <div class="guide-step-num">1</div>
           <div class="guide-step-content">
-            <h4>Install Ollama</h4>
-            <p>Download <a href="https://ollama.com/download" class="inline-link" target="_blank" rel="noopener">Ollama</a> and install it. All AI runs locally on your Mac.</p>
+            <h3>Install Ollama</h3>
+            <p>Download <a href="https://ollama.com/download" class="inline-link" target="_blank" rel="noopener noreferrer">Ollama</a> and install it. All AI runs locally on your Mac.</p>
           </div>
         </div>
         <div class="guide-step">
           <div class="guide-step-num">2</div>
           <div class="guide-step-content">
-            <h4>Open Snip Settings</h4>
+            <h3>Open Snip Settings</h3>
             <p>Click the Snip menu bar icon → <strong>Settings</strong>. Snip will detect Ollama and download the model.</p>
           </div>
         </div>
         <div class="guide-step">
           <div class="guide-step-num">3</div>
           <div class="guide-step-content">
-            <h4>Start organizing</h4>
+            <h3>Start organizing</h3>
             <p>Snip will auto-name, tag, and categorize every screenshot. Search with <kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>F</kbd>.</p>
           </div>
         </div>
@@ -669,13 +744,13 @@
           <p>Everything runs on-device via Ollama. No data leaves your Mac.</p>
         </div>
       </div>
-    </div>
+    </section>
 
     <!-- Quick Reference -->
-    <div class="guide-section" id="quick-reference">
+    <section class="guide-section" id="quick-reference">
       <div class="guide-section-header">
         <div class="guide-section-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
         </div>
         <div>
           <h2>Quick Reference</h2>
@@ -695,19 +770,21 @@
           <span class="guide-path">Usually auto-granted</span>
         </div>
       </div>
-    </div>
+    </section>
 
     <!-- Still Having Issues CTA -->
     <div class="guide-cta">
       <h3>Still having issues?</h3>
       <p>Open an issue on GitHub and we'll help you out.</p>
-      <a href="https://github.com/rixinhahaha/snip/issues" class="btn btn-secondary" target="_blank" rel="noopener">
+      <a href="https://github.com/rixinhahaha/snip/issues" class="btn btn-secondary" target="_blank" rel="noopener noreferrer">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
         Open an Issue
       </a>
     </div>
 
-  </div>
+  </article>
+
+  </main>
 
   <!-- Footer -->
   <footer class="footer">
@@ -748,9 +825,9 @@
         on macOS.
       </p>
       <div class="footer-links">
-        <a href="https://github.com/rixinhahaha/snip" target="_blank" rel="noopener">GitHub</a>
-        <a href="https://github.com/rixinhahaha/snip/issues" target="_blank" rel="noopener">Issues</a>
-        <a href="https://github.com/rixinhahaha/snip/releases" target="_blank" rel="noopener">Releases</a>
+        <a href="https://github.com/rixinhahaha/snip" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a href="https://github.com/rixinhahaha/snip/issues" target="_blank" rel="noopener noreferrer">Issues</a>
+        <a href="https://github.com/rixinhahaha/snip/releases" target="_blank" rel="noopener noreferrer">Releases</a>
       </div>
     </div>
   </footer>

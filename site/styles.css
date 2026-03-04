@@ -10,6 +10,23 @@
   box-sizing: border-box;
 }
 
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 16px;
+  z-index: 200;
+  padding: 8px 16px;
+  background: var(--accent);
+  color: #fff;
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.skip-link:focus {
+  top: 16px;
+}
+
 :root {
   --accent: #8B5CF6;
   --accent-hover: #7C3AED;
@@ -37,6 +54,7 @@ html {
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
 }
 
 body {
@@ -287,74 +305,6 @@ kbd {
   justify-content: center;
   gap: 16px;
   flex-wrap: wrap;
-}
-
-/* --- Download Split Button --- */
-.download-split {
-  position: relative;
-  display: inline-flex;
-}
-
-.download-split .download-link {
-  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
-}
-
-.download-toggle {
-  padding: 12px 10px;
-  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-  border-left: 1px solid rgba(255, 255, 255, 0.2);
-  display: inline-flex;
-  align-items: center;
-}
-
-.download-toggle svg {
-  transition: transform 0.2s ease;
-}
-
-.download-split.open .download-toggle svg {
-  transform: rotate(180deg);
-}
-
-.download-dropdown {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 0;
-  right: 0;
-  background: rgba(25, 25, 25, 0.95);
-  backdrop-filter: blur(16px);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(-4px);
-  transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
-  z-index: 10;
-}
-
-.download-split.open .download-dropdown {
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(0);
-}
-
-.download-option {
-  display: block;
-  padding: 10px 16px;
-  font-size: 0.88rem;
-  font-weight: 500;
-  color: var(--text-primary);
-  transition: background 0.15s ease;
-  text-decoration: none;
-}
-
-.download-option:hover {
-  background: rgba(139, 92, 246, 0.15);
-  color: #fff;
-}
-
-.download-option + .download-option {
-  border-top: 1px solid var(--border);
 }
 
 .download-link {
@@ -694,7 +644,7 @@ kbd {
   margin-bottom: 14px;
 }
 
-.tool-card h4 {
+.tool-card h3 {
   margin-bottom: 6px;
 }
 
@@ -1028,7 +978,7 @@ kbd {
   color: var(--accent);
 }
 
-.ai-card-header h4 {
+.ai-card-header h3 {
   color: #fff;
 }
 
@@ -1216,6 +1166,7 @@ kbd {
   padding: 120px 0;
   text-align: center;
   position: relative;
+  overflow: hidden;
 }
 
 .cta-glow {
@@ -1615,7 +1566,7 @@ kbd {
 }
 
 /* --- Responsive --- */
-@media (max-width: 900px) {
+@media (max-width: 1024px) {
   .features-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -1624,14 +1575,38 @@ kbd {
     grid-template-columns: repeat(2, 1fr);
   }
 
+  .tech-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .hero {
+    padding: 100px 24px 60px;
+    min-height: auto;
+  }
+
+  .hero-content {
+    max-width: 100%;
+  }
+
+  .features, .how-it-works, .tools-section, .ai-section, .tech-section {
+    padding: 100px 0;
+  }
+
+  .segment-tag-demo, .animate-demo {
+    padding: 100px 0;
+  }
+}
+
+@media (max-width: 900px) {
   .showcase-grid {
     grid-template-columns: 1fr;
     max-width: 500px;
     margin: 0 auto;
   }
 
-  .tech-grid {
-    grid-template-columns: repeat(2, 1fr);
+  .segment-tag-visual,
+  .animate-demo-visual {
+    gap: 32px;
   }
 }
 
@@ -1666,9 +1641,7 @@ kbd {
     flex-direction: column;
     gap: 12px;
   }
-}
 
-@media (max-width: 640px) {
   .nav-links {
     display: none;
     position: fixed;
@@ -1696,13 +1669,20 @@ kbd {
 
   .nav-links a:last-child {
     border-bottom: none;
+  }
+
+  .nav-cta {
+    align-self: center;
     margin-top: 8px;
+    padding: 10px 28px !important;
   }
 
   .nav-mobile-toggle {
     display: flex;
   }
+}
 
+@media (max-width: 640px) {
   .hero {
     padding-top: 80px;
     min-height: auto;
@@ -1729,10 +1709,6 @@ kbd {
   }
 
   .tech-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .mockup-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 
