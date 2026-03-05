@@ -32,7 +32,7 @@ const SelectionTool = (() => {
     var hoveredWindow = null;
     var pendingClick = false;
     var pendingClickX = 0, pendingClickY = 0;
-    var DRAG_THRESHOLD = 5;
+    var DRAG_THRESHOLD = 5 * dpr;
 
     function findWindowAt(mx, my) {
       // Windows are sorted front-to-back (topmost first)

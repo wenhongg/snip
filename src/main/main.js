@@ -188,6 +188,11 @@ function createEditorWindow(cssWidth, cssHeight) {
 }
 
 async function triggerCapture(opts) {
+  // Don't start a new capture while the overlay is already active
+  if (overlayWindow && !overlayWindow.isDestroyed()) {
+    return;
+  }
+
   // Don't start a new capture while the editor is open (unless quick-snip mode)
   var mode = (opts && opts.mode) || 'capture';
   if (mode !== 'quick-snip' && editorWindow && !editorWindow.isDestroyed()) {

@@ -971,15 +971,27 @@ The Shortcuts section shows two groups: **configurable shortcuts** (2 global sho
 
 | Condition | Expected Behavior |
 |-----------|-------------------|
-| Full Retina screen capture (e.g. 3456x2234 physical pixels) | Editor window capped at 90% of screen width/height |
+| Full Retina screen capture (e.g. 3456x2234 physical pixels) | Editor window uses up to 100% of screen work area |
+| Image exceeds editor viewport | Canvas zoomed to fit via `setZoom()` — annotations draw at visible scale |
+| -- | Export compensates for zoom (`dpr / zoom`) to produce full physical-resolution output |
 | -- | Canvas uses CSS dimensions, not physical pixels |
 
-### 12.6 Concurrent Captures
+### 12.6 Window Snap Selection
 
 | Condition | Expected Behavior |
 |-----------|-------------------|
-| Press Cmd+Shift+2 while overlay is already showing | No action (overlay already visible) |
+| Browser or multi-pane app (Chrome, VS Code, etc.) | Sub-windows merged by PID into single bounding rect — full app window highlighted |
+| Window partially off-screen | Snap rect includes the off-screen portion; crop clamps to captured image bounds |
+| Overlay offset from display origin (menu bar / notch) | Window list coordinates adjusted by overlay offset before rendering |
+| Click threshold on Retina display | Drag threshold is DPI-aware (5 × devicePixelRatio physical pixels) |
+
+### 12.7 Concurrent Captures
+
+| Condition | Expected Behavior |
+|-----------|-------------------|
+| Press Cmd+Shift+1 or Cmd+Shift+2 while overlay is already showing | No action (overlay already visible) |
 | Press Cmd+Shift+2 while editor is open | Editor window focuses, no new capture |
+| Press Cmd+Shift+1 while editor is open | Quick Snip overlay opens (bypasses editor check) |
 
 ---
 
