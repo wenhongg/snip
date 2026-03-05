@@ -1,6 +1,6 @@
 const { app, BrowserWindow, screen } = require('electron');
 const path = require('path');
-const { registerShortcuts, unregisterShortcuts } = require('./shortcuts');
+const { registerShortcuts, unregisterShortcuts, reregisterShortcuts } = require('./shortcuts');
 const { createTray } = require('./tray');
 const { registerIpcHandlers } = require('./ipc-handlers');
 const { captureScreen } = require('./capturer');
@@ -92,7 +92,6 @@ function createHomeWindow() {
 
   homeWindow = new BrowserWindow(homeOpts);
   homeWindow.loadFile(path.join(__dirname, '..', 'renderer', 'home.html'));
-
   // Apply native liquid glass if available, with vibrancy fallback
   if (liquidGlass) {
     homeWindow.setWindowButtonVisibility(true);
@@ -254,7 +253,7 @@ app.whenReady().then(() => {
 
   createTray(triggerCapture, showSearchPage, showHomeWindow);
   registerShortcuts(triggerCapture, showSearchPage);
-  registerIpcHandlers(getOverlayWindow, createEditorWindow);
+  registerIpcHandlers(getOverlayWindow, createEditorWindow, reregisterShortcuts);
 
   // Start background organizer
   startWatcher();

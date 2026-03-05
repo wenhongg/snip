@@ -1,22 +1,51 @@
 const { globalShortcut } = require('electron');
+const { getShortcuts, getDefaultShortcuts } = require('./store');
 
-function registerShortcuts(captureCallback, searchCallback) {
-  const captureRegistered = globalShortcut.register('CommandOrControl+Shift+2', () => {
-    captureCallback().catch((err) => {
-      console.error('[Snip] Capture shortcut error:', err);
+let captureCallback = null;
+let searchCallback = null;
+
+function registerShortcuts(captureCb, searchCb) {
+  captureCallback = captureCb;
+  searchCallback = searchCb;
+  registerGlobalShortcuts();
+}
+
+function registerGlobalShortcuts() {
+  const shortcuts = getShortcuts();
+  const defaults = getDefaultShortcuts();
+
+  const captureAccel = shortcuts['capture'];
+  try {
+    const captureRegistered = globalShortcut.register(captureAccel, () => {
+      if (captureCallback) {
+        captureCallback().catch((err) => {
+          console.error('[Snip] Capture shortcut error:', err);
+        });
+      }
     });
-  });
-
-  if (!captureRegistered) {
-    console.error('[Snip] Failed to register capture shortcut (Cmd+Shift+2)');
+    if (!captureRegistered) {
+      console.error('[Snip] Failed to register capture shortcut (%s)', captureAccel);
+    }
+  } catch (err) {
+    console.error('[Snip] Invalid capture accelerator "%s", falling back to default', captureAccel);
+    globalShortcut.register(defaults['capture'], () => {
+      if (captureCallback) captureCallback().catch(() => {});
+    });
   }
 
-  const searchRegistered = globalShortcut.register('CommandOrControl+Shift+F', () => {
-    searchCallback();
-  });
-
-  if (!searchRegistered) {
-    console.error('[Snip] Failed to register search shortcut (Cmd+Shift+F)');
+  const searchAccel = shortcuts['search'];
+  try {
+    const searchRegistered = globalShortcut.register(searchAccel, () => {
+      if (searchCallback) searchCallback();
+    });
+    if (!searchRegistered) {
+      console.error('[Snip] Failed to register search shortcut (%s)', searchAccel);
+    }
+  } catch (err) {
+    console.error('[Snip] Invalid search accelerator "%s", falling back to default', searchAccel);
+    globalShortcut.register(defaults['search'], () => {
+      if (searchCallback) searchCallback();
+    });
   }
 }
 
@@ -24,4 +53,9 @@ function unregisterShortcuts() {
   globalShortcut.unregisterAll();
 }
 
-module.exports = { registerShortcuts, unregisterShortcuts };
+function reregisterShortcuts() {
+  unregisterShortcuts();
+  registerGlobalShortcuts();
+}
+
+module.exports = { registerShortcuts, unregisterShortcuts, reregisterShortcuts };
