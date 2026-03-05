@@ -6,6 +6,7 @@
   let capturedDataURL = null;
   let displayOrigin = { x: 0, y: 0 };
   let selectionInstance = null;
+  let captureMode = 'capture';
 
   let windowList = [];
 
@@ -13,6 +14,7 @@
     capturedDataURL = data.dataURL;
     displayOrigin = data.displayOrigin || { x: 0, y: 0 };
     windowList = data.windowList || [];
+    captureMode = data.mode || 'capture';
     const width = window.innerWidth;
     const height = window.innerHeight;
 
@@ -34,7 +36,11 @@
       null, fullWidth, fullHeight,
       function onComplete(region) {
         document.getElementById('selection-hint').classList.add('hidden');
-        cropAndOpenEditor(region);
+        if (captureMode === 'quick-snip') {
+          cropAndCopyToClipboard(region);
+        } else {
+          cropAndOpenEditor(region);
+        }
       },
       function onCancel() {
         document.getElementById('selection-hint').classList.add('hidden');
@@ -44,6 +50,48 @@
       windowList
     );
     selectionInstance.activate();
+  }
+
+  function cropAndCopyToClipboard(region) {
+    const fullImg = new Image();
+    fullImg.onload = () => {
+      let croppedDataURL;
+
+      if (region) {
+        const imgW = fullImg.naturalWidth;
+        const imgH = fullImg.naturalHeight;
+        const scaleX = imgW / window.screen.width;
+        const scaleY = imgH / window.screen.height;
+
+        const winOffsetX = (window.screenX || 0) - displayOrigin.x;
+        const winOffsetY = (window.screenY || 0) - displayOrigin.y;
+
+        const physX = Math.round((region.x + winOffsetX) * scaleX);
+        const physY = Math.round((region.y + winOffsetY) * scaleY);
+        const physW = Math.round(region.width * scaleX);
+        const physH = Math.round(region.height * scaleY);
+
+        const clampedX = Math.max(0, Math.min(physX, imgW - 1));
+        const clampedY = Math.max(0, Math.min(physY, imgH - 1));
+        const clampedW = Math.min(physW, imgW - clampedX);
+        const clampedH = Math.min(physH, imgH - clampedY);
+
+        const cropCanvas = document.createElement('canvas');
+        cropCanvas.width = clampedW;
+        cropCanvas.height = clampedH;
+        const ctx = cropCanvas.getContext('2d');
+        ctx.drawImage(fullImg, clampedX, clampedY, clampedW, clampedH, 0, 0, clampedW, clampedH);
+        croppedDataURL = cropCanvas.toDataURL('image/png');
+      } else {
+        croppedDataURL = capturedDataURL;
+      }
+
+      window.snip.copyToClipboard(croppedDataURL);
+
+      if (selectionInstance) { selectionInstance.cleanup(); selectionInstance = null; }
+      window.snip.closeOverlay();
+    };
+    fullImg.src = capturedDataURL;
   }
 
   function cropAndOpenEditor(region) {
