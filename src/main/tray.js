@@ -1,6 +1,6 @@
 const { Tray, Menu, app, nativeImage, BrowserWindow } = require('electron');
 const path = require('path');
-const { getTheme, setTheme } = require('./store');
+const { getTheme, setTheme, getShortcuts } = require('./store');
 
 let tray = null;
 
@@ -20,16 +20,21 @@ function createTray(captureCallback, searchCallback, homeCallback) {
   tray = new Tray(trayIcon);
 
   const currentTheme = getTheme();
+  const shortcuts = getShortcuts();
+
+  // Convert Electron accelerator format to tray menu format
+  var captureAccel = (shortcuts['capture'] || '').replace('CommandOrControl', 'CmdOrCtrl');
+  var searchAccel = (shortcuts['search'] || '').replace('CommandOrControl', 'CmdOrCtrl');
 
   const contextMenu = Menu.buildFromTemplate([
     {
       label: 'Snip It',
-      accelerator: 'CmdOrCtrl+Shift+2',
+      accelerator: captureAccel,
       click: captureCallback
     },
     {
       label: 'Search Snips',
-      accelerator: 'CmdOrCtrl+Shift+F',
+      accelerator: searchAccel,
       click: searchCallback
     },
     { type: 'separator' },
