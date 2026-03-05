@@ -36,7 +36,7 @@
     });
   });
 
-  // Listen for navigate-to-search IPC (from Cmd+Shift+F or tray)
+  // Listen for navigate-to-search IPC (from Cmd+Shift+S or tray)
   if (window.snip.onNavigateToSearch) {
     window.snip.onNavigateToSearch(function() {
       switchToPage('search');
@@ -637,6 +637,7 @@
   // ── Keyboard Shortcuts settings ──
   var SHORTCUT_DEFINITIONS = [
     { action: 'capture', name: 'Snip It', context: 'Global', configurable: true },
+    { action: 'quick-snip', name: 'Quick Snip', context: 'Global', configurable: true },
     { action: 'search', name: 'Search snips', context: 'Global', configurable: true },
     { action: null, name: 'Select tool', context: 'Annotation', configurable: false, display: 'V' },
     { action: null, name: 'Rectangle tool', context: 'Annotation', configurable: false, display: 'R' },

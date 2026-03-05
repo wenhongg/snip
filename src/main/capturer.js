@@ -105,4 +105,49 @@ async function captureScreen(createOverlayFn, getOverlayFn) {
   });
 }
 
-module.exports = { captureScreen };
+/**
+ * Quick snip: capture the full screen and copy to clipboard without annotation.
+ */
+async function quickSnip() {
+  const { clipboard, Notification } = require('electron');
+  const cursorDisplay = screen.getDisplayNearestPoint(screen.getCursorScreenPoint());
+  const { width, height } = cursorDisplay.size;
+  const scaleFactor = cursorDisplay.scaleFactor;
+
+  let sources;
+  try {
+    sources = await desktopCapturer.getSources({
+      types: ['screen'],
+      thumbnailSize: {
+        width: width * scaleFactor,
+        height: height * scaleFactor
+      }
+    });
+  } catch (err) {
+    console.error('[Snip] Quick snip capture failed:', err.message);
+    showPermissionDialog('Screen capture failed. Grant Screen Recording permission in System Settings > Privacy & Security > Screen Recording, then restart Snip.');
+    throw err;
+  }
+
+  if (sources.length === 0) {
+    console.error('[Snip] Quick snip: no screen sources found.');
+    showPermissionDialog('No screen sources found. Grant Screen Recording permission in System Settings > Privacy & Security > Screen Recording, then restart Snip.');
+    throw new Error('No screen sources available');
+  }
+
+  const targetId = String(cursorDisplay.id);
+  const matchedSource = sources.find(function (s) { return s.display_id === targetId; }) || sources[0];
+  const thumbnail = matchedSource.thumbnail;
+
+  if (!thumbnail || thumbnail.isEmpty()) {
+    console.error('[Snip] Quick snip returned a blank image — permission likely not granted.');
+    showPermissionDialog('Snip captured a blank screen. Grant Screen Recording permission in System Settings > Privacy & Security > Screen Recording, then restart Snip.');
+    throw new Error('Screen capture returned blank — permission likely not granted');
+  }
+
+  clipboard.writeImage(thumbnail);
+  new Notification({ title: 'Snip', body: 'Quick snip copied to clipboard' }).show();
+  console.log('[Snip] Quick snip copied to clipboard');
+}
+
+module.exports = { captureScreen, quickSnip };

@@ -3,7 +3,7 @@ const path = require('path');
 const { getTheme, setTheme, getShortcuts } = require('./store');
 
 let tray = null;
-let trayCallbacks = { capture: null, search: null, home: null };
+let trayCallbacks = { capture: null, search: null, home: null, quickSnip: null };
 
 function buildTrayMenu() {
   const currentTheme = getTheme();
@@ -11,11 +11,16 @@ function buildTrayMenu() {
 
   const captureAccel = (shortcuts['capture'] || '').replace('CommandOrControl', 'CmdOrCtrl');
   const searchAccel = (shortcuts['search'] || '').replace('CommandOrControl', 'CmdOrCtrl');
+  const quickSnipAccel = (shortcuts['quick-snip'] || '').replace('CommandOrControl', 'CmdOrCtrl');
 
   const template = [
     {
       label: 'Snip It',
       click: trayCallbacks.capture
+    },
+    {
+      label: 'Quick Snip',
+      click: trayCallbacks.quickSnip
     },
     {
       label: 'Search Snips',
@@ -60,7 +65,8 @@ function buildTrayMenu() {
 
   // Add accelerators only if valid (avoid crashing on malformed config)
   if (captureAccel) template[0].accelerator = captureAccel;
-  if (searchAccel) template[1].accelerator = searchAccel;
+  if (quickSnipAccel) template[1].accelerator = quickSnipAccel;
+  if (searchAccel) template[2].accelerator = searchAccel;
 
   try {
     const contextMenu = Menu.buildFromTemplate(template);
@@ -69,12 +75,13 @@ function buildTrayMenu() {
     console.error('[Snip] Failed to build tray menu, retrying without accelerators:', err);
     delete template[0].accelerator;
     delete template[1].accelerator;
+    delete template[2].accelerator;
     const contextMenu = Menu.buildFromTemplate(template);
     tray.setContextMenu(contextMenu);
   }
 }
 
-function createTray(captureCallback, searchCallback, homeCallback) {
+function createTray(captureCallback, searchCallback, homeCallback, quickSnipCallback) {
   const iconPath = path.join(__dirname, '..', '..', 'assets', 'tray-iconTemplate.png');
 
   let trayIcon;
@@ -90,6 +97,7 @@ function createTray(captureCallback, searchCallback, homeCallback) {
   trayCallbacks.capture = captureCallback;
   trayCallbacks.search = searchCallback;
   trayCallbacks.home = homeCallback;
+  trayCallbacks.quickSnip = quickSnipCallback;
 
   buildTrayMenu();
 

@@ -33,6 +33,7 @@ Power users on macOS who take 5-50 screenshots per day: developers, designers, P
 
 ### Capture
 - **Global shortcut** (Cmd+Shift+2): Fullscreen overlay, drag to select region, Enter to crop
+- **Quick Snip** (Cmd+Shift+1): Instantly captures the full screen and copies to clipboard without opening the annotation editor
 - **Full-screen capture**: Press Enter without dragging
 - Works across macOS Spaces without switching desktops
 - Home window hides during capture to stay out of the way
@@ -74,7 +75,7 @@ Power users on macOS who take 5-50 screenshots per day: developers, designers, P
 - Animations saved to `~/Documents/snip/screenshots/animations/` (not processed by AI organizer)
 
 ### Search
-- **Cmd+Shift+F**: Semantic search using local embeddings (no API calls)
+- **Cmd+Shift+S**: Semantic search using local embeddings (no API calls)
 - Falls back to text matching without embeddings
 - Tag cloud for quick filtering
 - Overlay-style result cards with name, category badge, and match score percentage
@@ -91,11 +92,11 @@ Power users on macOS who take 5-50 screenshots per day: developers, designers, P
 - Animation settings: fal.ai API key input, info panel (provider, resolution, max duration, output formats, save location, AI preset status)
 - Three themes: Dark, Light, Glass
 - Custom category management (live-updated when AI auto-registers new categories)
-- **Custom Keybindings**: Users can customize 2 global shortcuts (Capture and Search) from the Settings page. Click the edit icon next to a shortcut to enter recording mode, then press a modifier+key combo. Conflict detection prevents duplicate bindings. "Reset All to Defaults" restores original shortcuts. Editor tool shortcuts and OS shortcuts are displayed read-only for reference.
+- **Custom Keybindings**: Users can customize 3 global shortcuts (Capture, Quick Snip, and Search) from the Settings page. Click the edit icon next to a shortcut to enter recording mode, then press a modifier+key combo. Conflict detection prevents duplicate bindings. "Reset All to Defaults" restores original shortcuts. Editor tool shortcuts and OS shortcuts are displayed read-only for reference.
 - Full keyboard shortcuts reference table
 
 ### Tray Menu
-- Snip It, Search Snips, Open Snip, Theme submenu (Dark / Light / Glass), Quit Snip
+- Snip It, Quick Snip, Search Snips, Open Snip, Theme submenu (Dark / Light / Glass), Quit Snip
 
 ---
 

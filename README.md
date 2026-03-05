@@ -45,7 +45,8 @@ Screenshots saved to `~/Documents/snip/screenshots/`. AI renames, categorizes, a
 | Shortcut | Action |
 |----------|--------|
 | Cmd+Shift+2 | Capture screenshot |
-| Cmd+Shift+F | Open semantic search |
+| Cmd+Shift+1 | Quick Snip (full screen to clipboard) |
+| Cmd+Shift+S | Open semantic search |
 | Cmd+S | Save to disk (in editor) |
 | Esc / Enter | Copy to clipboard & close (in editor) |
 | V / R / T / A / G / B / S | Select / Rectangle / Text / Arrow / Tag / Blur / Segment tools |

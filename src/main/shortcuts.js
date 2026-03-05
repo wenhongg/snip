@@ -3,10 +3,12 @@ const { getShortcuts, getDefaultShortcuts } = require('./store');
 
 let captureCallback = null;
 let searchCallback = null;
+let quickSnipCallback = null;
 
-function registerShortcuts(captureCb, searchCb) {
+function registerShortcuts(captureCb, searchCb, quickSnipCb) {
   captureCallback = captureCb;
   searchCallback = searchCb;
+  quickSnipCallback = quickSnipCb;
   registerGlobalShortcuts();
 }
 
@@ -53,6 +55,29 @@ function registerGlobalShortcuts() {
       });
     } catch (fallbackErr) {
       console.error('[Snip] Failed to register default search shortcut:', fallbackErr);
+    }
+  }
+
+  const quickSnipAccel = shortcuts['quick-snip'];
+  try {
+    const quickSnipRegistered = globalShortcut.register(quickSnipAccel, () => {
+      if (quickSnipCallback) {
+        quickSnipCallback().catch((err) => {
+          console.error('[Snip] Quick snip shortcut error:', err);
+        });
+      }
+    });
+    if (!quickSnipRegistered) {
+      console.error('[Snip] Failed to register quick snip shortcut (%s)', quickSnipAccel);
+    }
+  } catch (err) {
+    console.error('[Snip] Invalid quick snip accelerator "%s", falling back to default', quickSnipAccel);
+    try {
+      globalShortcut.register(defaults['quick-snip'], () => {
+        if (quickSnipCallback) quickSnipCallback().catch(() => {});
+      });
+    } catch (fallbackErr) {
+      console.error('[Snip] Failed to register default quick snip shortcut:', fallbackErr);
     }
   }
 }

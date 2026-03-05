@@ -139,6 +139,22 @@ Detailed user flows for every feature in Snip. Each flow describes preconditions
 - Blank thumbnails (macOS 15+): secondary check detects blank capture and shows the same dialog
 - After granting permission: user must restart Snip for the change to take effect
 
+### 2.3 Quick Snip (Full Screen to Clipboard)
+
+**Preconditions:** App running, Screen Recording permission granted.
+
+| Step | Action | Expected Result |
+|------|--------|-----------------|
+| 1 | Press Cmd+Shift+1 (default) | Full screen captured from the display where the cursor is |
+| 2 | -- | Screenshot image copied directly to clipboard (no overlay, no editor) |
+| 3 | -- | Console logs: `[Snip] Quick snip copied to clipboard` |
+
+**Edge cases:**
+- If Screen Recording permission not granted: permission dialog shown (same as regular capture)
+- If capture returns blank image: permission dialog shown
+- Does not interfere with editor — can be used even while editor is open
+- Shortcut is customizable from Settings > Keyboard Shortcuts
+
 ---
 
 ## 3. Annotation Editor
@@ -510,7 +526,7 @@ Detailed user flows for every feature in Snip. Each flow describes preconditions
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
-| 1 | Press Cmd+Shift+F (or click Search in sidebar) | Search page shown |
+| 1 | Press Cmd+Shift+S (or click Search in sidebar) | Search page shown |
 | 2 | Type query: "login form" | -- |
 | 3 | -- | Query embedding generated via HuggingFace transformer |
 | 4 | -- | Cosine similarity calculated against all indexed embeddings |
@@ -805,7 +821,7 @@ The setup wizard appears as a **full-window inline overlay** inside the home win
 The Shortcuts section shows two groups: **configurable shortcuts** (2 global shortcuts with edit icons) and **read-only shortcuts** (tool shortcuts and OS shortcuts, non-interactive, 60% opacity).
 
 **Configurable shortcuts** (2 global):
-- Capture (Cmd+Shift+2), Search (Cmd+Shift+F)
+- Capture (Cmd+Shift+2), Quick Snip (Cmd+Shift+1), Search (Cmd+Shift+S)
 
 **Read-only shortcuts** (displayed for reference):
 - 7 editor tool shortcuts: Select (V), Rectangle (R), Text (T), Arrow (A), Tag (G), Blur Brush (B), Segment (S)
@@ -872,7 +888,8 @@ The Shortcuts section shows two groups: **configurable shortcuts** (2 global sho
 |--------|-----------------|
 | Click tray icon | Tray menu appears |
 | "Snip It" menu item | Triggers capture (same as Cmd+Shift+2) |
-| "Search Snips" menu item | Opens search page (same as Cmd+Shift+F) |
+| "Quick Snip" menu item | Captures full screen to clipboard (same as Cmd+Shift+1) |
+| "Search Snips" menu item | Opens search page (same as Cmd+Shift+S) |
 | "Open Snip" menu item | Opens/focuses home window |
 | "Quit Snip" menu item | App quits, global shortcuts unregistered |
 

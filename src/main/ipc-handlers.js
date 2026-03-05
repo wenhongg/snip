@@ -496,7 +496,7 @@ function registerIpcHandlers(getOverlayWindow, createEditorWindowFn, reregisterS
   ipcMain.handle('set-shortcut', async (event, { action, accelerator }) => {
     setShortcut(action, accelerator);
     // Re-register global shortcuts if a global shortcut changed
-    if ((action === 'capture' || action === 'search') && reregisterShortcutsFn) {
+    if ((action === 'capture' || action === 'search' || action === 'quick-snip') && reregisterShortcutsFn) {
       reregisterShortcutsFn();
     }
     if (rebuildTrayMenuFn) rebuildTrayMenuFn();

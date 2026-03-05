@@ -5,7 +5,8 @@ const DEFAULT_CATEGORIES = ['code', 'chat', 'web', 'design', 'documents', 'termi
 
 const DEFAULT_SHORTCUTS = {
   'capture': 'CommandOrControl+Shift+2',
-  'search': 'CommandOrControl+Shift+F',
+  'search': 'CommandOrControl+Shift+S',
+  'quick-snip': 'CommandOrControl+Shift+1',
   'tool-select': 'v',
   'tool-rectangle': 'r',
   'tool-text': 't',

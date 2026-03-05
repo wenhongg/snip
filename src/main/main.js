@@ -3,7 +3,7 @@ const path = require('path');
 const { registerShortcuts, unregisterShortcuts, reregisterShortcuts } = require('./shortcuts');
 const { createTray, rebuildTrayMenu } = require('./tray');
 const { registerIpcHandlers } = require('./ipc-handlers');
-const { captureScreen } = require('./capturer');
+const { captureScreen, quickSnip } = require('./capturer');
 const { initStore } = require('./store');
 const { startWatcher } = require('./organizer/watcher');
 const { startOllama, stopOllama, setOnInstallComplete } = require('./ollama-manager');
@@ -251,8 +251,8 @@ app.whenReady().then(() => {
     app.dock.hide();
   }
 
-  createTray(triggerCapture, showSearchPage, showHomeWindow);
-  registerShortcuts(triggerCapture, showSearchPage);
+  createTray(triggerCapture, showSearchPage, showHomeWindow, quickSnip);
+  registerShortcuts(triggerCapture, showSearchPage, quickSnip);
   registerIpcHandlers(getOverlayWindow, createEditorWindow, reregisterShortcuts, rebuildTrayMenu);
 
   // Start background organizer
