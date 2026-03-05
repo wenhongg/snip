@@ -1086,7 +1086,7 @@ input:focus { border-color: var(--accent); }
 .shortcut-row-name {
   flex: 1;
   font-size: 13px;
-  color: var(--text-dim);
+  color: var(--text-primary);
 }
 
 .shortcut-row-context {
@@ -1164,11 +1164,7 @@ input:focus { border-color: var(--accent); }
   background: var(--accent-bg);
 }
 
-.shortcut-row.readonly .shortcut-row-key {
-  opacity: 0.6;
-}
-
-.shortcut-row.readonly .shortcut-row-name {
+.shortcut-row.readonly {
   opacity: 0.6;
 }
 
@@ -1181,30 +1177,45 @@ input:focus { border-color: var(--accent); }
 }
 
 .shortcuts-reset-btn {
-  padding: 6px 14px;
-  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: 2px solid var(--border-card);
+  border-radius: 10px;
+  background: var(--bg-elevated);
   color: var(--text-secondary);
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border);
-  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: inherit;
   cursor: pointer;
-  transition: color 0.15s, border-color 0.15s;
+  transition: all 0.15s;
+  box-shadow: var(--glass-inner-glow);
 }
 
 .shortcuts-reset-btn:hover {
+  border-color: var(--text-muted);
   color: var(--text-primary);
-  border-color: var(--text-secondary);
+}
+
+/* Glass theme: match theme-btn overrides for consistency */
+[data-theme="glass"] .shortcuts-reset-btn {
+  border-color: rgba(255, 255, 255, 0.28);
+  color: rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.10);
+}
+
+[data-theme="glass"] .shortcuts-reset-btn:hover {
+  border-color: rgba(255, 255, 255, 0.42);
+  color: #fff;
+  background: rgba(255, 255, 255, 0.14);
 }
 
 .shortcuts-status {
   font-size: 12px;
   color: var(--success);
-  padding: 4px 10px;
-  border-radius: 5px;
-  background: color-mix(in srgb, var(--success) 10%, transparent);
-  border: 1px solid color-mix(in srgb, var(--success) 20%, transparent);
   opacity: 0;
-  transition: opacity 0.2s;
+  transition: opacity 0.3s;
 }
 
 .shortcuts-status.visible {
