@@ -6,7 +6,7 @@ const SelectionTool = (() => {
   }
 
   // States: 'idle' | 'drawing' | 'selected' | 'moving'
-  function attach(canvasEl, fullWidth, fullHeight, onComplete, onCancel) {
+  function attach(canvasEl, fullWidth, fullHeight, onComplete, onCancel, windowList) {
     const overlay = document.getElementById('selection-overlay');
     const ctx = overlay.getContext('2d');
     const dpr = window.devicePixelRatio || 1;
@@ -18,6 +18,8 @@ const SelectionTool = (() => {
     overlay.style.height = fullHeight + 'px';
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
+    var windows = windowList || [];
+
     var state = 'idle';
     // Drawing state
     var drawStartX = 0, drawStartY = 0;
@@ -26,6 +28,22 @@ const SelectionTool = (() => {
     var selX = 0, selY = 0, selW = 0, selH = 0;
     // Moving state
     var moveOffsetX = 0, moveOffsetY = 0;
+    // Window snap state
+    var hoveredWindow = null;
+    var pendingClick = false;
+    var pendingClickX = 0, pendingClickY = 0;
+    var DRAG_THRESHOLD = 5;
+
+    function findWindowAt(mx, my) {
+      // Windows are sorted front-to-back (topmost first)
+      for (var i = 0; i < windows.length; i++) {
+        var w = windows[i];
+        if (mx >= w.x && mx <= w.x + w.width && my >= w.y && my <= w.y + w.height) {
+          return w;
+        }
+      }
+      return null;
+    }
 
     function draw() {
       ctx.clearRect(0, 0, fullWidth, fullHeight);
@@ -41,34 +59,63 @@ const SelectionTool = (() => {
         h = Math.abs(drawCurrentY - drawStartY);
       } else if (state === 'selected' || state === 'moving') {
         x = selX; y = selY; w = selW; h = selH;
+      } else if (state === 'idle' && hoveredWindow) {
+        // Highlight the window under cursor
+        x = hoveredWindow.x; y = hoveredWindow.y;
+        w = hoveredWindow.width; h = hoveredWindow.height;
       } else {
-        return; // idle — just dim
+        return; // idle, no window — just dim
       }
 
       if (w < 1 || h < 1) return;
 
+      // Clamp to overlay bounds for drawing
+      var drawX = Math.max(0, x);
+      var drawY = Math.max(0, y);
+      var drawW = Math.min(w, fullWidth - drawX);
+      var drawH = Math.min(h, fullHeight - drawY);
+
       // Cut out the selected region
-      ctx.clearRect(x, y, w, h);
+      ctx.clearRect(drawX, drawY, drawW, drawH);
 
       // Draw selection border
-      ctx.strokeStyle = getAccent();
+      var accent = getAccent();
+      ctx.strokeStyle = accent;
       ctx.lineWidth = 2;
       if (state === 'drawing') {
         ctx.setLineDash([6, 3]);
       } else {
         ctx.setLineDash([]);
       }
-      ctx.strokeRect(x, y, w, h);
+      ctx.strokeRect(drawX, drawY, drawW, drawH);
       ctx.setLineDash([]);
 
-      // Dimensions label at top-left
+      // Window hover: add subtle accent fill
+      if (state === 'idle' && hoveredWindow) {
+        // Parse accent hex to rgba for reliable opacity
+        var a = accent.trim();
+        var r = parseInt(a.slice(1, 3), 16) || 139;
+        var g = parseInt(a.slice(3, 5), 16) || 92;
+        var b = parseInt(a.slice(5, 7), 16) || 246;
+        ctx.fillStyle = 'rgba(' + r + ',' + g + ',' + b + ',0.1)';
+        ctx.fillRect(drawX, drawY, drawW, drawH);
+      }
+
+      // Label: window name on hover, dimensions otherwise
+      var label;
+      if (state === 'idle' && hoveredWindow) {
+        label = hoveredWindow.owner || '';
+        if (hoveredWindow.name) label += (label ? ' — ' : '') + hoveredWindow.name;
+        if (!label) label = Math.round(w) + ' \u00d7 ' + Math.round(h);
+      } else {
+        label = Math.round(w) + ' \u00d7 ' + Math.round(h);
+      }
       if (w > 30 && h > 20) {
-        var label = Math.round(w) + ' \u00d7 ' + Math.round(h);
         ctx.font = '12px -apple-system, BlinkMacSystemFont, sans-serif';
         var textW = ctx.measureText(label).width;
-        var labelX = x;
-        var labelY = y - 8;
-        if (labelY - 16 < 0) labelY = y + 20;
+        var labelX = drawX;
+        var labelY = drawY - 8;
+        if (labelY - 16 < 0) labelY = drawY + 20;
         ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
         ctx.fillRect(labelX, labelY - 16, textW + 12, 22);
         ctx.fillStyle = '#fff';
@@ -91,6 +138,12 @@ const SelectionTool = (() => {
         moveOffsetY = my - selY;
         overlay.style.cursor = 'grabbing';
       } else {
+        // If there's a hovered window, start pending click detection
+        if (state === 'idle' && hoveredWindow) {
+          pendingClick = true;
+          pendingClickX = mx;
+          pendingClickY = my;
+        }
         // Start new drawing (from idle or replacing existing selection)
         state = 'drawing';
         drawStartX = mx;
@@ -106,6 +159,15 @@ const SelectionTool = (() => {
       var mx = e.clientX, my = e.clientY;
 
       if (state === 'drawing') {
+        // If pending click and moved past threshold, cancel window snap
+        if (pendingClick) {
+          var dx = mx - pendingClickX;
+          var dy = my - pendingClickY;
+          if (Math.sqrt(dx * dx + dy * dy) > DRAG_THRESHOLD) {
+            pendingClick = false;
+            hoveredWindow = null;
+          }
+        }
         drawCurrentX = mx;
         drawCurrentY = my;
         draw();
@@ -116,6 +178,13 @@ const SelectionTool = (() => {
       } else if (state === 'selected') {
         // Update cursor based on hover
         overlay.style.cursor = isInsideSelection(mx, my) ? 'grab' : 'crosshair';
+      } else if (state === 'idle' && windows.length > 0) {
+        // Highlight window under cursor
+        var win = findWindowAt(mx, my);
+        if (win !== hoveredWindow) {
+          hoveredWindow = win;
+          draw();
+        }
       }
     }
 
@@ -123,6 +192,31 @@ const SelectionTool = (() => {
       var mx = e.clientX, my = e.clientY;
 
       if (state === 'drawing') {
+        // Check for window snap click (small drag = click on window)
+        if (pendingClick && hoveredWindow) {
+          var dx = mx - pendingClickX;
+          var dy = my - pendingClickY;
+          if (Math.sqrt(dx * dx + dy * dy) <= DRAG_THRESHOLD) {
+            // Snap to window bounds
+            selX = hoveredWindow.x;
+            selY = hoveredWindow.y;
+            selW = hoveredWindow.width;
+            selH = hoveredWindow.height;
+            // Clamp to overlay bounds
+            selX = Math.max(0, selX);
+            selY = Math.max(0, selY);
+            selW = Math.min(selW, fullWidth - selX);
+            selH = Math.min(selH, fullHeight - selY);
+            state = 'selected';
+            pendingClick = false;
+            hoveredWindow = null;
+            overlay.style.cursor = isInsideSelection(mx, my) ? 'grab' : 'crosshair';
+            draw();
+            return;
+          }
+        }
+        pendingClick = false;
+
         var x = Math.min(drawStartX, drawCurrentX);
         var y = Math.min(drawStartY, drawCurrentY);
         var w = Math.abs(drawCurrentX - drawStartX);
@@ -132,6 +226,7 @@ const SelectionTool = (() => {
           // Valid selection — enter selected state
           selX = x; selY = y; selW = w; selH = h;
           state = 'selected';
+          hoveredWindow = null;
           overlay.style.cursor = isInsideSelection(mx, my) ? 'grab' : 'crosshair';
         } else {
           // Too small, reset to idle

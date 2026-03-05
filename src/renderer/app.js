@@ -7,9 +7,12 @@
   let displayOrigin = { x: 0, y: 0 };
   let selectionInstance = null;
 
+  let windowList = [];
+
   window.snip.onScreenshotCaptured(async (data) => {
     capturedDataURL = data.dataURL;
     displayOrigin = data.displayOrigin || { x: 0, y: 0 };
+    windowList = data.windowList || [];
     const width = window.innerWidth;
     const height = window.innerHeight;
 
@@ -37,7 +40,8 @@
         document.getElementById('selection-hint').classList.add('hidden');
         if (selectionInstance) { selectionInstance.cleanup(); selectionInstance = null; }
         window.snip.closeOverlay();
-      }
+      },
+      windowList
     );
     selectionInstance.activate();
   }

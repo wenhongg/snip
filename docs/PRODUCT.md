@@ -32,7 +32,7 @@ Power users on macOS who take 5-50 screenshots per day: developers, designers, P
 ## Feature Set
 
 ### Capture
-- **Global shortcut** (Cmd+Shift+2): Fullscreen overlay, drag to select region, Enter to crop
+- **Global shortcut** (Cmd+Shift+2): Fullscreen overlay, click a window to snap-select it, or drag to select a custom region, Enter to crop
 - **Quick Snip** (Cmd+Shift+1): Instantly captures the full screen and copies to clipboard without opening the annotation editor
 - **Full-screen capture**: Press Enter without dragging
 - Works across macOS Spaces without switching desktops

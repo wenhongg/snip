@@ -78,8 +78,10 @@ Detailed user flows for every feature in Snip. Each flow describes preconditions
 | 2 | -- | Display under the cursor is captured via `desktopCapturer.getSources()` |
 | 3 | -- | Fullscreen transparent overlay appears on that display |
 | 4 | -- | Overlay covers entire display including menu bar |
-| 5 | -- | Cursor becomes crosshair, hint text visible: "Drag to select a region, then press Enter" |
-| 6 | Drag to select a rectangular region | Selection box appears with handles |
+| 5 | -- | Cursor becomes crosshair, hint text visible: "Click a window to select it, or drag to select an area" |
+| 5a | Move cursor over a window | Window highlighted with accent border and owner/title label |
+| 6a | Click on a highlighted window | Window bounds become the selection (snap-select) |
+| 6b | Drag to select a rectangular region | Selection box appears with dashed border |
 | 7 | (Optional) Drag inside selection to reposition | Selection moves without resizing |
 | 8 | Press Enter | Overlay closes, editor window opens with cropped image |
 | 9 | -- | Editor window is centered on screen, min width 900px |

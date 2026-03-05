@@ -71,10 +71,32 @@ async function captureScreen(createOverlayFn, getOverlayFn) {
     throw new Error('Screen capture returned blank — permission likely not granted');
   }
 
-  // 2. Create fresh overlay on the current Space
+  // 2. Get window list BEFORE creating overlay (so overlay isn't in the list)
+  let windowList = [];
+  if (windowUtils && windowUtils.getWindowList) {
+    try {
+      const bounds = cursorDisplay.bounds;
+      windowList = windowUtils.getWindowList(bounds.x, bounds.y, width, height);
+      // Convert macOS global coords to display-relative coords
+      windowList = windowList.map(function (w) {
+        return {
+          x: w.x - bounds.x,
+          y: w.y - bounds.y,
+          width: w.width,
+          height: w.height,
+          owner: w.owner,
+          name: w.name
+        };
+      });
+    } catch (e) {
+      console.warn('[Snip] Failed to get window list:', e.message);
+    }
+  }
+
+  // 3. Create fresh overlay on the current Space
   const overlayWindow = createOverlayFn();
 
-  // 3. Set native macOS behavior: move window to whichever Space is active
+  // 4. Set native macOS behavior: move window to whichever Space is active
   if (windowUtils) {
     try {
       const handle = overlayWindow.getNativeWindowHandle();
@@ -84,7 +106,7 @@ async function captureScreen(createOverlayFn, getOverlayFn) {
     }
   }
 
-  // 4. Wait for HTML to finish loading, then show and send screenshot data
+  // 5. Wait for HTML to finish loading, then show and send screenshot data
   overlayWindow.webContents.once('did-finish-load', () => {
     // In the packaged app LSUIElement:true makes this a background agent —
     // explicitly activate so the overlay can receive keyboard events.
@@ -101,7 +123,7 @@ async function captureScreen(createOverlayFn, getOverlayFn) {
     // (macOS may push the window below menu bar on show)
     const bounds = cursorDisplay.bounds;
     overlayWindow.setBounds({ x: bounds.x, y: bounds.y, width, height });
-    overlayWindow.webContents.send('screenshot-captured', { dataURL, displayOrigin: { x: bounds.x, y: bounds.y } });
+    overlayWindow.webContents.send('screenshot-captured', { dataURL, displayOrigin: { x: bounds.x, y: bounds.y }, windowList });
   });
 }
 
