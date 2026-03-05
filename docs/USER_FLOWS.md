@@ -820,7 +820,8 @@ The Shortcuts section shows two groups: **configurable shortcuts** (2 global sho
 | 2 | -- | Key display text changes to "Press key…" |
 | 3 | Press a modifier+key combo (e.g., Cmd+Shift+3) | Shortcut saves immediately, display shows new key combo |
 | 4 | -- | Global shortcut re-registers with the new binding via `reregisterShortcuts()` |
-| 5 | -- | `shortcuts-changed` event broadcast to all windows |
+| 5 | -- | Tray menu rebuilt with updated accelerator labels |
+| 6 | -- | `shortcuts-changed` event broadcast to all windows |
 
 **Cancel recording:**
 
@@ -840,10 +841,11 @@ The Shortcuts section shows two groups: **configurable shortcuts** (2 global sho
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
-| 1 | Click "Reset All to Defaults" button | All custom shortcuts deleted, defaults restored |
-| 2 | -- | "Restored defaults" status badge fades in briefly |
+| 1 | Click "Reset to Default" button | All custom shortcuts deleted, defaults restored |
+| 2 | -- | "Restored defaults" status message fades in briefly |
 | 3 | -- | Global shortcuts re-registered with default bindings |
-| 4 | -- | `shortcuts-changed` event broadcast to all windows |
+| 4 | -- | Tray menu rebuilt with default accelerator labels |
+| 5 | -- | `shortcuts-changed` event broadcast to all windows |
 
 **Persistence:**
 

@@ -32,7 +32,7 @@ src/
     main.js                  # App lifecycle, window creation, liquid glass init
     capturer.js              # Screen capture via desktopCapturer
     ipc-handlers.js          # All IPC channel handlers
-    tray.js                  # Menu-bar tray icon and context menu
+    tray.js                  # Menu-bar tray icon and context menu, rebuildTrayMenu() for live accelerator updates
     shortcuts.js             # Global keyboard shortcuts (Cmd+Shift+2, Cmd+Shift+F), reregisterShortcuts() for dynamic rebinding
     store.js                 # Config persistence, index I/O, fal.ai API key storage, aiEnabled flag, reloadConfig(), getShortcuts(), getDefaultShortcuts(), setShortcut(), resetShortcuts()
     constants.js             # Shared constants (BASE_WEB_PREFERENCES)
