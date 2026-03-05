@@ -78,8 +78,10 @@ Detailed user flows for every feature in Snip. Each flow describes preconditions
 | 2 | -- | Display under the cursor is captured via `desktopCapturer.getSources()` |
 | 3 | -- | Fullscreen transparent overlay appears on that display |
 | 4 | -- | Overlay covers entire display including menu bar |
-| 5 | -- | Cursor becomes crosshair, hint text visible: "Drag to select a region, then press Enter" |
-| 6 | Drag to select a rectangular region | Selection box appears with handles |
+| 5 | -- | Cursor becomes crosshair, hint text visible: "Click a window to select it, or drag to select an area" |
+| 5a | Move cursor over a window | Window highlighted with accent border and owner/title label |
+| 6a | Click on a highlighted window | Window bounds become the selection (snap-select) |
+| 6b | Drag to select a rectangular region | Selection box appears with dashed border |
 | 7 | (Optional) Drag inside selection to reposition | Selection moves without resizing |
 | 8 | Press Enter | Overlay closes, editor window opens with cropped image |
 | 9 | -- | Editor window is centered on screen, min width 900px |
@@ -139,20 +141,20 @@ Detailed user flows for every feature in Snip. Each flow describes preconditions
 - Blank thumbnails (macOS 15+): secondary check detects blank capture and shows the same dialog
 - After granting permission: user must restart Snip for the change to take effect
 
-### 2.3 Quick Snip (Full Screen to Clipboard)
+### 2.3 Quick Snip (Select & Copy to Clipboard)
 
 **Preconditions:** App running, Screen Recording permission granted.
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
-| 1 | Press Cmd+Shift+1 (default) | Full screen captured from the display where the cursor is |
-| 2 | -- | Screenshot image copied directly to clipboard (no overlay, no editor) |
-| 3 | -- | Console logs: `[Snip] Quick snip copied to clipboard` |
+| 1 | Press Cmd+Shift+1 (default) | Same capture overlay appears with window highlight and region selection |
+| 2 | Click a window or drag a region | Selection made (same as regular capture flow §2.1) |
+| 3 | Press Enter | Cropped image copied directly to clipboard — no annotation editor opens |
 
 **Edge cases:**
+- Esc cancels the selection and closes the overlay (same as regular capture)
+- Enter with no selection copies full screen to clipboard
 - If Screen Recording permission not granted: permission dialog shown (same as regular capture)
-- If capture returns blank image: permission dialog shown
-- Does not interfere with editor — can be used even while editor is open
 - Shortcut is customizable from Settings > Keyboard Shortcuts
 
 ---
@@ -820,7 +822,7 @@ The setup wizard appears as a **full-window inline overlay** inside the home win
 
 The Shortcuts section shows two groups: **configurable shortcuts** (2 global shortcuts with edit icons) and **read-only shortcuts** (tool shortcuts and OS shortcuts, non-interactive, 60% opacity).
 
-**Configurable shortcuts** (2 global):
+**Configurable shortcuts** (3 global):
 - Capture (Cmd+Shift+2), Quick Snip (Cmd+Shift+1), Search (Cmd+Shift+S)
 
 **Read-only shortcuts** (displayed for reference):
@@ -888,7 +890,7 @@ The Shortcuts section shows two groups: **configurable shortcuts** (2 global sho
 |--------|-----------------|
 | Click tray icon | Tray menu appears |
 | "Snip It" menu item | Triggers capture (same as Cmd+Shift+2) |
-| "Quick Snip" menu item | Captures full screen to clipboard (same as Cmd+Shift+1) |
+| "Quick Snip" menu item | Opens capture overlay in quick-snip mode — select & copy to clipboard (same as Cmd+Shift+1) |
 | "Search Snips" menu item | Opens search page (same as Cmd+Shift+S) |
 | "Open Snip" menu item | Opens/focuses home window |
 | "Quit Snip" menu item | App quits, global shortcuts unregistered |
@@ -969,15 +971,27 @@ The Shortcuts section shows two groups: **configurable shortcuts** (2 global sho
 
 | Condition | Expected Behavior |
 |-----------|-------------------|
-| Full Retina screen capture (e.g. 3456x2234 physical pixels) | Editor window capped at 90% of screen width/height |
+| Full Retina screen capture (e.g. 3456x2234 physical pixels) | Editor window uses up to 100% of screen work area |
+| Image exceeds editor viewport | Canvas zoomed to fit via `setZoom()` — annotations draw at visible scale |
+| -- | Export compensates for zoom (`dpr / zoom`) to produce full physical-resolution output |
 | -- | Canvas uses CSS dimensions, not physical pixels |
 
-### 12.6 Concurrent Captures
+### 12.6 Window Snap Selection
 
 | Condition | Expected Behavior |
 |-----------|-------------------|
-| Press Cmd+Shift+2 while overlay is already showing | No action (overlay already visible) |
+| Browser or multi-pane app (Chrome, VS Code, etc.) | Sub-windows merged by PID into single bounding rect — full app window highlighted |
+| Window partially off-screen | Snap rect includes the off-screen portion; crop clamps to captured image bounds |
+| Overlay offset from display origin (menu bar / notch) | Window list coordinates adjusted by overlay offset before rendering |
+| Click threshold on Retina display | Drag threshold is DPI-aware (5 × devicePixelRatio physical pixels) |
+
+### 12.7 Concurrent Captures
+
+| Condition | Expected Behavior |
+|-----------|-------------------|
+| Press Cmd+Shift+1 or Cmd+Shift+2 while overlay is already showing | No action (overlay already visible) |
 | Press Cmd+Shift+2 while editor is open | Editor window focuses, no new capture |
+| Press Cmd+Shift+1 while editor is open | Quick Snip overlay opens (bypasses editor check) |
 
 ---
 

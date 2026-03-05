@@ -75,7 +75,7 @@ src/
     preload.js               # contextBridge — defines window.snip API surface
 
   native/
-    window_utils.mm          # Obj-C++ N-API addon for macOS Space behavior
+    window_utils.mm          # Obj-C++ N-API addon: setMoveToActiveSpace (Space behavior), getWindowList (CGWindowList for window snap — merges sub-windows by PID)
 
 assets/                      # App icons, tray icons
 site/                        # Marketing site (GitHub Pages, snipit.dev)

@@ -31,7 +31,8 @@ function showPermissionDialog(detail) {
   });
 }
 
-async function captureScreen(createOverlayFn, getOverlayFn) {
+async function captureScreen(createOverlayFn, getOverlayFn, opts) {
+  var mode = (opts && opts.mode) || 'capture';
   // 1. Capture screenshot FIRST (before overlay appears)
   // Use whichever display the cursor is currently on
   const cursorDisplay = screen.getDisplayNearestPoint(screen.getCursorScreenPoint());
@@ -71,10 +72,32 @@ async function captureScreen(createOverlayFn, getOverlayFn) {
     throw new Error('Screen capture returned blank — permission likely not granted');
   }
 
-  // 2. Create fresh overlay on the current Space
+  // 2. Get window list BEFORE creating overlay (so overlay isn't in the list)
+  let windowList = [];
+  if (windowUtils && windowUtils.getWindowList) {
+    try {
+      const bounds = cursorDisplay.bounds;
+      windowList = windowUtils.getWindowList(bounds.x, bounds.y, width, height);
+      // Convert macOS global coords to display-relative coords
+      windowList = windowList.map(function (w) {
+        return {
+          x: w.x - bounds.x,
+          y: w.y - bounds.y,
+          width: w.width,
+          height: w.height,
+          owner: w.owner,
+          name: w.name
+        };
+      });
+    } catch (e) {
+      console.warn('[Snip] Failed to get window list:', e.message);
+    }
+  }
+
+  // 3. Create fresh overlay on the current Space
   const overlayWindow = createOverlayFn();
 
-  // 3. Set native macOS behavior: move window to whichever Space is active
+  // 4. Set native macOS behavior: move window to whichever Space is active
   if (windowUtils) {
     try {
       const handle = overlayWindow.getNativeWindowHandle();
@@ -84,7 +107,7 @@ async function captureScreen(createOverlayFn, getOverlayFn) {
     }
   }
 
-  // 4. Wait for HTML to finish loading, then show and send screenshot data
+  // 5. Wait for HTML to finish loading, then show and send screenshot data
   overlayWindow.webContents.once('did-finish-load', () => {
     // In the packaged app LSUIElement:true makes this a background agent —
     // explicitly activate so the overlay can receive keyboard events.
@@ -101,53 +124,8 @@ async function captureScreen(createOverlayFn, getOverlayFn) {
     // (macOS may push the window below menu bar on show)
     const bounds = cursorDisplay.bounds;
     overlayWindow.setBounds({ x: bounds.x, y: bounds.y, width, height });
-    overlayWindow.webContents.send('screenshot-captured', { dataURL, displayOrigin: { x: bounds.x, y: bounds.y } });
+    overlayWindow.webContents.send('screenshot-captured', { dataURL, displayOrigin: { x: bounds.x, y: bounds.y }, windowList, mode });
   });
 }
 
-/**
- * Quick snip: capture the full screen and copy to clipboard without annotation.
- */
-async function quickSnip() {
-  const { clipboard, Notification } = require('electron');
-  const cursorDisplay = screen.getDisplayNearestPoint(screen.getCursorScreenPoint());
-  const { width, height } = cursorDisplay.size;
-  const scaleFactor = cursorDisplay.scaleFactor;
-
-  let sources;
-  try {
-    sources = await desktopCapturer.getSources({
-      types: ['screen'],
-      thumbnailSize: {
-        width: width * scaleFactor,
-        height: height * scaleFactor
-      }
-    });
-  } catch (err) {
-    console.error('[Snip] Quick snip capture failed:', err.message);
-    showPermissionDialog('Screen capture failed. Grant Screen Recording permission in System Settings > Privacy & Security > Screen Recording, then restart Snip.');
-    throw err;
-  }
-
-  if (sources.length === 0) {
-    console.error('[Snip] Quick snip: no screen sources found.');
-    showPermissionDialog('No screen sources found. Grant Screen Recording permission in System Settings > Privacy & Security > Screen Recording, then restart Snip.');
-    throw new Error('No screen sources available');
-  }
-
-  const targetId = String(cursorDisplay.id);
-  const matchedSource = sources.find(function (s) { return s.display_id === targetId; }) || sources[0];
-  const thumbnail = matchedSource.thumbnail;
-
-  if (!thumbnail || thumbnail.isEmpty()) {
-    console.error('[Snip] Quick snip returned a blank image — permission likely not granted.');
-    showPermissionDialog('Snip captured a blank screen. Grant Screen Recording permission in System Settings > Privacy & Security > Screen Recording, then restart Snip.');
-    throw new Error('Screen capture returned blank — permission likely not granted');
-  }
-
-  clipboard.writeImage(thumbnail);
-  new Notification({ title: 'Snip', body: 'Quick snip copied to clipboard' }).show();
-  console.log('[Snip] Quick snip copied to clipboard');
-}
-
-module.exports = { captureScreen, quickSnip };
+module.exports = { captureScreen };

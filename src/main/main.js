@@ -3,7 +3,7 @@ const path = require('path');
 const { registerShortcuts, unregisterShortcuts, reregisterShortcuts } = require('./shortcuts');
 const { createTray, rebuildTrayMenu } = require('./tray');
 const { registerIpcHandlers } = require('./ipc-handlers');
-const { captureScreen, quickSnip } = require('./capturer');
+const { captureScreen } = require('./capturer');
 const { initStore } = require('./store');
 const { startWatcher } = require('./organizer/watcher');
 const { startOllama, stopOllama, setOnInstallComplete } = require('./ollama-manager');
@@ -130,8 +130,8 @@ function createEditorWindow(cssWidth, cssHeight) {
   const { width: screenW, height: screenH } = primaryDisplay.workAreaSize;
 
   const PANEL_CLEARANCE = 260; // space below image for animate preset panel
-  const winWidth = Math.min(Math.max(cssWidth + MARGIN, TOOLBAR_MIN_WIDTH), Math.round(screenW * 0.9));
-  const winHeight = Math.min(Math.max(cssHeight + TOOLBAR_HEIGHT + MARGIN, cssHeight + TOOLBAR_HEIGHT + PANEL_CLEARANCE, 500), Math.round(screenH * 0.9));
+  const winWidth = Math.min(Math.max(cssWidth + MARGIN, TOOLBAR_MIN_WIDTH), screenW);
+  const winHeight = Math.min(Math.max(cssHeight + TOOLBAR_HEIGHT + MARGIN, cssHeight + TOOLBAR_HEIGHT + PANEL_CLEARANCE, 500), screenH);
   const x = Math.round((screenW - winWidth) / 2);
   const y = Math.round((screenH - winHeight) / 2);
 
@@ -187,9 +187,15 @@ function createEditorWindow(cssWidth, cssHeight) {
   return editorWindow;
 }
 
-async function triggerCapture() {
-  // Don't start a new capture while the editor is open
-  if (editorWindow && !editorWindow.isDestroyed()) {
+async function triggerCapture(opts) {
+  // Don't start a new capture while the overlay is already active
+  if (overlayWindow && !overlayWindow.isDestroyed()) {
+    return;
+  }
+
+  // Don't start a new capture while the editor is open (unless quick-snip mode)
+  var mode = (opts && opts.mode) || 'capture';
+  if (mode !== 'quick-snip' && editorWindow && !editorWindow.isDestroyed()) {
     editorWindow.focus();
     return;
   }
@@ -200,7 +206,7 @@ async function triggerCapture() {
   }
 
   try {
-    await captureScreen(createOverlayWindow, getOverlayWindow);
+    await captureScreen(createOverlayWindow, getOverlayWindow, { mode });
   } catch (err) {
     console.error('[Snip] Capture failed:', err.message);
     // Permission errors show their own dialog from capturer.js —
@@ -209,6 +215,10 @@ async function triggerCapture() {
       showHomeWindow();
     }
   }
+}
+
+async function triggerQuickSnip() {
+  return triggerCapture({ mode: 'quick-snip' });
 }
 
 function showHomeWindow() {
@@ -251,8 +261,8 @@ app.whenReady().then(() => {
     app.dock.hide();
   }
 
-  createTray(triggerCapture, showSearchPage, showHomeWindow, quickSnip);
-  registerShortcuts(triggerCapture, showSearchPage, quickSnip);
+  createTray(triggerCapture, showSearchPage, showHomeWindow, triggerQuickSnip);
+  registerShortcuts(triggerCapture, showSearchPage, triggerQuickSnip);
   registerIpcHandlers(getOverlayWindow, createEditorWindow, reregisterShortcuts, rebuildTrayMenu);
 
   // Start background organizer
