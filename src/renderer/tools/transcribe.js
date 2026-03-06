@@ -84,7 +84,7 @@ var TranscribeTool = (function() {
 
   function showLoading() {
     els.loading.classList.remove('hidden');
-    els.language.textContent = '';
+    els.language.innerHTML = '';
     els.text.textContent = '';
     els.actions.classList.add('hidden');
     els.empty.classList.add('hidden');
@@ -95,8 +95,11 @@ var TranscribeTool = (function() {
     els.loading.classList.add('hidden');
     els.empty.classList.add('hidden');
     els.error.classList.add('hidden');
-    els.language.textContent = data.languages.join(', ');
-    els.text.textContent = data.text;
+    var langs = data.languages.slice(0, 3);
+    els.language.innerHTML = langs.map(function(lang) {
+      return '<span class="transcript-lang-pill">' + lang + '</span>';
+    }).join('');
+    els.text.textContent = data.text.replace(/\n{3,}/g, '\n\n').trim();
     els.actions.classList.remove('hidden');
   }
 
@@ -104,7 +107,7 @@ var TranscribeTool = (function() {
     els.loading.classList.add('hidden');
     els.error.classList.add('hidden');
     els.actions.classList.add('hidden');
-    els.language.textContent = '';
+    els.language.innerHTML = '';
     els.text.textContent = '';
     els.empty.classList.remove('hidden');
   }
@@ -113,7 +116,7 @@ var TranscribeTool = (function() {
     els.loading.classList.add('hidden');
     els.empty.classList.add('hidden');
     els.actions.classList.add('hidden');
-    els.language.textContent = '';
+    els.language.innerHTML = '';
     els.text.textContent = '';
 
     els.errorText.textContent = msg;
