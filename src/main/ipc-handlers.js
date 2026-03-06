@@ -1,4 +1,4 @@
-const { ipcMain, clipboard, nativeImage, app, Notification, shell, BrowserWindow, systemPreferences, desktopCapturer } = require('electron');
+const { ipcMain, clipboard, nativeImage, app, Notification, shell, BrowserWindow, screen, systemPreferences, desktopCapturer } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const {
@@ -17,6 +17,124 @@ const { getCapturedImage } = require('./capturer');
 
 let pendingEditorData = null;
 let editorWindowRef = null;
+let toastWindow = null;
+
+// Theme tokens for the floating toast — mirrors theme.css design language
+const TOAST_THEMES = {
+  dark: {
+    bg: 'rgba(20, 20, 20, 0.7)',
+    shadow: '0 8px 24px rgba(0,0,0,0.4), inset 0 1px 0 0 rgba(255,255,255,0.06)',
+    specular: 'rgba(255, 255, 255, 0.08)',
+    color: '#e0e0e0',
+    accent: '#8B5CF6',
+    blur: '24px'
+  },
+  light: {
+    bg: 'rgba(255, 253, 250, 0.85)',
+    shadow: '0 4px 16px rgba(0,0,0,0.08), inset 0 1px 0 0 rgba(255,255,255,0.5)',
+    specular: 'rgba(124, 58, 237, 0.15)',
+    color: '#1a1a1a',
+    accent: '#7C3AED',
+    blur: '24px'
+  },
+  glass: {
+    bg: 'rgba(22, 10, 42, 0.75)',
+    shadow: '0 8px 24px rgba(20,8,40,0.55), inset 0 1px 0 0 rgba(255,255,255,0.14)',
+    specular: 'rgba(167, 139, 250, 0.25)',
+    color: '#f0eafa',
+    accent: '#A78BFA',
+    blur: '0px'
+  }
+};
+
+function showFloatingToast(message) {
+  // Destroy previous toast if still showing
+  if (toastWindow && !toastWindow.isDestroyed()) {
+    toastWindow.destroy();
+    toastWindow = null;
+  }
+
+  const display = screen.getDisplayNearestPoint(screen.getCursorScreenPoint());
+  const { width: screenW } = display.workArea;
+  const toastW = 260;
+  const toastH = 48;
+  const x = display.workArea.x + Math.round((screenW - toastW) / 2);
+  const y = display.workArea.y + 32;
+
+  toastWindow = new BrowserWindow({
+    width: toastW,
+    height: toastH,
+    x,
+    y,
+    frame: false,
+    transparent: true,
+    alwaysOnTop: true,
+    skipTaskbar: true,
+    hasShadow: false,
+    resizable: false,
+    focusable: false,
+    show: false,
+    webPreferences: { contextIsolation: true, nodeIntegration: false }
+  });
+
+  const theme = getTheme() || 'dark';
+  const t = TOAST_THEMES[theme] || TOAST_THEMES.dark;
+
+  // Escape message for safe HTML insertion
+  const safeMessage = message.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+  const html = `<!DOCTYPE html>
+<html><head><style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    -webkit-app-region: no-drag;
+    background: transparent;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+  .toast {
+    background: ${t.bg};
+    backdrop-filter: blur(${t.blur});
+    -webkit-backdrop-filter: blur(${t.blur});
+    border: 1px solid ${t.specular};
+    border-radius: 10px;
+    box-shadow: ${t.shadow};
+    padding: 10px 18px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Plus Jakarta Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: ${t.color};
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    opacity: 0;
+    transform: translateY(-6px);
+    animation: fadeIn 0.25s ease forwards, fadeOut 0.3s ease 1.1s forwards;
+  }
+  .icon { color: ${t.accent}; font-size: 14px; }
+  @keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeOut { to { opacity: 0; transform: translateY(-6px); } }
+</style></head><body>
+  <div class="toast"><span class="icon">✓</span>${safeMessage}</div>
+</body></html>`;
+
+  toastWindow.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(html));
+  toastWindow.setIgnoreMouseEvents(true);
+  toastWindow.once('ready-to-show', () => {
+    if (toastWindow && !toastWindow.isDestroyed()) toastWindow.show();
+  });
+
+  // Auto-destroy after animation completes
+  setTimeout(() => {
+    if (toastWindow && !toastWindow.isDestroyed()) {
+      toastWindow.destroy();
+      toastWindow = null;
+    }
+  }, 1600);
+}
 
 function registerIpcHandlers(getOverlayWindow, createEditorWindowFn, reregisterShortcutsFn, rebuildTrayMenuFn) {
   // Copy annotated image to clipboard
@@ -43,6 +161,11 @@ function registerIpcHandlers(getOverlayWindow, createEditorWindowFn, reregisterS
     queueNewFile(filepath);
 
     return filepath;
+  });
+
+  // Show a floating toast near the top of the screen
+  ipcMain.on('show-notification', (event, body) => {
+    showFloatingToast(body);
   });
 
   // Return the captured screenshot as a data URL (deferred from capture time)

@@ -148,10 +148,11 @@ Detailed user flows for every feature in Snip. Each flow describes preconditions
 |------|--------|-----------------|
 | 1 | Press Cmd+Shift+1 (default) | Same capture overlay appears with window highlight and region selection |
 | 2 | Click a window or drag a region | Cropped image copied directly to clipboard on mouse-up — no annotation editor opens |
+| 3 | -- | Floating toast "✓ Copied to clipboard" appears top-center, auto-dismisses after ~1.4s |
 
 **Edge cases:**
 - Esc cancels the selection and closes the overlay (same as regular capture)
-- Enter with no selection copies full screen to clipboard
+- Enter with no selection copies full screen to clipboard (with toast confirmation)
 - If Screen Recording permission not granted: permission dialog shown (same as regular capture)
 - Shortcut is customizable from Settings > Keyboard Shortcuts
 
@@ -429,7 +430,8 @@ Detailed user flows for every feature in Snip. Each flow describes preconditions
 | 2 | Press Esc (or Enter, or click Done) | Annotated image exported as PNG |
 | 3 | -- | PNG copied to system clipboard |
 | 4 | -- | Editor window closes |
-| 5 | Paste in another app | Annotated image appears |
+| 5 | -- | Floating toast "✓ Copied to clipboard" appears top-center, auto-dismisses after ~1.4s |
+| 6 | Paste in another app | Annotated image appears |
 
 ### 4.2 Save to Disk (Cmd+S)
 
@@ -440,8 +442,8 @@ Detailed user flows for every feature in Snip. Each flow describes preconditions
 | 3 | -- | Saved to `~/Documents/snip/screenshots/<timestamp>.jpg` |
 | 4 | -- | File queued for AI organization via `queueNewFile()` |
 | 5 | -- | PNG also copied to clipboard |
-| 6 | -- | macOS notification shown: "Screenshot saved" |
-| 7 | -- | Editor remains open (user can continue editing or close) |
+| 6 | -- | Editor window closes |
+| 7 | -- | Floating toast "✓ Saved & copied to clipboard" appears top-center, auto-dismisses after ~1.4s |
 
 ### 4.3 Save Without Ollama Ready
 

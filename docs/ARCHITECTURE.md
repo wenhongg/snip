@@ -253,6 +253,7 @@ The preload script (`preload.js`) exposes `window.snip` with these methods:
 | `onThemeChanged(cb)` | M -> R | Theme broadcast listener |
 | `getEditorImage()` | R -> M | Get cropped capture for editor |
 | `getCaptureImage()` | R -> M | Get captured screenshot as dataURL (deferred from capture time) |
+| `showNotification(body)` | R -> M | Show floating toast notification (auto-dismisses) |
 | `copyToClipboard(dataURL)` | R -> M | Write PNG to system clipboard |
 | `saveScreenshot(dataURL, ts)` | R -> M | Save JPEG + queue for AI |
 | `closeEditor()` | R -> M | Close editor window |

@@ -577,6 +577,7 @@
     await window.snip.copyToClipboard(dataURL);
     EditorCanvasManager.clearAnnotations();
     window.snip.closeEditor();
+    window.snip.showNotification('Copied to clipboard');
   }
 
   async function saveScreenshot() {
@@ -595,6 +596,7 @@
 
     EditorCanvasManager.clearAnnotations();
     window.snip.closeEditor();
+    window.snip.showNotification('Saved & copied to clipboard');
   }
 
   document.addEventListener('keydown', async function(e) {

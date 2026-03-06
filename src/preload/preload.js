@@ -7,6 +7,7 @@ contextBridge.exposeInMainWorld('snip', {
   },
   getCaptureImage: () => ipcRenderer.invoke('get-capture-image'),
   copyToClipboard: (dataURL) => ipcRenderer.invoke('copy-to-clipboard', dataURL),
+  showNotification: (body) => ipcRenderer.send('show-notification', body),
   saveScreenshot: (dataURL, timestamp) => ipcRenderer.invoke('save-screenshot', { dataURL, timestamp }),
   closeOverlay: () => ipcRenderer.send('close-overlay'),
   getSystemFonts: () => ipcRenderer.invoke('get-system-fonts'),

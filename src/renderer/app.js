@@ -111,6 +111,7 @@
     const fullImg = new Image();
     fullImg.onload = () => {
       window.snip.copyToClipboard(cropRegion(fullImg, region, dataURL));
+      window.snip.showNotification('Copied to clipboard');
       finishAndClose();
     };
     fullImg.src = dataURL;

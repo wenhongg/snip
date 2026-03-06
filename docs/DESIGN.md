@@ -235,6 +235,20 @@ Search results use overlay-style cards with hardcoded colors (intentional — ov
 - **`.search-result-category`**: Purple pill badge (`rgba(139,92,246,0.3)` background, `#c4b5fd` text).
 - **`.search-result-score`**: Match percentage pill (`rgba(255,255,255,0.15)` background, `rgba(255,255,255,0.7)` text).
 
+### Floating Toast (Main Process)
+
+A small borderless `BrowserWindow` that appears top-center after copy/save actions and auto-dismisses. Created in `ipc-handlers.js` via `showFloatingToast()`, triggered by the `show-notification` IPC channel.
+
+| Property | Dark | Light | Glass |
+|----------|------|-------|-------|
+| **Background** | `rgba(20,20,20,0.7)` | `rgba(255,253,250,0.85)` | `rgba(22,10,42,0.75)` |
+| **Text** | `#e0e0e0` | `#1a1a1a` | `#f0eafa` |
+| **Checkmark** | `#8B5CF6` | `#7C3AED` | `#A78BFA` |
+| **Border** | `rgba(255,255,255,0.08)` | `rgba(124,58,237,0.15)` | `rgba(167,139,250,0.25)` |
+| **Blur** | 24px | 24px | 0px (native glass) |
+
+Animation: fade-in (0.25s ease, translateY -6→0), fade-out (0.3s ease after 1.1s delay). Window is `focusable: false`, `ignoreMouseEvents: true`, auto-destroyed after 1.6s. Size: 260×48px.
+
 ---
 
 ## File Reference
