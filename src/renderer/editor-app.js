@@ -141,7 +141,7 @@
     var upscaleBtn = document.getElementById('btn-upscale');
     if (upscaleBtn) {
       upscaleBtn.classList.remove('disabled');
-      upscaleBtn.setAttribute('data-tooltip', 'Upscale (2x)');
+      upscaleBtn.setAttribute('data-tooltip', 'Upscale (U)');
     }
 
     console.log('[Upscale] Undo complete, zoom state imgW/H: %d x %d',
@@ -1091,10 +1091,14 @@
       }
     }
 
-    // Close transcript panel if open
+    // Transcript panel shortcuts
     if (typeof TranscribeTool !== 'undefined' && TranscribeTool.isActive()) {
       if (e.key === 'Escape') {
         e.preventDefault();
+        TranscribeTool.dismiss();
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        TranscribeTool.copyText();
         TranscribeTool.dismiss();
       }
       return;

@@ -424,12 +424,12 @@ Detailed user flows for every feature in Snip. Each flow describes preconditions
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
-| 1 | Click "Transcribe Text" button in editor toolbar | Side panel opens to the right of the canvas |
+| 1 | Click "Transcribe" button (or press W) in editor toolbar | Side panel opens to the right of the canvas |
 | 2 | -- | Loading spinner shown briefly while native OCR processes |
 | 3 | -- | Screenshot sent via `transcribe-screenshot` IPC channel to native macOS Vision framework (VNRecognizeTextRequest) |
 | 4 | -- | Vision framework returns extracted text; Unicode script analysis detects languages |
 | 5 | -- | Panel displays: language badges at top, extracted text below |
-| 6 | Click "Copy" button in panel | Extracted text copied to system clipboard |
+| 6 | Click "Copy" button or press Enter | Extracted text copied to system clipboard; Enter also closes the panel |
 | 7 | Click panel close button (or press Escape) | Panel closes, editor returns to normal layout |
 | 8 | Click "Transcribe Text" button again | Panel reopens instantly with cached results (no OCR call) |
 

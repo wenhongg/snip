@@ -137,19 +137,19 @@ Action buttons (Save, Done, etc.) follow the same default/hover pattern. Tooltip
 
 ### Upscale Button (Editor)
 
-The **Upscale** button sits in the action area (between Reset and Save). It uses `.action-btn.upscale` styling: `--bg-hover` background, `--text-secondary` icon. Single click triggers 2x upscale directly (no dropdown).
+The **Upscale** button uses `.tool-btn` styling (same as all other toolbar buttons): transparent background, `--text-secondary` icon. Single click triggers 2x upscale directly (no dropdown).
 
-**Disabled state** (`.upscale.disabled`): `opacity: 0.4; pointer-events: none`. Applied after upscale completes to prevent double-upscale.
+**Disabled state** (`.tool-btn.disabled`): `opacity: 0.4; pointer-events: none`. Applied after upscale completes to prevent double-upscale.
 
 **Progress overlay** (`.upscale-progress`): same pattern as animation progress — centered fixed panel, 260px wide, glass background, pulsing icon, text label, and accent-colored progress bar (4px track). Stages: "Loading model..." → "Upscaling (2x)..." → "Encoding result...".
 
 ### Zoom Indicator
 
-**Zoom indicator** (`.zoom-indicator`): fixed bottom-right pill (right: 52px to avoid overlapping help button) showing current zoom percentage. Uses `--bg-toast` background with glass blur, `--text-secondary` text, 11px font. Hidden when at default fit-to-viewport zoom with no pan offset; visible otherwise. `pointer-events: none` so it doesn't interfere with canvas interaction.
+**Zoom indicator** (`.zoom-indicator`): fixed bottom-right pill (right: 52px to avoid overlapping help button) showing current zoom percentage. Uses `--bg-elevated` background with glass blur, `--text-secondary` text, 11px font. Hidden when at default fit-to-viewport zoom with no pan offset; visible otherwise. `pointer-events: none` so it doesn't interfere with canvas interaction.
 
 ### Canvas Controls Button
 
-**Controls button** (`.canvas-help-btn`): fixed bottom-right pill matching the image-dims / zoom-indicator style — `--bg-toast` background, glass blur, `--glass-specular` border, `--text-secondary` color, 11px font. Contains a small `?` circle SVG icon + "Controls" label. Hover brightens to `--text-primary` with `--glass-specular-strong` border.
+**Controls button** (`.canvas-help-btn`): fixed bottom-right pill matching the image-dims / zoom-indicator style — `--bg-elevated` background, glass blur, `--glass-specular` border, `--text-secondary` color, 11px font. Contains a small `?` circle SVG icon + "Controls" label. Hover brightens to `--text-primary` with `--glass-specular-strong` border.
 
 Clicking opens a **Canvas Controls modal** (`#canvas-guide-backdrop`) using the standard `.tutorial-backdrop` + `.tutorial-modal` pattern. Contains two sections (Zoom / Pan) with `--accent` uppercase section headers and `.tutorial-kbd` + `.tutorial-step` rows for each shortcut. Dismissed via "Got it" button or backdrop click.
 

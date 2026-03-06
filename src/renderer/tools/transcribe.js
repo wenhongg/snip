@@ -37,15 +37,7 @@ var TranscribeTool = (function() {
 
     var copyBtn = document.getElementById('transcript-copy');
     if (copyBtn) {
-      copyBtn.addEventListener('click', function() {
-        if (transcriptData && transcriptData.text) {
-          navigator.clipboard.writeText(transcriptData.text).then(function() {
-            ToolUtils.showToast('Text copied to clipboard', 'success', 2000);
-          }).catch(function() {
-            ToolUtils.showToast('Failed to copy text', 'error', 2000);
-          });
-        }
-      });
+      copyBtn.addEventListener('click', copyText);
     }
   }
 
@@ -136,9 +128,20 @@ var TranscribeTool = (function() {
     hidePanel();
   }
 
+  function copyText() {
+    if (transcriptData && transcriptData.text) {
+      navigator.clipboard.writeText(transcriptData.text).then(function() {
+        ToolUtils.showToast('Text copied to clipboard', 'success', 2000);
+      }).catch(function() {
+        ToolUtils.showToast('Failed to copy text', 'error', 2000);
+      });
+    }
+  }
+
   return {
     init: init,
     isActive: isActive,
-    dismiss: dismiss
+    dismiss: dismiss,
+    copyText: copyText
   };
 })();
