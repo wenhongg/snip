@@ -125,4 +125,11 @@ function warmUp() {
   }
 }
 
-module.exports = { generateMask, checkSupport, warmUp };
+function killWorker() {
+  if (worker && !worker.killed) {
+    worker.kill();
+    worker = null;
+  }
+}
+
+module.exports = { generateMask, checkSupport, warmUp, killWorker };

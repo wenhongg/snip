@@ -107,4 +107,11 @@ function upscaleImage(imageBase64, onProgress) {
   });
 }
 
-module.exports = { upscaleImage };
+function killWorker() {
+  if (worker && !worker.killed) {
+    worker.kill();
+    worker = null;
+  }
+}
+
+module.exports = { upscaleImage, killWorker };

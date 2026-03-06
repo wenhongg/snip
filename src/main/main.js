@@ -398,6 +398,10 @@ app.whenReady().then(() => {
 app.on('will-quit', () => {
   unregisterShortcuts();
   stopOllama();
+
+  // Kill child processes so the app can exit cleanly
+  try { require('./segmentation/segmentation').killWorker(); } catch (_) {}
+  try { require('./upscaler/upscaler').killWorker(); } catch (_) {}
 });
 
 app.on('window-all-closed', (e) => {
