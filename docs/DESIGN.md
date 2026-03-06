@@ -153,6 +153,16 @@ The **Upscale** button uses `.tool-btn` styling (same as all other toolbar butto
 
 Clicking opens a **Canvas Controls modal** (`#canvas-guide-backdrop`) using the standard `.tutorial-backdrop` + `.tutorial-modal` pattern. Contains two sections (Zoom / Pan) with `--accent` uppercase section headers and `.tutorial-kbd` + `.tutorial-step` rows for each shortcut. Dismissed via "Got it" button or backdrop click.
 
+### Transcript Panel (Editor)
+
+A slide-in side panel (`--bg-elevated` background, glass blur, `--glass-specular` left border) that shows OCR-extracted text. Slides in from the right with a 0.2s ease-out animation.
+
+**Header**: flex row with "Transcript" title (13px, 700 weight) and close button. Detected languages appear as inline rounded pills (`border-radius: 100px`) next to the title — `--accent` text on `--accent-bg` background, 9px uppercase, max 3 pills. Hidden when empty via `:empty { display: none }`.
+
+**Text area**: `<pre>` with monospace font (SF Mono/Menlo), `white-space: pre-wrap`, user-selectable. Excessive line breaks (3+) collapsed to double newlines.
+
+**Copy button**: full-width, `--bg-secondary` background, `--text-primary` text, 8px radius. Shows copy icon + "Copy Text" + `⏎` kbd badge. No top border separator.
+
 ### Fabric.js Selection Controls
 
 Fabric object selection handles (borders, corners) use the theme accent color at canvas init time:
