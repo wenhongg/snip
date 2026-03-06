@@ -418,6 +418,29 @@ Detailed user flows for every feature in Snip. Each flow describes preconditions
 | 3 | -- | Toolbar horizontally centered in window |
 | 4 | Select Rectangle tool | Mode and Thickness dropdowns appear, still fit in toolbar |
 
+### 3.12 Transcribe Text
+
+**Preconditions:** Editor open with a screenshot. macOS with Vision framework available.
+
+| Step | Action | Expected Result |
+|------|--------|-----------------|
+| 1 | Click "Transcribe Text" button in editor toolbar | Side panel opens to the right of the canvas |
+| 2 | -- | Loading spinner shown briefly while native OCR processes |
+| 3 | -- | Screenshot sent via `transcribe-screenshot` IPC channel to native macOS Vision framework (VNRecognizeTextRequest) |
+| 4 | -- | Vision framework returns extracted text; Unicode script analysis detects languages |
+| 5 | -- | Panel displays: language badges at top, extracted text below |
+| 6 | Click "Copy" button in panel | Extracted text copied to system clipboard |
+| 7 | Click panel close button (or press Escape) | Panel closes, editor returns to normal layout |
+| 8 | Click "Transcribe Text" button again | Panel reopens instantly with cached results (no OCR call) |
+
+**Edge cases:**
+
+| Condition | Expected Behavior |
+|-----------|-------------------|
+| No text detected in screenshot | Panel shows message indicating no text was found |
+| Swift helper compilation fails | Error state shown in panel |
+| Cache invalidation | Cache is per editor session; opening a new editor starts fresh |
+
 ---
 
 ## 4. Save and Export

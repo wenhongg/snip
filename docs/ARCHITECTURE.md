@@ -49,6 +49,9 @@ src/
     animation/               # 2GIF animation feature (fal.ai cloud API)
       animation.js           # fal.ai API integration (upload, queue, poll, MP4 download)
       gif-encoder-worker.js  # Child process: ffmpeg MP4→frames extraction + GIF/APNG encoding
+    transcription/           # Text extraction via native macOS OCR
+      transcription.js       # Node.js wrapper: compiles + spawns Swift helper, parses JSON result
+      transcribe.swift       # Swift CLI: VNRecognizeTextRequest OCR + Unicode script detection, reads base64 via stdin
 
   renderer/                  # Renderer processes (no modules, globals via IIFEs)
     index.html / app.js      # Capture overlay — fullscreen transparent region selector
@@ -70,6 +73,7 @@ src/
       blur-brush.js          # Free-draw blur brush
       segment.js             # SAM segmentation tool (click-to-select, tag segment, cutout)
       animate.js             # 2GIF animation tool (preset picker, save/copy panel)
+      transcribe.js          # TranscribeTool IIFE — text extraction side panel (native macOS OCR)
 
   preload/
     preload.js               # contextBridge — defines window.snip API surface
@@ -285,6 +289,7 @@ The preload script (`preload.js`) exposes `window.snip` with these methods:
 | `animateCutout(data)` | R -> M | Generate GIF/APNG via fal.ai API |
 | `onAnimateProgress(cb)` | M -> R | Animation progress (upload, queue, generate, encode) |
 | `saveAnimation(data)` | R -> M | Save GIF/APNG to disk |
+| `transcribeScreenshot()` | R -> M | Native macOS OCR via Vision framework — text extraction and language detection |
 | `openExternalUrl(url)` | R -> M | Open URL in default browser |
 | `installOllama()` | R -> M | Download and install Ollama from ollama.com |
 | `pullOllamaModel()` | R -> M | Pull the configured model (minicpm-v) |
@@ -325,6 +330,23 @@ The preload script (`preload.js`) exposes `window.snip` with these methods:
   -> home.js calls embeddings.js to encode query
   -> cosine similarity against all indexed embeddings
   -> top 20 results displayed
+```
+
+### Transcription Data Flow
+
+```
+[User clicks "Transcribe Text" in editor toolbar]
+  -> transcribe.js calls window.snip.transcribeScreenshot()
+  -> preload.js sends 'transcribe-screenshot' IPC to main
+  -> ipc-handlers.js calls transcription.js
+  -> transcription.js compiles transcribe.swift (cached) and spawns the Swift helper
+  -> editor image passed as base64 via stdin to the Swift process
+  -> Swift helper decodes image, runs VNRecognizeTextRequest (macOS Vision framework)
+  -> recognized text analyzed via Unicode script ranges (CJK, Hangul, Kana, Latin, Cyrillic) for language detection
+  -> Swift helper outputs JSON result (languages array + extracted text) to stdout
+  -> transcription.js parses JSON, returns { languages: [...], text } to renderer
+  -> result displayed in side panel, cached in TranscribeTool for the editor session
+  -> subsequent clicks skip OCR call and reopen panel instantly
 ```
 
 ---

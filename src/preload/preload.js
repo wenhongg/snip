@@ -76,6 +76,7 @@ contextBridge.exposeInMainWorld('snip', {
   },
 
   // Segmentation (SAM)
+  transcribeScreenshot: () => ipcRenderer.invoke('transcribe-screenshot'),
   segmentAtPoint: ({ points, cssWidth, cssHeight }) =>
     ipcRenderer.invoke('segment-at-point', { points, cssWidth, cssHeight }),
   checkSegmentSupport: () => ipcRenderer.invoke('check-segment-support'),
