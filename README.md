@@ -68,6 +68,18 @@ Screenshots saved to `~/Documents/snip/screenshots/`. AI renames, categorizes, a
 
 Electron 33 / Fabric.js 7 / Ollama (local LLM) / HuggingFace Transformers.js / SlimSAM (ONNX) / Chokidar 4 / electron-liquid-glass
 
+### On-Device Models
+
+All AI runs locally — no cloud APIs needed for core features.
+
+| Model | Purpose | By | Link |
+|-------|---------|----|------|
+| [MiniCPM-V](https://huggingface.co/openbmb/MiniCPM-V) | Vision LLM (naming, tagging, categorizing) | OpenBMB | [HF](https://huggingface.co/openbmb/MiniCPM-V) |
+| [SlimSAM-77-uniform](https://huggingface.co/Xenova/slimsam-77-uniform) | Object segmentation | Meta AI / Xenova | [HF](https://huggingface.co/Xenova/slimsam-77-uniform) |
+| [Swin2SR-lightweight-x2-64](https://huggingface.co/Xenova/swin2SR-lightweight-x2-64) | Image upscaling (2x) | Conde et al. / Xenova | [HF](https://huggingface.co/Xenova/swin2SR-lightweight-x2-64) |
+| [all-MiniLM-L6-v2](https://huggingface.co/Xenova/all-MiniLM-L6-v2) | Semantic search embeddings | Microsoft / Xenova | [HF](https://huggingface.co/Xenova/all-MiniLM-L6-v2) |
+| Vision OCR | Text transcription | Apple | Built into macOS |
+
 ## License
 
 MIT
