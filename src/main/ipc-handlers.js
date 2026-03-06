@@ -596,6 +596,32 @@ function registerIpcHandlers(getOverlayWindow, createEditorWindowFn, reregisterS
     };
   });
 
+  // Transcription: extract text from screenshot via native macOS Vision framework
+  ipcMain.handle('transcribe-screenshot', async (event) => {
+    if (!pendingEditorData || !pendingEditorData.croppedDataURL) {
+      return { success: false, error: 'No editor image available' };
+    }
+
+    try {
+      const { transcribe } = require('./transcription/transcription');
+      const raw = pendingEditorData.croppedDataURL.replace(/^data:image\/\w+;base64,/, '');
+      const result = await transcribe(raw);
+
+      if (!result.success) {
+        return { success: false, error: result.error || 'Transcription failed' };
+      }
+
+      return {
+        success: true,
+        languages: result.languages || ['unknown'],
+        text: result.text || ''
+      };
+    } catch (err) {
+      console.error('[Snip] Transcription failed:', err.message);
+      return { success: false, error: err.message };
+    }
+  });
+
   // Animation: save animated file to animations/ subdirectory (skips LLM processing)
   ipcMain.handle('save-animation', async (event, { buffer, format, timestamp }) => {
     var screenshotsDir = getScreenshotsDir();

@@ -1,4 +1,4 @@
-/* global EditorCanvasManager, Toolbar, RectangleTool, TextTool, ArrowTool, TagTool, BlurBrushTool, SegmentTool, AnimateTool, ToolUtils */
+/* global EditorCanvasManager, Toolbar, RectangleTool, TextTool, ArrowTool, TagTool, BlurBrushTool, SegmentTool, AnimateTool, TranscribeTool, ToolUtils */
 
 (function() {
   'use strict';
@@ -242,6 +242,9 @@
 
     // Initialize animate tool (2GIF)
     AnimateTool.init();
+
+    // Initialize transcribe tool
+    TranscribeTool.init();
 
     Toolbar.initToolbar({
       getCanvas: function() { return canvas; },
@@ -611,6 +614,15 @@
         }
         return;
       }
+    }
+
+    // Close transcript panel if open
+    if (typeof TranscribeTool !== 'undefined' && TranscribeTool.isActive()) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        TranscribeTool.dismiss();
+      }
+      return;
     }
 
     // Don't close the editor while animation panels are open

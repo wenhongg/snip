@@ -124,6 +124,15 @@
         </select>
       </div>
       <div class="toolbar-separator"></div>
+      <button id="tool-transcribe" class="tool-btn" data-tooltip="Transcribe Text">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/>
+          <line x1="16" y1="17" x2="8" y2="17"/>
+          <line x1="10" y1="9" x2="8" y2="9"/>
+        </svg>
+      </button>
       <button id="btn-undo" class="tool-btn" data-tooltip="Undo (⌘Z)">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <polyline points="1 4 1 10 7 10"/>
@@ -304,6 +313,42 @@
         </button>
       </div>
     </div>
+
+    <!-- Transcript side panel -->
+    <div id="transcript-panel" class="transcript-panel hidden">
+      <div class="transcript-panel-header">
+        <span class="transcript-panel-title">Transcript</span>
+        <button id="transcript-close" class="animate-close-btn" data-tooltip="Close">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="transcript-language" id="transcript-language"></div>
+      <div class="transcript-text-container">
+        <pre class="transcript-text" id="transcript-text"></pre>
+      </div>
+      <div class="transcript-actions hidden" id="transcript-actions">
+        <button id="transcript-copy" class="transcript-copy-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+            <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+          </svg>
+          <span>Copy Text</span>
+        </button>
+      </div>
+      <div class="transcript-loading hidden" id="transcript-loading">
+        <span class="animate-loading-sparkle">&#x2728;</span>
+        <span class="animate-loading-text">Extracting text</span>
+        <span class="animate-loading-dots"></span>
+      </div>
+      <div class="transcript-empty hidden" id="transcript-empty">
+        <span class="transcript-empty-text">No text detected in this snip.</span>
+      </div>
+      <div class="transcript-error hidden" id="transcript-error">
+        <span class="transcript-error-text" id="transcript-error-text"></span>
+      </div>
+    </div>
   </div>
 
   <script src="../../node_modules/fabric/dist/index.min.js"></script>
@@ -316,6 +361,7 @@
   <script src="tools/blur-brush.js"></script>
   <script src="tools/segment.js"></script>
   <script src="tools/animate.js"></script>
+  <script src="tools/transcribe.js"></script>
   <script src="editor-canvas-manager.js"></script>
   <script src="editor-app.js"></script>
 </body>

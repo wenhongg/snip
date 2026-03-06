@@ -62,6 +62,12 @@ Power users on macOS who take 5-50 screenshots per day: developers, designers, P
 - New categories auto-registered with AI-generated descriptions; notification is informational only
 - Default model: `minicpm-v` (8B, Metal-accelerated on Apple Silicon) — pulled on first launch via Ollama's API. Ollama is not bundled; users install it separately or via the in-app setup wizard.
 
+### Transcribe Text
+- Editor toolbar button uses native macOS Vision framework (VNRecognizeTextRequest) with Unicode script-based language detection to extract visible text and identify languages
+- Near-instant, works offline without any model — uses built-in macOS OCR
+- Results displayed in a collapsible side panel: language badges, extracted text, and copy-to-clipboard button
+- Cached per editor session — first click runs OCR, subsequent opens are instant
+
 ### Animation (Animate)
 - Requires internet connection and a fal.ai API key (configured in Settings > Animation)
 - Uses fal.ai Wan 2.2 image-to-video cloud API with text-based animation prompts
@@ -125,6 +131,5 @@ Power users on macOS who take 5-50 screenshots per day: developers, designers, P
 
 ## Future Considerations
 
-- OCR / text extraction from screenshots
 - Screenshot history timeline
 - Team sharing / cloud sync
