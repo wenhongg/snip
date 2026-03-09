@@ -5,6 +5,7 @@
  * the app bundle. This hook:
  *   1. Copies the arch-specific bundled Node.js binary into Resources/node/
  *   2. Removes canvas native module (unused transitive dep)
+ *   2b. Removes onnxruntime-web (Electron uses onnxruntime-node)
  *   3. Removes non-macOS onnxruntime binaries (used by @huggingface/transformers)
  *   4. Removes wrong-arch darwin binaries (keep only the target arch)
  *   5. Pre-signs remaining .node and .dylib files with Developer ID cert
@@ -83,6 +84,7 @@ module.exports = async function afterPack(context) {
   var nmDir = path.join(unpackedDir, 'node_modules');
 
   removeDir(path.join(nmDir, 'canvas'), 'canvas (unused transitive dep)');
+  removeDir(path.join(nmDir, 'onnxruntime-web'), 'onnxruntime-web (unused — Electron uses onnxruntime-node)');
 
   // ---------------------------------------------------------------
   // 3. Remove non-macOS onnxruntime binaries
