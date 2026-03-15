@@ -8,7 +8,35 @@ let extensions = [];
 let context = null;
 
 /**
- * Load all extension manifests from src/extensions/{name}/extension.json
+ * Validate that a manifest has the required shape. Returns true if valid.
+ */
+function validateManifest(manifest, name) {
+  if (typeof manifest.name !== 'string' || !manifest.name) {
+    console.warn('[Extensions] %s: manifest missing or invalid "name" field — skipping', name);
+    return false;
+  }
+  if (manifest.ipc !== undefined) {
+    if (!Array.isArray(manifest.ipc)) {
+      console.warn('[Extensions] %s: "ipc" must be an array — skipping', name);
+      return false;
+    }
+    for (var i = 0; i < manifest.ipc.length; i++) {
+      var entry = manifest.ipc[i];
+      if (!entry || typeof entry !== 'object' || typeof entry.channel !== 'string' || typeof entry.method !== 'string') {
+        console.warn('[Extensions] %s: ipc[%d] must have string "channel" and "method" — skipping', name, i);
+        return false;
+      }
+    }
+  }
+  if (manifest.toolbarPosition !== undefined && typeof manifest.toolbarPosition !== 'number') {
+    console.warn('[Extensions] %s: "toolbarPosition" must be a number — skipping', name);
+    return false;
+  }
+  return true;
+}
+
+/**
+ * Load active extension manifests listed in extensions.json.
  */
 function loadAll() {
   extensions = [];
@@ -41,6 +69,7 @@ function loadAll() {
 
     try {
       const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+      if (!validateManifest(manifest, name)) continue;
       manifest._dir = path.join(EXTENSIONS_DIR, name);
       extensions.push(manifest);
     } catch (err) {
@@ -77,7 +106,35 @@ function registerIpcHandlers() {
       continue;
     }
 
-    const mainPath = path.join(ext._dir, ext.main);
+    // Prevent path escape via renderer field
+    if (ext.renderer && (ext.renderer.includes('..') || path.isAbsolute(ext.renderer))) {
+      // Allow built-in extensions that reference ../../renderer/tools/ (existing pattern)
+      var absRendererPath = path.resolve(ext._dir, ext.renderer);
+      var realRendererPath;
+      try { realRendererPath = fs.realpathSync(absRendererPath); } catch { realRendererPath = absRendererPath; }
+      var appRoot = path.resolve(__dirname, '..', '..');
+      if (!realRendererPath.startsWith(appRoot + path.sep)) {
+        console.warn('[Extensions] %s: renderer field escapes app directory — skipping', ext.name);
+        continue;
+      }
+    }
+
+    // Verify main module path resolves inside extensions dir (symlink protection)
+    var mainPath = path.join(ext._dir, ext.main);
+    try {
+      var realMainPath = fs.realpathSync(mainPath);
+      if (!realMainPath.startsWith(path.resolve(EXTENSIONS_DIR) + path.sep)) {
+        // Allow built-in paths that resolve inside src/main/ (existing extensions reference ../../main/)
+        var appRoot = path.resolve(__dirname, '..', '..');
+        if (!realMainPath.startsWith(appRoot + path.sep)) {
+          console.warn('[Extensions] %s: main module resolves outside app via symlink — skipping', ext.name);
+          continue;
+        }
+      }
+    } catch {
+      // File doesn't exist yet — will fail at require() below
+    }
+
     let mod;
     try {
       mod = require(mainPath);
@@ -90,6 +147,12 @@ function registerIpcHandlers() {
     }
 
     for (const ipcEntry of ext.ipc) {
+      // Check for channel collisions
+      if (ipcMain.listenerCount(ipcEntry.channel) > 0) {
+        console.warn('[Extensions] %s: channel "%s" already registered — skipping', ext.name, ipcEntry.channel);
+        continue;
+      }
+
       const method = mod[ipcEntry.method];
       if (typeof method !== 'function') {
         console.warn('[Extensions] %s: method "%s" not found in main module', ext.name, ipcEntry.method);
@@ -98,7 +161,11 @@ function registerIpcHandlers() {
 
       if (ipcEntry.type === 'on') {
         ipcMain.on(ipcEntry.channel, function (event, ...args) {
-          method.call(mod, event, ...args);
+          try {
+            method.call(mod, event, ...args);
+          } catch (err) {
+            console.error('[Extensions] %s IPC handler error on %s:', ext.name, ipcEntry.channel, err.message);
+          }
         });
       } else {
         // Default to 'invoke'
@@ -153,39 +220,35 @@ function getRendererManifest() {
 }
 
 /**
- * Kill worker processes for extensions that have a killWorker export.
+ * Call a lifecycle hook on all extensions that export it.
  */
-function killWorkers() {
+function callExtensionHook(hookName) {
   for (const ext of extensions) {
     if (!ext.main) continue;
     try {
-      const mainPath = path.join(ext._dir, ext.main);
-      const mod = require(mainPath);
-      if (typeof mod.killWorker === 'function') {
-        mod.killWorker();
+      var mainPath = path.join(ext._dir, ext.main);
+      var mod = require(mainPath);
+      if (typeof mod[hookName] === 'function') {
+        var result = mod[hookName]();
+        // Catch async rejections
+        if (result && typeof result.catch === 'function') {
+          result.catch(function (err) {
+            console.warn('[Extensions] %s %s() rejected: %s', ext.name, hookName, err.message);
+          });
+        }
       }
-    } catch {
-      // ignore — module may not be loaded
+    } catch (err) {
+      console.warn('[Extensions] %s %s() failed: %s', ext.name, hookName, err.message);
     }
   }
 }
 
-/**
- * Warm up extensions that have a warmUp export.
- */
+function killWorkers() {
+  callExtensionHook('killWorker');
+}
+
 function warmUp() {
-  for (const ext of extensions) {
-    if (!ext.main) continue;
-    try {
-      const mainPath = path.join(ext._dir, ext.main);
-      const mod = require(mainPath);
-      if (typeof mod.warmUp === 'function') {
-        mod.warmUp();
-      }
-    } catch {
-      // ignore
-    }
-  }
+  callExtensionHook('warmUp');
 }
 
 module.exports = { loadAll, setContext, registerIpcHandlers, getToolExtensions, getRendererManifest, killWorkers, warmUp };

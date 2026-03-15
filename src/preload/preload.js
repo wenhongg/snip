@@ -31,7 +31,9 @@ contextBridge.exposeInMainWorld('snip', {
   },
   onExtensionEvent: (channel, callback) => {
     if (typeof channel !== 'string' || !channel.startsWith('ext:')) return;
-    ipcRenderer.on(channel, (event, ...args) => callback(...args));
+    var handler = (event, ...args) => callback(...args);
+    ipcRenderer.on(channel, handler);
+    return () => ipcRenderer.removeListener(channel, handler);
   },
 
   // Screen recording permission
