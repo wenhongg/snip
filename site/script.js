@@ -52,7 +52,7 @@
   // --- Scroll-triggered animations ---
   function animateOnScroll() {
     var elements = document.querySelectorAll(
-      '.feature-card, .tool-card, .ai-card, .tech-item, .step, .section-header, .ai-privacy, .hero-video-wrapper, .showcase-item, .ai-screenshot, .animate-step, .animate-demo-video-wrapper, .segment-tag-step, .segment-tag-video-wrapper, .upscale-step, .upscale-demo-video-wrapper, .transcribe-step, .transcribe-demo-video-wrapper'
+      '.feature-card, .tool-card, .ai-card, .tech-item, .step, .section-header, .ai-privacy, .hero-video-wrapper, .showcase-item, .ai-screenshot, .animate-step, .animate-demo-video-wrapper, .segment-tag-step, .segment-tag-video-wrapper, .upscale-step, .upscale-demo-video-wrapper, .transcribe-step, .transcribe-demo-video-wrapper, .mcp-demo-video-wrapper, .mcp-tool-card, .mcp-setup, .extension-point'
     );
 
     var observer = new IntersectionObserver(

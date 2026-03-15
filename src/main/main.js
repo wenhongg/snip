@@ -713,6 +713,11 @@ function startMcpServer() {
       var loaded = extensionRegistry.loadUserExtension(extName);
       if (!loaded) throw new Error('Extension installed but failed to load');
 
+      // Notify Settings UI
+      for (var win of BrowserWindow.getAllWindows()) {
+        if (!win.isDestroyed()) win.webContents.send('user-extensions-changed');
+      }
+
       return { installed: true, name: extName, path: extDir };
     }
   });

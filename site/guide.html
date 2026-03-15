@@ -66,6 +66,12 @@
         "name": "Automatic Ollama Install and Model Download",
         "text": "If you chose AI, Snip downloads and installs Ollama automatically, then pulls the vision model. A progress bar shows each step.",
         "url": "https://snipit.dev/guide#first-launch"
+      },
+      {
+        "@type": "HowToStep",
+        "name": "MCP Server Setup (Optional)",
+        "text": "Enable the MCP Server in Settings to connect AI assistants like Claude Desktop or Cursor. Copy the config JSON and paste it into your MCP client's configuration file.",
+        "url": "https://snipit.dev/guide#mcp-setup"
       }
     ]
   }
@@ -747,6 +753,69 @@
     </section>
 
     <!-- Quick Reference -->
+    <section class="guide-section" id="mcp-setup">
+      <div class="guide-section-header">
+        <div class="guide-section-icon">
+          <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </div>
+        <div>
+          <h2>MCP Server <span class="guide-optional-badge">Optional</span></h2>
+          <p>Connect AI assistants to Snip</p>
+        </div>
+      </div>
+
+      <div class="guide-why">
+        <strong>What is MCP?</strong>
+        <p>The Model Context Protocol lets AI assistants (Claude Desktop, Claude Code, Cursor, Windsurf) interact with Snip directly — searching your screenshot library, extracting text, opening images for annotation, and more.</p>
+      </div>
+
+      <div class="guide-image">
+        <video autoplay loop muted playsinline width="720" loading="lazy">
+          <source src="assets/enable-mcp.mp4" type="video/mp4">
+        </video>
+      </div>
+
+      <div class="guide-steps">
+        <div class="guide-step">
+          <div class="guide-step-num">1</div>
+          <div class="guide-step-content">
+            <h3>Enable the MCP server</h3>
+            <p>Open Snip Settings &rarr; scroll to <strong>MCP Server</strong> &rarr; toggle it on. The status dot turns green when the server is listening.</p>
+          </div>
+        </div>
+        <div class="guide-step">
+          <div class="guide-step-num">2</div>
+          <div class="guide-step-content">
+            <h3>Copy the client config</h3>
+            <p>Click the <strong>Copy</strong> button next to the JSON config snippet. This contains the correct paths for your machine.</p>
+          </div>
+        </div>
+        <div class="guide-step">
+          <div class="guide-step-num">3</div>
+          <div class="guide-step-content">
+            <h3>Add to your MCP client</h3>
+            <p><strong>Claude Desktop:</strong> paste the <code>snip</code> entry into <span class="guide-path">~/Library/Application Support/Claude/claude_desktop_config.json</span> under <code>mcpServers</code>.</p>
+            <p><strong>Claude Code:</strong> run <code>claude mcp add --transport stdio snip -- node /path/to/snip/src/mcp/server.js</code></p>
+          </div>
+        </div>
+        <div class="guide-step">
+          <div class="guide-step-num">4</div>
+          <div class="guide-step-content">
+            <h3>Control per-tool access</h3>
+            <p>Use the category toggles in Settings to enable/disable tool groups: Library Access, Open in Snip, Transcribe, and Organize.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="guide-callout">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <div>
+          <strong>Extensions</strong>
+          <p>User extensions can be installed via Settings &rarr; <strong>Install from Folder</strong> or by AI agents via the MCP <code>install_extension</code> tool. They run in a sandboxed child process with blocked module access and require your approval before installation.</p>
+        </div>
+      </div>
+    </section>
+
     <section class="guide-section" id="quick-reference">
       <div class="guide-section-header">
         <div class="guide-section-icon">

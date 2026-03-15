@@ -1273,6 +1273,11 @@
 
     await loadAndRender();
 
+    // Refresh when extensions are installed via MCP
+    if (window.snip.onUserExtensionsChanged) {
+      window.snip.onUserExtensionsChanged(function () { loadAndRender(); });
+    }
+
     installBtn.addEventListener('click', async function () {
       var result = await window.snip.installExtensionFromFolder();
       if (result && result.error) {

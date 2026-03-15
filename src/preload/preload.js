@@ -127,6 +127,9 @@ contextBridge.exposeInMainWorld('snip', {
   getUserExtensions: () => ipcRenderer.invoke('get-user-extensions'),
   removeUserExtension: (name) => ipcRenderer.invoke('remove-user-extension', name),
   installExtensionFromFolder: () => ipcRenderer.invoke('install-extension-from-folder'),
+  onUserExtensionsChanged: (callback) => {
+    ipcRenderer.on('user-extensions-changed', () => callback());
+  },
 
   // Settings: MCP Server
   getMcpConfig: () => ipcRenderer.invoke('get-mcp-config'),
