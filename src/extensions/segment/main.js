@@ -23,8 +23,16 @@ async function segmentAtPoint(event, { points, cssWidth, cssHeight }) {
     throw new Error('No editor image available for segmentation');
   }
 
-  const image = nativeImage.createFromDataURL(editorData.croppedDataURL);
+  // Decode the data URL to a buffer, then create nativeImage from buffer
+  var dataURL = editorData.croppedDataURL;
+  var base64Data = dataURL.replace(/^data:image\/\w+;base64,/, '');
+  var imgBuffer = Buffer.from(base64Data, 'base64');
+  const image = nativeImage.createFromBuffer(imgBuffer);
   let size = image.getSize();
+
+  if (!size.width || !size.height) {
+    throw new Error('Failed to decode editor image for segmentation');
+  }
 
   // Resize to max 1024px on longest side (saves memory, SAM resizes internally anyway)
   const MAX_DIM = 1024;

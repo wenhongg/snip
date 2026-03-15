@@ -607,6 +607,10 @@ function startMcpServer() {
       return new Promise(function (resolve, reject) {
         data.extensions = extensionRegistry.getRendererManifest();
 
+        // Set pendingEditorData so segment/transcribe tools can access the image
+        var { setPendingEditorData } = require('./ipc-handlers');
+        setPendingEditorData(data);
+
         var win = createEditorWindow(data.cssWidth, data.cssHeight);
         pendingMcpResolve = { resolve: resolve, reject: reject, webContentsId: win.webContents.id, win: win };
 
@@ -627,6 +631,10 @@ function startMcpServer() {
 
         // Reject if window is closed without sending a result
         win.on('closed', function () {
+          // Clear the MCP editor data so it doesn't leak into the next capture
+          var { setPendingEditorData } = require('./ipc-handlers');
+          setPendingEditorData(null);
+
           if (pendingMcpResolve) {
             pendingMcpResolve.reject(new Error('Editor closed without saving'));
             pendingMcpResolve = null;

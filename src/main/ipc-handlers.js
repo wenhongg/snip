@@ -734,4 +734,8 @@ function getPendingEditorData() {
   return pendingEditorData;
 }
 
-module.exports = { registerIpcHandlers, getPendingEditorData };
+function setPendingEditorData(data) {
+  pendingEditorData = data;
+}
+
+module.exports = { registerIpcHandlers, getPendingEditorData, setPendingEditorData };
