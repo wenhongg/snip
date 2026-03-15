@@ -12,25 +12,39 @@ let context = null;
  */
 function loadAll() {
   extensions = [];
-  let dirs;
+
+  // Read the active extensions list
+  var registryPath = path.join(EXTENSIONS_DIR, 'extensions.json');
+  var activeNames;
   try {
-    dirs = fs.readdirSync(EXTENSIONS_DIR, { withFileTypes: true });
+    activeNames = JSON.parse(fs.readFileSync(registryPath, 'utf8'));
   } catch {
-    console.warn('[Extensions] Extensions directory not found:', EXTENSIONS_DIR);
+    console.warn('[Extensions] extensions.json not found or invalid at:', registryPath);
     return;
   }
 
-  for (const entry of dirs) {
-    if (!entry.isDirectory()) continue;
-    const manifestPath = path.join(EXTENSIONS_DIR, entry.name, 'extension.json');
-    if (!fs.existsSync(manifestPath)) continue;
+  if (!Array.isArray(activeNames)) {
+    console.warn('[Extensions] extensions.json must be an array');
+    return;
+  }
+
+  for (const name of activeNames) {
+    if (typeof name !== 'string' || name.includes('..') || name.includes('/') || name.includes('\\') || path.isAbsolute(name)) {
+      console.warn('[Extensions] Skipping unsafe extension name: %s', name);
+      continue;
+    }
+    var manifestPath = path.join(EXTENSIONS_DIR, name, 'extension.json');
+    if (!fs.existsSync(manifestPath)) {
+      console.warn('[Extensions] %s listed but extension.json not found', name);
+      continue;
+    }
 
     try {
       const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-      manifest._dir = path.join(EXTENSIONS_DIR, entry.name);
+      manifest._dir = path.join(EXTENSIONS_DIR, name);
       extensions.push(manifest);
     } catch (err) {
-      console.warn('[Extensions] Failed to load %s: %s', entry.name, err.message);
+      console.warn('[Extensions] Failed to load %s: %s', name, err.message);
     }
   }
 
@@ -108,17 +122,19 @@ function getToolExtensions() {
 }
 
 /**
- * Return all loaded extensions.
- */
-function getAll() {
-  return extensions;
-}
-
-/**
  * Return serializable extension data for sending to renderer.
  */
 function getRendererManifest() {
+  var rendererDir = path.join(__dirname, '..', 'renderer');
+
   return getToolExtensions().map(function (ext) {
+    // Resolve renderer script path relative to editor.html location
+    var rendererPath = null;
+    if (ext.renderer) {
+      var absPath = path.resolve(ext._dir, ext.renderer);
+      rendererPath = path.relative(rendererDir, absPath);
+    }
+
     return {
       name: ext.name,
       displayName: ext.displayName,
@@ -130,7 +146,8 @@ function getRendererManifest() {
       shortcut: ext.shortcut,
       toolbarPosition: ext.toolbarPosition,
       hidden: ext.hidden || false,
-      toolbarGroups: ext.toolbarGroups || []
+      toolbarGroups: ext.toolbarGroups || [],
+      renderer: rendererPath
     };
   });
 }
@@ -171,4 +188,4 @@ function warmUp() {
   }
 }
 
-module.exports = { loadAll, setContext, registerIpcHandlers, getToolExtensions, getAll, getRendererManifest, killWorkers, warmUp };
+module.exports = { loadAll, setContext, registerIpcHandlers, getToolExtensions, getRendererManifest, killWorkers, warmUp };

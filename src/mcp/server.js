@@ -23,7 +23,6 @@
 const net = require('net');
 const path = require('path');
 const os = require('os');
-const readline = require('readline');
 
 const SOCKET_PATH = path.join(
   os.homedir(), 'Library', 'Application Support', 'snip', 'snip.sock'
@@ -346,6 +345,12 @@ function startStdioTransport() {
 
   process.stdin.on('data', function (chunk) {
     buffer += chunk.toString();
+
+    // Guard against unbounded buffer growth
+    if (buffer.length > 16 * 1024 * 1024) {
+      buffer = '';
+      return;
+    }
 
     // Auto-detect framing on first data
     if (framed === null) {

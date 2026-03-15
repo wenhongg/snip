@@ -24,6 +24,16 @@ var ExtensionLoader = (function () {
     var container = document.getElementById('toolbar-tools');
     if (!container) return;
 
+    // Inject renderer scripts for self-contained extensions (path inside extensions/)
+    _extensions.forEach(function (ext) {
+      if (!ext.renderer) return;
+      // Only dynamically inject scripts from extensions/ (not built-in tools/ scripts)
+      if (!ext.renderer.startsWith('../extensions/')) return;
+      var script = document.createElement('script');
+      script.src = ext.renderer;
+      document.head.appendChild(script);
+    });
+
     var frag = document.createDocumentFragment();
 
     _extensions.forEach(function (ext) {
@@ -34,7 +44,16 @@ var ExtensionLoader = (function () {
       btn.id = getButtonId(ext);
       btn.className = 'tool-btn' + (ext.hidden ? ' hidden' : '') + (ext.toolId === 'select' ? ' active' : '');
       btn.setAttribute('data-tooltip', ext.tooltip || ext.displayName);
-      btn.innerHTML = ext.icon || '';
+      // Sanitize icon: only allow SVG with no event handlers or script elements
+      var icon = ext.icon || '';
+      if (icon && icon.trimStart().startsWith('<svg')) {
+        var sanitized = icon
+          .replace(/<script[\s\S]*?<\/script>/gi, '')
+          .replace(/\bon\w+\s*=/gi, 'data-blocked=');
+        btn.innerHTML = sanitized;
+      } else {
+        btn.textContent = icon;
+      }
       frag.appendChild(btn);
     });
 

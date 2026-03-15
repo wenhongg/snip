@@ -21,6 +21,19 @@ contextBridge.exposeInMainWorld('snip', {
   closeEditor: () => ipcRenderer.send('close-editor'),
   sendEditorResult: (dataURL) => ipcRenderer.send('editor-result', dataURL),
 
+  // Generic extension IPC bridge (new extensions use these instead of adding named methods)
+  // Only channels prefixed with 'ext:' are allowed to prevent access to internal IPC channels
+  invokeExtension: (channel, ...args) => {
+    if (typeof channel !== 'string' || !channel.startsWith('ext:')) {
+      return Promise.reject(new Error('Extension channels must use ext: prefix'));
+    }
+    return ipcRenderer.invoke(channel, ...args);
+  },
+  onExtensionEvent: (channel, callback) => {
+    if (typeof channel !== 'string' || !channel.startsWith('ext:')) return;
+    ipcRenderer.on(channel, (event, ...args) => callback(...args));
+  },
+
   // Screen recording permission
   getScreenPermission: () => ipcRenderer.invoke('get-screen-permission'),
   requestScreenPermission: () => ipcRenderer.invoke('request-screen-permission'),

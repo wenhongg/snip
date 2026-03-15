@@ -469,8 +469,10 @@ ipcMain.on('editor-result', function (event, dataURL) {
   if (event.sender.id !== pendingMcpResolve.webContentsId) return;
   var { resolve, reject, win } = pendingMcpResolve;
   pendingMcpResolve = null;
-  if (dataURL) {
+  if (dataURL && typeof dataURL === 'string' && dataURL.startsWith('data:image/')) {
     resolve({ dataURL: dataURL });
+  } else if (dataURL) {
+    reject(new Error('Invalid editor result'));
   } else {
     reject(new Error('User cancelled editing'));
   }
@@ -533,6 +535,11 @@ function startMcpServer() {
       // Check editor is not already busy
       if (pendingMcpResolve) throw new Error('Editor is busy with another upload');
 
+      // Reserve the slot immediately to prevent concurrent uploads
+      pendingMcpResolve = { resolve: null, reject: null, webContentsId: null, win: null };
+
+      try {
+
       // Resolve image to raw bytes + data URL
       var imageDataURL;
       var headerBytes; // first bytes for dimension parsing (avoids re-decoding)
@@ -543,13 +550,14 @@ function startMcpServer() {
         var filepath = path.resolve(params.filepath);
         if (!fs.existsSync(filepath)) throw new Error('File not found');
         var ext = path.extname(filepath).slice(1).toLowerCase();
-        if (!ALLOWED_EXTENSIONS.includes(ext)) throw new Error('Unsupported format — use PNG, JPEG, GIF, or WebP');
+        if (!ALLOWED_EXTENSIONS.includes(ext)) throw new Error('Unsupported format — use PNG or JPEG');
         var stat = fs.statSync(filepath);
         if (stat.size > 15 * 1024 * 1024) throw new Error('Image too large (max 15 MB)');
         var buf = fs.readFileSync(filepath);
-        headerBytes = buf.slice(0, 65536);
+        headerBytes = Buffer.from(buf.buffer, buf.byteOffset, Math.min(buf.length, 65536));
         var mimeType = ext === 'jpg' ? 'image/jpeg' : 'image/' + ext;
         imageDataURL = 'data:' + mimeType + ';base64,' + buf.toString('base64');
+        buf = null; // release raw buffer — base64 string is the only reference needed
       } else {
         imageDataURL = params.imageDataURL;
         var commaIdx = imageDataURL.indexOf(',');
@@ -582,6 +590,11 @@ function startMcpServer() {
       }
 
       if (!imgWidth || !imgHeight) throw new Error('Could not determine image dimensions — ensure the file is a valid PNG or JPEG');
+
+      } catch (err) {
+        pendingMcpResolve = null;
+        throw err;
+      }
 
       var data = {
         croppedDataURL: imageDataURL,

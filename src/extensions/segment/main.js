@@ -126,7 +126,8 @@ async function saveAnimation(event, { buffer, format, timestamp }) {
   fs.mkdirSync(animationsDir, { recursive: true });
 
   var ext = format === 'apng' ? 'png' : 'gif';
-  var filename = timestamp + '.' + ext;
+  var safeTimestamp = String(timestamp).replace(/[^a-zA-Z0-9_\-]/g, '_');
+  var filename = safeTimestamp + '.' + ext;
   var filepath = path.join(animationsDir, filename);
 
   var buf = Buffer.from(buffer);

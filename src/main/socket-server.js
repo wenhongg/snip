@@ -114,11 +114,4 @@ function stopSocketServer() {
   }
 }
 
-/**
- * Return the socket path for MCP adapter discovery.
- */
-function getSocketPath() {
-  return socketPath;
-}
-
-module.exports = { startSocketServer, stopSocketServer, getSocketPath };
+module.exports = { startSocketServer, stopSocketServer };

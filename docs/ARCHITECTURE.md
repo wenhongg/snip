@@ -76,7 +76,6 @@ src/
     transcribe/                # Text extraction (action-tool)
       extension.json
       main.js                  # IPC handler for transcribe-screenshot
-      main.js                  # IPC handler for transcribe-screenshot
     organizer/extension.json   # AI organizer (processor, no toolbar button)
 
   mcp/                       # MCP (Model Context Protocol) server
@@ -285,7 +284,7 @@ An MCP (Model Context Protocol) server exposes Snip's capabilities to external A
 }
 ```
 
-**Security:** All filepath-accepting MCP tools validate that paths are inside the screenshots directory (`path.resolve` + `startsWith` check). The socket buffer is capped at 16 MB per connection, and MCP Content-Length is capped at 10 MB. The `upload_image` action validates base64 length before decoding (max ~15 MB raw). The `editor-result` IPC channel validates `event.sender.id` against the editor window's `webContentsId` to prevent other windows from resolving the pending upload promise.
+**Security:** Library, transcribe, and organize MCP tools validate that paths are inside the screenshots directory (`path.resolve` + `startsWith` check). `upload_image` intentionally accepts any local file path (restricted to PNG/JPEG by extension check, size-capped at 15 MB) since it's designed for uploading external images to annotate. The socket buffer is capped at 16 MB per connection, and MCP Content-Length is capped at 10 MB. The `upload_image` action validates base64 length before decoding (max ~15 MB raw). The `editor-result` IPC channel validates `event.sender.id` against the editor window's `webContentsId` to prevent other windows from resolving the pending upload promise.
 
 ### Single Index File
 All screenshot metadata lives in `~/Documents/snip/screenshots/.index.json`. Simple, atomic, easy to debug. No database.
