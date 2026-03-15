@@ -37,15 +37,6 @@ const SERVER_VERSION = '1.0.0';
 
 const TOOLS = [
   {
-    name: 'capture_screen',
-    description: 'Capture a full screenshot of the current screen. Returns the image and its pixel dimensions. No user interaction required — the capture happens silently in the background.',
-    inputSchema: {
-      type: 'object',
-      properties: {},
-      required: []
-    }
-  },
-  {
     name: 'search_screenshots',
     description: 'Search the user\'s saved screenshot library using a natural language query. Uses semantic embeddings for relevance ranking. Returns matching entries with category, name, description, tags, relevance score, and file path. Use get_screenshot to retrieve the actual image for a result.',
     inputSchema: {

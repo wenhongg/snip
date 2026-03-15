@@ -480,11 +480,6 @@ ipcMain.on('editor-result', function (event, dataURL) {
 
 function startMcpServer() {
   startSocketServer({
-    capture_screen: async function () {
-      requireCategory('capture');
-      const { captureFullScreen } = require('./capturer');
-      return captureFullScreen();
-    },
     search_screenshots: async function (params) {
       requireCategory('library');
       const { searchScreenshots } = require('./organizer/embeddings');
@@ -542,7 +537,7 @@ function startMcpServer() {
       var imageDataURL;
       var headerBytes; // first bytes for dimension parsing (avoids re-decoding)
       var fs = require('fs');
-      var ALLOWED_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif', 'webp'];
+      var ALLOWED_EXTENSIONS = ['png', 'jpg', 'jpeg'];
 
       if (params.filepath) {
         var filepath = path.resolve(params.filepath);

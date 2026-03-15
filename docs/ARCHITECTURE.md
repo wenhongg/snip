@@ -31,7 +31,7 @@
 src/
   main/                     # Main process (Node.js / CommonJS)
     main.js                  # App lifecycle, window creation, liquid glass init, MCP socket handlers
-    capturer.js              # Screen capture via desktopCapturer + captureFullScreen() for MCP
+    capturer.js              # Screen capture via desktopCapturer
     ipc-handlers.js          # Core IPC channel handlers (non-extension)
     extension-registry.js    # Loads extension manifests, registers IPC handlers, manages lifecycle
     socket-server.js         # Unix domain socket server for MCP adapter communication
@@ -271,7 +271,7 @@ Extensions with `toolbarGroups: []` manage their own contextual controls (e.g., 
 ### MCP Server
 An MCP (Model Context Protocol) server exposes Snip's capabilities to external AI agents (e.g., Claude Desktop). Two components:
 
-1. **Unix domain socket** (`socket-server.js`) — listens at `~/Library/Application Support/snip/snip.sock` (chmod 600). Accepts newline-delimited JSON messages with `{ id, action, params }`. Registered actions: `capture_screen`, `search_screenshots`, `list_screenshots`, `get_screenshot`, `transcribe_screenshot`, `organize_screenshot`, `get_categories`, `upload_image`. The `upload_image` action opens the editor with an external image, blocks until the user finishes annotating, and returns the edited PNG via a `pendingMcpResolve` promise resolved by the `editor-result` IPC channel.
+1. **Unix domain socket** (`socket-server.js`) — listens at `~/Library/Application Support/snip/snip.sock` (chmod 600). Accepts newline-delimited JSON messages with `{ id, action, params }`. Registered actions: `search_screenshots`, `list_screenshots`, `get_screenshot`, `transcribe_screenshot`, `organize_screenshot`, `get_categories`, `upload_image`. The `upload_image` action opens the editor with an external image, blocks until the user finishes annotating, and returns the edited PNG via a `pendingMcpResolve` promise resolved by the `editor-result` IPC channel.
 
 2. **MCP stdio adapter** (`src/mcp/server.js`) — standalone Node.js process that speaks MCP JSON-RPC 2.0 over stdio and forwards tool calls to the socket. Configure in Claude Desktop:
 ```json
@@ -506,7 +506,7 @@ The native Liquid Glass layer is always present (macOS 26+). Dark and Light them
 |-------|------|-------------|
 | `aiEnabled` | `boolean \| undefined` | `undefined` on first launch (triggers AI choice screen), `true` if user opted in, `false` if user opted out. When `false`, Ollama is not started and AI organization is skipped entirely. |
 | `mcpEnabled` | `boolean` | Whether the MCP socket server is active. Default `false`. |
-| `mcpCategories` | `object` | Per-category toggles: `{ capture, library, upload, transcribe, organize }`. Each is boolean, all default to `true`. Controls which MCP tools are active. |
+| `mcpCategories` | `object` | Per-category toggles: `{ library, upload, transcribe, organize }`. Each is boolean, all default to `true`. Controls which MCP tools are active. |
 
 | Ollama binary | `/usr/local/bin/ollama`, `/opt/homebrew/bin/ollama`, or `/Applications/Ollama.app/Contents/Resources/ollama` | same (user-installed) |
 | Ollama models | `~/.ollama/models/` | same (shared with system Ollama) |

@@ -334,7 +334,6 @@ function resetShortcuts() {
 }
 
 var MCP_CATEGORY_DEFAULTS = {
-  capture: true,
   library: true,
   upload: true,
   transcribe: true,

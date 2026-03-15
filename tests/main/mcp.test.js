@@ -194,7 +194,6 @@ describe('getMcpConfig', () => {
   it('returns defaults when config is empty', () => {
     const config = store.getMcpConfig();
     expect(config.enabled).toBe(false);
-    expect(config.categories.capture).toBe(true);
     expect(config.categories.library).toBe(true);
     expect(config.categories.upload).toBe(true);
     expect(config.categories.transcribe).toBe(true);
@@ -207,20 +206,20 @@ describe('getMcpConfig', () => {
   });
 
   it('persists per-category toggle', () => {
-    store.setMcpConfig({ categories: { capture: false } });
+    store.setMcpConfig({ categories: { library: false } });
     const config = store.getMcpConfig();
-    expect(config.categories.capture).toBe(false);
-    expect(config.categories.library).toBe(true);
+    expect(config.categories.library).toBe(false);
     expect(config.categories.upload).toBe(true);
+    expect(config.categories.transcribe).toBe(true);
   });
 
   it('partial update merges without wiping other categories', () => {
-    store.setMcpConfig({ categories: { capture: false } });
     store.setMcpConfig({ categories: { library: false } });
+    store.setMcpConfig({ categories: { upload: false } });
     const config = store.getMcpConfig();
-    expect(config.categories.capture).toBe(false);
     expect(config.categories.library).toBe(false);
-    expect(config.categories.upload).toBe(true);
+    expect(config.categories.upload).toBe(false);
+    expect(config.categories.transcribe).toBe(true);
   });
 
   it('rejects unknown category keys', () => {
@@ -231,10 +230,10 @@ describe('getMcpConfig', () => {
   });
 
   it('coerces category values to boolean', () => {
-    store.setMcpConfig({ categories: { capture: 0, library: 'yes' } });
+    store.setMcpConfig({ categories: { library: 0, upload: 'yes' } });
     const config = store.getMcpConfig();
-    expect(config.categories.capture).toBe(false);
-    expect(config.categories.library).toBe(true);
+    expect(config.categories.library).toBe(false);
+    expect(config.categories.upload).toBe(true);
   });
 
   it('coerces enabled to boolean', () => {
@@ -245,22 +244,22 @@ describe('getMcpConfig', () => {
   });
 
   it('survives reload from disk', () => {
-    store.setMcpConfig({ enabled: true, categories: { capture: false } });
+    store.setMcpConfig({ enabled: true, categories: { library: false } });
     store.reloadConfig();
     const config = store.getMcpConfig();
     expect(config.enabled).toBe(true);
-    expect(config.categories.capture).toBe(false);
+    expect(config.categories.library).toBe(false);
   });
 
   it('setMcpConfig without categories does not affect categories', () => {
-    store.setMcpConfig({ categories: { capture: false } });
+    store.setMcpConfig({ categories: { library: false } });
     store.setMcpConfig({ enabled: true });
-    expect(store.getMcpConfig().categories.capture).toBe(false);
+    expect(store.getMcpConfig().categories.library).toBe(false);
   });
 
   it('setMcpConfig without enabled does not affect enabled', () => {
     store.setMcpConfig({ enabled: true });
-    store.setMcpConfig({ categories: { capture: false } });
+    store.setMcpConfig({ categories: { library: false } });
     expect(store.getMcpConfig().enabled).toBe(true);
   });
 });
@@ -388,8 +387,8 @@ describe('category gating', () => {
     server = createTestSocketServer(socketPath, {
       test_action: async () => {
         const config = store.getMcpConfig();
-        if (!config.categories.capture) {
-          throw new Error('capture is disabled in MCP settings');
+        if (!config.categories.library) {
+          throw new Error('library is disabled in MCP settings');
         }
         return { ok: true };
       }
@@ -398,50 +397,50 @@ describe('category gating', () => {
   }
 
   it('handler executes when category is enabled', async () => {
-    store.setMcpConfig({ enabled: true, categories: { capture: true } });
+    store.setMcpConfig({ enabled: true, categories: { library: true } });
     await startGatedServer();
     const res = await socketRequest(socketPath, { id: '1', action: 'test_action' });
     expect(res.result).toEqual({ ok: true });
   });
 
   it('handler returns error when category is disabled', async () => {
-    store.setMcpConfig({ enabled: true, categories: { capture: false } });
+    store.setMcpConfig({ enabled: true, categories: { library: false } });
     await startGatedServer();
     const res = await socketRequest(socketPath, { id: '2', action: 'test_action' });
     expect(res.error).toContain('disabled');
   });
 
   it('toggling category changes handler behavior', async () => {
-    store.setMcpConfig({ enabled: true, categories: { capture: true } });
+    store.setMcpConfig({ enabled: true, categories: { library: true } });
     await startGatedServer();
 
     const res1 = await socketRequest(socketPath, { id: '1', action: 'test_action' });
     expect(res1.result).toEqual({ ok: true });
 
-    store.setMcpConfig({ categories: { capture: false } });
+    store.setMcpConfig({ categories: { library: false } });
 
     const res2 = await socketRequest(socketPath, { id: '2', action: 'test_action' });
     expect(res2.error).toContain('disabled');
   });
 
   it('enabling category after disable allows execution', async () => {
-    store.setMcpConfig({ enabled: true, categories: { capture: false } });
+    store.setMcpConfig({ enabled: true, categories: { library: false } });
     await startGatedServer();
 
     const res1 = await socketRequest(socketPath, { id: '1', action: 'test_action' });
     expect(res1.error).toContain('disabled');
 
-    store.setMcpConfig({ categories: { capture: true } });
+    store.setMcpConfig({ categories: { library: true } });
 
     const res2 = await socketRequest(socketPath, { id: '2', action: 'test_action' });
     expect(res2.result).toEqual({ ok: true });
   });
 
   it('error message includes category name', async () => {
-    store.setMcpConfig({ enabled: true, categories: { capture: false } });
+    store.setMcpConfig({ enabled: true, categories: { library: false } });
     await startGatedServer();
     const res = await socketRequest(socketPath, { id: '1', action: 'test_action' });
-    expect(res.error).toBe('capture is disabled in MCP settings');
+    expect(res.error).toBe('library is disabled in MCP settings');
   });
 });
 
