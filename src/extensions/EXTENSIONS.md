@@ -233,3 +233,51 @@ src/extensions/color-picker/
 - **SVG icons only**. The `icon` field must start with `<svg`. Script tags and event handlers are stripped.
 - **`ext:` prefix required** for new IPC channels. The generic bridge rejects channels without it.
 - **Colors via CSS variables**. Never hardcode hex values. Use `var(--accent)`, `var(--text-primary)`, etc. from `theme.css`.
+
+---
+
+## User-Installed Extensions
+
+Extensions installed via MCP `install_extension` or the "Install from Folder" button in Settings run in a **sandboxed child process**, not in the main Electron process.
+
+### Restrictions
+
+- **Allowed types:** `action-tool` and `processor` only. `canvas-tool` and `ai-tool` are not supported.
+- **No renderer scripts.** User extensions cannot inject scripts into the editor.
+- **All IPC channels must use the `ext:` prefix.**
+
+### Blocked Modules
+
+The following Node.js modules are blocked inside the sandbox:
+
+`fs`, `child_process`, `net`, `http`, `https`, `http2`, `tls`, `dns`, `dgram`, `cluster`, `worker_threads`, `vm`, `v8`, `perf_hooks`, `electron`, `os`, `module`
+
+The blocklist is frozen via `Object.defineProperty` — extensions cannot override it.
+
+Safe modules like `path`, `crypto`, `buffer`, `url`, `querystring` are available.
+
+### Permissions
+
+To access files or the network, declare permissions in your manifest:
+
+```json
+{
+  "permissions": ["screenshots:read", "temp:write"]
+}
+```
+
+| Permission | API | Description |
+|-----------|-----|-------------|
+| `screenshots:read` | `context.api.readScreenshot(filepath)` | Read a screenshot file (path must be inside the screenshots directory) |
+| `temp:write` | `context.api.writeTemp(filename, data)` | Write to a per-extension temp directory (cleaned on restart) |
+
+Permissions are shown to the user in the approval dialog before installation.
+
+### Sandbox Guarantees
+
+- Extensions **cannot** read or write arbitrary files
+- Extensions **cannot** spawn processes or make network requests
+- Extensions **cannot** access Electron APIs or modify app state
+- Extensions **cannot** override the module blocklist (it's frozen via `Object.defineProperty`)
+- Each IPC call has a **30-second timeout** — extensions that hang are killed and restarted
+- The approval dialog **requires explicit user consent** before any extension is installed

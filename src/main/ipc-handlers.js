@@ -391,6 +391,104 @@ function registerIpcHandlers(getOverlayWindow, createEditorWindowFn, reregisterS
     };
   });
 
+  // Settings: User Extensions
+  var extensionRegistry = require('./extension-registry');
+
+  ipcMain.handle('get-user-extensions', async () => {
+    return extensionRegistry.getUserExtensions();
+  });
+
+  ipcMain.handle('remove-user-extension', async (event, name) => {
+    extensionRegistry.removeUserExtension(name);
+    return extensionRegistry.getUserExtensions();
+  });
+
+  ipcMain.handle('install-extension-from-folder', async () => {
+    var { dialog } = require('electron');
+    var result = await dialog.showOpenDialog({
+      title: 'Select Extension Folder',
+      properties: ['openDirectory']
+    });
+    if (result.canceled || !result.filePaths[0]) return { error: 'Cancelled' };
+
+    var srcFolder = result.filePaths[0];
+    var manifestPath = path.join(srcFolder, 'extension.json');
+    if (!fs.existsSync(manifestPath)) return { error: 'No extension.json found in selected folder' };
+
+    var manifest;
+    try { manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8')); }
+    catch { return { error: 'Invalid JSON in extension.json' }; }
+
+    // Validate manifest schema
+    if (!extensionRegistry.validateManifest(manifest, manifest.name || 'unknown')) {
+      return { error: 'Invalid manifest — check name, ipc, and toolbarPosition fields' };
+    }
+
+    // Validate name is safe for filesystem
+    if (!/^[a-zA-Z0-9\-]+$/.test(manifest.name)) {
+      return { error: 'Extension name must be alphanumeric with hyphens only' };
+    }
+
+    // User extensions: type restriction
+    if (manifest.type !== 'action-tool' && manifest.type !== 'processor') {
+      return { error: 'Only action-tool and processor types are supported for user extensions' };
+    }
+
+    // User extensions: ext: prefix required
+    if (Array.isArray(manifest.ipc)) {
+      for (var i = 0; i < manifest.ipc.length; i++) {
+        if (!manifest.ipc[i].channel.startsWith('ext:')) {
+          return { error: 'IPC channel "' + manifest.ipc[i].channel + '" must use ext: prefix' };
+        }
+      }
+    }
+
+    // Check main file exists
+    if (manifest.main && !fs.existsSync(path.join(srcFolder, manifest.main))) {
+      return { error: 'File "' + manifest.main + '" not found in folder' };
+    }
+
+    // Check name doesn't conflict
+    var existing = extensionRegistry.getUserExtensions();
+    if (existing.find(function (e) { return e.name === manifest.name; })) {
+      return { error: 'Extension "' + manifest.name + '" is already installed' };
+    }
+
+    // Approval dialog
+    var detail = 'Type: ' + manifest.type + '\n';
+    if (manifest.ipc) detail += 'IPC channels: ' + manifest.ipc.length + '\n';
+    if (manifest.permissions && manifest.permissions.length > 0) {
+      detail += 'Permissions: ' + manifest.permissions.join(', ') + '\n';
+    }
+
+    var approval = await dialog.showMessageBox({
+      type: 'question',
+      title: 'Install Extension',
+      message: 'Install "' + (manifest.displayName || manifest.name) + '"?',
+      detail: detail + '\nOnly install extensions from sources you trust.',
+      buttons: ['Cancel', 'Install'],
+      defaultId: 0, cancelId: 0
+    });
+    if (approval.response !== 1) return { error: 'Installation cancelled' };
+
+    // Copy files (skip symlinks and subdirectories)
+    var destDir = path.join(extensionRegistry.getUserExtensionsDir(), manifest.name);
+    fs.mkdirSync(destDir, { recursive: true });
+    var files = fs.readdirSync(srcFolder);
+    for (var j = 0; j < files.length; j++) {
+      var srcPath = path.join(srcFolder, files[j]);
+      var destPath = path.join(destDir, files[j]);
+      var stat = fs.lstatSync(srcPath);
+      if (stat.isFile() && !stat.isSymbolicLink()) {
+        fs.copyFileSync(srcPath, destPath);
+      }
+    }
+
+    var loaded = extensionRegistry.loadUserExtension(manifest.name);
+    if (!loaded) return { error: 'Extension installed but failed to load' };
+    return { installed: true, name: manifest.name };
+  });
+
   // Settings: Categories
   ipcMain.handle('get-categories', async () => {
     return getAllCategories();

@@ -108,6 +108,22 @@ const TOOLS = [
       },
       required: []
     }
+  },
+  {
+    name: 'install_extension',
+    description: 'Install a new extension into Snip. Shows the user an approval dialog before installing. The extension runs in a sandboxed child process — it cannot access fs, child_process, net, http, or electron directly. Only action-tool and processor types are supported.\n\nHow to create an extension:\n1. Choose a name (alphanumeric + hyphens, e.g. "word-counter")\n2. Create a manifest object with: name, displayName, type ("action-tool" or "processor"), and an ipc array mapping channels to methods\n3. All IPC channels MUST use the "ext:" prefix (e.g. "ext:word-counter:count")\n4. Write mainCode that exports the methods referenced in the ipc array. Use module.exports = { methodName }.\n5. The mainCode runs in a sandbox: require("path"), require("crypto"), require("buffer") are allowed. require("fs"), require("child_process"), require("net"), etc. are blocked.\n6. For file access, declare permissions in the manifest: ["screenshots:read"] or ["temp:write"]. Use the context.api object passed to init(): context.api.readScreenshot(filepath), context.api.writeTemp(filename, data).\n\nExample:\n  name: "word-counter"\n  manifest: { name: "word-counter", displayName: "Word Counter", type: "action-tool", toolId: "word-counter", icon: "<svg .../>", tooltip: "Count Words", toolbarPosition: 11, ipc: [{ channel: "ext:word-counter:count", method: "count" }] }\n  mainCode: "async function count(event, { text }) { return { words: text.split(/\\\\s+/).length }; }\\nmodule.exports = { count };"',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        name: { type: 'string', description: 'Extension name (alphanumeric + hyphens only, e.g. "word-counter")' },
+        manifest: {
+          type: 'object',
+          description: 'The extension.json manifest. Required fields: name (string), displayName (string), type ("action-tool" or "processor"). Optional: ipc (array of {channel, method}), permissions (array of "screenshots:read", "temp:write", "network"), toolId, icon (SVG string), tooltip, shortcut, toolbarPosition (number).'
+        },
+        mainCode: { type: 'string', description: 'JavaScript source code for main.js. Must use module.exports to export functions referenced by the ipc array. Runs in a sandboxed process. init(context) is called on load — context.api provides readScreenshot() and writeTemp() if permissions are declared.' }
+      },
+      required: ['name', 'manifest']
+    }
   }
 ];
 

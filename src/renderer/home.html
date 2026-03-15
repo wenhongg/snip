@@ -372,6 +372,23 @@
             </div>
           </div>
         </div>
+
+        <div class="settings-section" id="extensions-section">
+          <h3>Installed Extensions</h3>
+          <p>User-installed extensions run in a sandboxed process with restricted access.</p>
+          <div id="extensions-list" class="extensions-list"></div>
+          <div id="extensions-empty" class="extensions-empty">No user extensions installed.</div>
+          <div class="extensions-actions">
+            <button id="install-extension-btn" class="install-extension-btn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              Install from Folder
+            </button>
+            <span id="extensions-status" class="extensions-status"></span>
+          </div>
+        </div>
       </div>
     </div>
   </div>

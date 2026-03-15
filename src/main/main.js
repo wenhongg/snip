@@ -367,15 +367,16 @@ app.whenReady().then(() => {
 
   createTray(triggerCapture, showSearchPage, showHomeWindow, triggerQuickSnip);
   registerShortcuts(triggerCapture, showSearchPage, triggerQuickSnip);
-  // Load extension registry and register extension IPC handlers
+  // Register core IPC handlers FIRST (protects channels from extension squatting)
+  registerIpcHandlers(getOverlayWindow, createEditorWindow, reregisterShortcuts, rebuildTrayMenu);
+
+  // Load extension registry and register extension IPC handlers AFTER core
   extensionRegistry.loadAll();
   extensionRegistry.setContext({
     getEditorData: function () { return require('./ipc-handlers').getPendingEditorData(); },
     getOverlayWindow: getOverlayWindow
   });
   extensionRegistry.registerIpcHandlers();
-
-  registerIpcHandlers(getOverlayWindow, createEditorWindow, reregisterShortcuts, rebuildTrayMenu);
 
   // Pre-warm editor window (load HTML + Fabric.js + tools in background)
   prewarmEditor();
@@ -633,6 +634,78 @@ function startMcpServer() {
           prewarmEditor();
         });
       });
+    },
+    install_extension: async function (params) {
+      if (!params.name || !params.manifest) throw new Error('Provide name and manifest');
+
+      var extName = String(params.name);
+      // Validate name: alphanumeric + hyphens only
+      if (!/^[a-zA-Z0-9\-]+$/.test(extName)) throw new Error('Extension name must be alphanumeric with hyphens only');
+
+      var manifest = params.manifest;
+      if (typeof manifest !== 'object') throw new Error('manifest must be an object');
+
+      // Validate type restriction
+      if (manifest.type !== 'action-tool' && manifest.type !== 'processor') {
+        throw new Error('User extensions must be action-tool or processor type');
+      }
+
+      // Validate IPC channels use ext: prefix
+      if (Array.isArray(manifest.ipc)) {
+        for (var i = 0; i < manifest.ipc.length; i++) {
+          if (!manifest.ipc[i].channel || !manifest.ipc[i].channel.startsWith('ext:')) {
+            throw new Error('All IPC channels must use ext: prefix');
+          }
+        }
+      }
+
+      // Show approval dialog
+      var { dialog } = require('electron');
+      var detail = 'Type: ' + manifest.type + '\n';
+      if (manifest.ipc) detail += 'IPC channels: ' + manifest.ipc.length + '\n';
+      detail += 'Backend code: ' + (params.mainCode ? 'Yes' : 'No') + '\n';
+      if (manifest.permissions && manifest.permissions.length > 0) {
+        detail += 'Permissions: ' + manifest.permissions.join(', ') + '\n';
+      }
+
+      app.focus({ steal: true });
+      var result = await dialog.showMessageBox({
+        type: 'question',
+        title: 'Install Extension',
+        message: 'Install "' + (manifest.displayName || extName) + '"?',
+        detail: detail + '\nOnly install extensions from sources you trust.',
+        buttons: ['Cancel', 'Install'],
+        defaultId: 0,
+        cancelId: 0
+      });
+
+      if (result.response !== 1) throw new Error('User declined installation');
+
+      // Check name doesn't conflict with existing extension
+      var existingExts = extensionRegistry.getUserExtensions();
+      if (existingExts.find(function (e) { return e.name === extName; })) {
+        throw new Error('Extension "' + extName + '" is already installed');
+      }
+
+      // Write extension files
+      var userExtDir = extensionRegistry.getUserExtensionsDir();
+      var extDir = path.join(userExtDir, extName);
+      var fs = require('fs');
+      fs.mkdirSync(extDir, { recursive: true });
+
+      // Write files
+      manifest.name = extName;
+      if (params.mainCode) {
+        manifest.main = 'main.js';
+        fs.writeFileSync(path.join(extDir, 'main.js'), params.mainCode);
+      }
+      fs.writeFileSync(path.join(extDir, 'extension.json'), JSON.stringify(manifest, null, 2));
+
+      // Hot-load the extension
+      var loaded = extensionRegistry.loadUserExtension(extName);
+      if (!loaded) throw new Error('Extension installed but failed to load');
+
+      return { installed: true, name: extName, path: extDir };
     }
   });
 }

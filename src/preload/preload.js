@@ -123,6 +123,11 @@ contextBridge.exposeInMainWorld('snip', {
   getAnimationConfig: () => ipcRenderer.invoke('get-animation-config'),
   setAnimationConfig: (config) => ipcRenderer.invoke('set-animation-config', config),
 
+  // Settings: User Extensions
+  getUserExtensions: () => ipcRenderer.invoke('get-user-extensions'),
+  removeUserExtension: (name) => ipcRenderer.invoke('remove-user-extension', name),
+  installExtensionFromFolder: () => ipcRenderer.invoke('install-extension-from-folder'),
+
   // Settings: MCP Server
   getMcpConfig: () => ipcRenderer.invoke('get-mcp-config'),
   setMcpConfig: (config) => ipcRenderer.invoke('set-mcp-config', config),

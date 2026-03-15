@@ -35,6 +35,8 @@ src/
     ipc-handlers.js          # Core IPC channel handlers (non-extension)
     extension-registry.js    # Loads extension manifests, registers IPC handlers, manages lifecycle
     socket-server.js         # Unix domain socket server for MCP adapter communication
+    extension-sandbox.js     # Manages sandboxed child processes for user extensions
+    extension-sandbox-worker.js  # Forked child: blocks dangerous modules, proxies permission APIs
     tray.js                  # Menu-bar tray icon and context menu, rebuildTrayMenu() for live accelerator updates
     shortcuts.js             # Global keyboard shortcuts (Cmd+Shift+2, Cmd+Shift+S, Cmd+Shift+1), reregisterShortcuts() for dynamic rebinding
     store.js                 # Config persistence, index I/O, fal.ai API key storage, aiEnabled flag, reloadConfig(), getShortcuts(), getDefaultShortcuts(), setShortcut(), resetShortcuts()
@@ -77,6 +79,8 @@ src/
       extension.json
       main.js                  # IPC handler for transcribe-screenshot
     organizer/extension.json   # AI organizer (processor, no toolbar button)
+    extensions.json            # Registry of active bundled extensions
+    EXTENSIONS.md              # Extension developer guide
 
   mcp/                       # MCP (Model Context Protocol) server
     server.js                  # Stdio adapter — bridges MCP JSON-RPC to Snip's Unix socket
@@ -132,6 +136,7 @@ tests/                       # Vitest unit tests
     store.test.js              # Config + index CRUD (real fs with temp dirs)
     agent.test.js              # processScreenshot (Ollama prototype spy)
     embeddings.test.js         # cosineSimilarity + searchScreenshots
+    mcp.test.js                # MCP config, socket server, category gating, path validation
   renderer/
     tool-utils.test.js         # hexToRgba, lineEndpointForTag, nextTagId
 vendor/                      # Downloaded at dev time, bundled at build time
@@ -257,11 +262,11 @@ Tools and features are defined as extensions in `src/extensions/{name}/extension
 | `ipc` | Array of `{ channel, method }` mappings from IPC channel to exported function |
 
 **Startup flow:**
-1. `extension-registry.loadAll()` reads all `extension.json` files, sorted by `toolbarPosition`
+1. `extension-registry.loadAll()` reads `extensions.json` for bundled extensions, then scans `~/Library/Application Support/snip/extensions/` for user extensions. User extensions are tagged `_source: 'user'` and restricted to `action-tool`/`processor` types with `ext:` prefixed channels.
 2. `extension-registry.setContext()` provides shared context (e.g., `getEditorData`)
-3. `extension-registry.registerIpcHandlers()` requires each extension's `main.js` and registers `ipcMain.handle` for each declared channel
-4. `extension-registry.warmUp()` calls `warmUp()` on extensions that export it (e.g., SAM model pre-loading)
-5. On quit, `extension-registry.killWorkers()` calls `killWorker()` on extensions that export it
+3. Core IPC handlers register first (protects channels from squatting), then `extension-registry.registerIpcHandlers()` registers extension handlers. Builtin extensions use in-process `require()`. User extensions run in sandboxed child processes via `extension-sandbox.js`.
+4. `extension-registry.warmUp()` calls `warmUp()` on builtin extensions that export it (e.g., SAM model pre-loading)
+5. On quit, `extension-registry.killWorkers()` calls `killWorker()` on builtin extensions and kills all sandboxed user extension processes
 
 **Renderer side:** `extension-loader.js` receives the manifest array via `editor-image-data` IPC, builds toolbar buttons into `#toolbar-tools`, and provides helpers for shortcut maps and toolbar group visibility.
 
@@ -270,7 +275,7 @@ Extensions with `toolbarGroups: []` manage their own contextual controls (e.g., 
 ### MCP Server
 An MCP (Model Context Protocol) server exposes Snip's capabilities to external AI agents (e.g., Claude Desktop). Two components:
 
-1. **Unix domain socket** (`socket-server.js`) — listens at `~/Library/Application Support/snip/snip.sock` (chmod 600). Accepts newline-delimited JSON messages with `{ id, action, params }`. Registered actions: `search_screenshots`, `list_screenshots`, `get_screenshot`, `transcribe_screenshot`, `organize_screenshot`, `get_categories`, `upload_image`. The `upload_image` action opens the editor with an external image, blocks until the user finishes annotating, and returns the edited PNG via a `pendingMcpResolve` promise resolved by the `editor-result` IPC channel.
+1. **Unix domain socket** (`socket-server.js`) — listens at `~/Library/Application Support/snip/snip.sock` (chmod 600). Accepts newline-delimited JSON messages with `{ id, action, params }`. Registered actions: `search_screenshots`, `list_screenshots`, `get_screenshot`, `transcribe_screenshot`, `organize_screenshot`, `get_categories`, `upload_image`, `install_extension`. The `upload_image` action opens the editor with an external image, blocks until the user finishes annotating, and returns the edited PNG via a `pendingMcpResolve` promise resolved by the `editor-result` IPC channel.
 
 2. **MCP stdio adapter** (`src/mcp/server.js`) — standalone Node.js process that speaks MCP JSON-RPC 2.0 over stdio and forwards tool calls to the socket. Configure in Claude Desktop:
 ```json
@@ -421,6 +426,9 @@ The preload script (`preload.js`) exposes `window.snip` with these methods:
 | `getMcpClientConfig()` | R -> M | Get resolved `command`+`args` JSON for MCP client config (dev vs packaged paths) |
 | `onMcpConfigChanged(cb)` | M -> R | Push event when MCP config changes |
 | `sendEditorResult(dataURL)` | R -> M | Send edited image (or null for cancel) back to MCP `upload_image` handler |
+| `getUserExtensions()` | R -> M | List user-installed extensions (name, type, permissions) |
+| `removeUserExtension(name)` | R -> M | Remove a user extension (kills sandbox, deletes files) |
+| `installExtensionFromFolder()` | R -> M | Open folder picker, validate, show approval dialog, install |
 
 *(R = Renderer, M = Main)*
 
@@ -498,6 +506,7 @@ The native Liquid Glass layer is always present (macOS 26+). Dark and Light them
 | Index | `~/Documents/snip/screenshots/.index.json` | same |
 | Config | `~/Library/Application Support/snip/snip-config.json` | same |
 | MCP Socket | `~/Library/Application Support/snip/snip.sock` | same |
+| User Extensions | `~/Library/Application Support/snip/extensions/` | same |
 
 **Config fields of note:**
 

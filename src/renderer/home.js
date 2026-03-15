@@ -58,6 +58,7 @@
     initThemeToggle();
     initShortcutsSettings();
     initMcpSettings();
+    initExtensionsSettings();
     initSetupOverlay();
   }
 
@@ -1202,6 +1203,87 @@
         updateMcpUI(config);
       });
     }
+  }
+
+  // ── Installed Extensions settings ──
+  async function initExtensionsSettings() {
+    var listEl = document.getElementById('extensions-list');
+    var emptyEl = document.getElementById('extensions-empty');
+    var statusEl = document.getElementById('extensions-status');
+    var installBtn = document.getElementById('install-extension-btn');
+
+    if (!listEl || !installBtn) return;
+
+    function showStatus(msg, isError) {
+      statusEl.textContent = msg;
+      statusEl.className = 'extensions-status visible' + (isError ? ' error' : '');
+      setTimeout(function () { statusEl.className = 'extensions-status'; }, 3000);
+    }
+
+    async function loadAndRender() {
+      var extensions = await window.snip.getUserExtensions();
+      listEl.innerHTML = '';
+
+      if (extensions.length === 0) {
+        listEl.style.display = 'none';
+        emptyEl.style.display = '';
+        return;
+      }
+
+      listEl.style.display = '';
+      emptyEl.style.display = 'none';
+
+      extensions.forEach(function (ext) {
+        var row = document.createElement('div');
+        row.className = 'extension-row';
+
+        var name = document.createElement('span');
+        name.className = 'extension-row-name';
+        name.textContent = ext.displayName || ext.name;
+
+        var type = document.createElement('span');
+        type.className = 'extension-row-type';
+        type.textContent = ext.type;
+
+        var spacer = document.createElement('span');
+        spacer.className = 'extension-row-spacer';
+
+        var removeBtn = document.createElement('button');
+        removeBtn.className = 'extension-row-remove';
+        removeBtn.textContent = 'Remove';
+        removeBtn.addEventListener('click', async function () {
+          await window.snip.removeUserExtension(ext.name);
+          showStatus('Removed ' + ext.name, false);
+          loadAndRender();
+        });
+
+        row.appendChild(name);
+        row.appendChild(type);
+        if (ext.permissions && ext.permissions.length > 0) {
+          var perms = document.createElement('span');
+          perms.className = 'extension-row-type';
+          perms.textContent = ext.permissions.join(', ');
+          row.appendChild(perms);
+        }
+        row.appendChild(spacer);
+        row.appendChild(removeBtn);
+        listEl.appendChild(row);
+      });
+    }
+
+    await loadAndRender();
+
+    installBtn.addEventListener('click', async function () {
+      var result = await window.snip.installExtensionFromFolder();
+      if (result && result.error) {
+        if (result.error !== 'Cancelled') showStatus(result.error, true);
+        return;
+      }
+      if (result && result.installed) {
+        showStatus('Installed ' + result.name, false);
+        loadAndRender();
+      }
+    });
   }
 
   function initSetupOverlay() {

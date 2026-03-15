@@ -48,6 +48,7 @@ asarUnpack:
   - "src/main/transcription/transcribe.swift"
   - "src/main/animation/gif-encoder-worker.js"
   - "src/mcp/server.js"
+  - "src/main/extension-sandbox-worker.js"
   - "node_modules/@huggingface/transformers/**"
   - "node_modules/sharp/**"
   - "node_modules/@img/**"

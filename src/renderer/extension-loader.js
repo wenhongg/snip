@@ -7,6 +7,53 @@
 var ExtensionLoader = (function () {
   var _extensions = [];
 
+  var SVG_ALLOWED_ELEMENTS = ['svg','path','circle','rect','line','polyline','polygon','g','defs','clipPath','ellipse'];
+  var SVG_ALLOWED_ATTRS = ['viewbox','width','height','fill','stroke','stroke-width','stroke-linecap','stroke-linejoin','d','cx','cy','r','x','y','x1','y1','x2','y2','points','transform','rx','ry','id','clip-path','opacity','fill-opacity','stroke-opacity','fill-rule','clip-rule'];
+
+  /**
+   * Sanitize SVG icon using a DOM whitelist approach.
+   * Only allows known-safe elements and attributes. Strips everything else.
+   */
+  function sanitizeSvgIcon(svgString) {
+    if (!svgString || !svgString.trimStart().startsWith('<svg')) return '';
+    try {
+      var parser = new DOMParser();
+      var doc = parser.parseFromString(svgString, 'image/svg+xml');
+      var svg = doc.querySelector('svg');
+      if (!svg) return '';
+
+      function cleanNode(node) {
+        var children = Array.from(node.children);
+        for (var i = 0; i < children.length; i++) {
+          var child = children[i];
+          if (!SVG_ALLOWED_ELEMENTS.includes(child.tagName.toLowerCase())) {
+            child.remove();
+          } else {
+            var attrs = Array.from(child.attributes);
+            for (var j = 0; j < attrs.length; j++) {
+              if (!SVG_ALLOWED_ATTRS.includes(attrs[j].name.toLowerCase())) {
+                child.removeAttribute(attrs[j].name);
+              }
+            }
+            cleanNode(child);
+          }
+        }
+      }
+
+      // Clean svg root attributes too
+      var svgAttrs = Array.from(svg.attributes);
+      for (var k = 0; k < svgAttrs.length; k++) {
+        if (!SVG_ALLOWED_ATTRS.includes(svgAttrs[k].name.toLowerCase()) && svgAttrs[k].name !== 'xmlns') {
+          svg.removeAttribute(svgAttrs[k].name);
+        }
+      }
+      cleanNode(svg);
+      return svg.outerHTML;
+    } catch {
+      return '';
+    }
+  }
+
   /**
    * Get the DOM button ID for an extension.
    * Uses manifest `buttonId` if provided, otherwise `tool-{toolId}`.
@@ -44,15 +91,11 @@ var ExtensionLoader = (function () {
       btn.id = getButtonId(ext);
       btn.className = 'tool-btn' + (ext.hidden ? ' hidden' : '') + (ext.toolId === 'select' ? ' active' : '');
       btn.setAttribute('data-tooltip', ext.tooltip || ext.displayName);
-      // Sanitize icon: only allow SVG with no event handlers or script elements
-      var icon = ext.icon || '';
-      if (icon && icon.trimStart().startsWith('<svg')) {
-        var sanitized = icon
-          .replace(/<script[\s\S]*?<\/script>/gi, '')
-          .replace(/\bon\w+\s*=/gi, 'data-blocked=');
-        btn.innerHTML = sanitized;
+      var sanitizedIcon = sanitizeSvgIcon(ext.icon);
+      if (sanitizedIcon) {
+        btn.innerHTML = sanitizedIcon;
       } else {
-        btn.textContent = icon;
+        btn.textContent = ext.icon || '';
       }
       frag.appendChild(btn);
     });
