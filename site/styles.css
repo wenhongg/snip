@@ -1392,6 +1392,109 @@ kbd {
   }
 }
 
+/* --- MCP Server --- */
+.mcp-demo { padding: 100px 0; }
+
+.mcp-demo-video-wrapper {
+  margin-bottom: 40px;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.mcp-demo-video-wrapper video {
+  width: 100%;
+  display: block;
+}
+
+.mcp-tools-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 40px;
+}
+
+.mcp-tool-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mcp-tool-card strong {
+  font-size: 13px;
+  font-family: 'SF Mono', 'Menlo', monospace;
+  color: var(--accent);
+}
+
+.mcp-tool-card span {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.mcp-setup {
+  display: flex;
+  gap: 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 24px 28px;
+  margin-top: 16px;
+}
+
+.mcp-setup svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--accent);
+}
+
+.mcp-setup strong { font-size: 15px; }
+.mcp-setup p { font-size: 14px; color: var(--text-secondary); margin: 6px 0 12px; }
+.mcp-setup ol { padding-left: 20px; font-size: 14px; color: var(--text-secondary); line-height: 1.8; }
+
+/* --- Extensions --- */
+.extensions-demo { padding: 80px 0; }
+
+.extensions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.extension-point {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.extension-point strong {
+  font-size: 15px;
+  color: var(--text-primary);
+}
+
+.extension-point span {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.extension-point code {
+  font-family: 'SF Mono', 'Menlo', monospace;
+  font-size: 12px;
+  background: rgba(139, 92, 246, 0.15);
+  color: var(--accent);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
 /* --- Tech Stack --- */
 .tech-section {
   padding: 100px 0;

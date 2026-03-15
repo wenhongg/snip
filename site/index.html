@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Snip — macOS Screenshot Tool with Annotation & AI Organization</title>
-  <meta name="description" content="Free, open-source macOS screenshot tool. Capture, annotate, upscale, and transcribe text — all on device. AI-powered organization and semantic search find any screenshot instantly.">
+  <meta name="description" content="Free, open-source macOS screenshot tool. Capture, annotate, upscale, and transcribe text — all on device. AI-powered organization, semantic search, MCP server for AI assistants, and an extensible plugin system.">
   <meta name="theme-color" content="#8B5CF6">
 
   <!-- Open Graph -->
@@ -57,7 +57,7 @@
     "screenshot": "https://snipit.dev/assets/og-image.png",
     "softwareRequirements": "macOS 14+ with Apple M-series chip",
     "downloadUrl": "https://github.com/rixinhahaha/snip/releases",
-    "featureList": "Screen capture, Annotation tools, AI-powered organization, Semantic search, Object segmentation, Blur brush, Auto-tagging, Auto-categorization, AI upscaling, Text transcription (OCR)",
+    "featureList": "Screen capture, Annotation tools, AI-powered organization, Semantic search, Object segmentation, Blur brush, Auto-tagging, Auto-categorization, AI upscaling, Text transcription (OCR), MCP server for AI assistants, Extension system",
     "softwareVersion": "1.0.15"
   }
   </script>
@@ -574,6 +574,93 @@
         <div>
           <strong>100% Private</strong>
           <p>All AI processing happens on your Mac using Ollama and Metal GPU acceleration. Zero data sent to the cloud. No API keys needed for core features.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MCP Server -->
+  <section class="mcp-demo" id="mcp">
+    <div class="section-inner">
+      <div class="section-header">
+        <div class="section-badge">MCP Server</div>
+        <h2>Connect your AI.<br>Control your snips.</h2>
+        <p>Expose Snip to AI assistants via the Model Context Protocol. Search your library, extract text, open images for annotation — all from your AI workflow.</p>
+      </div>
+      <div class="mcp-demo-video-wrapper">
+        <video autoplay loop muted playsinline>
+          <source src="assets/mcp-demo.mp4" type="video/mp4">
+        </video>
+      </div>
+      <div class="mcp-tools-grid">
+        <div class="mcp-tool-card">
+          <strong>search_screenshots</strong>
+          <span>Semantic search across your library</span>
+        </div>
+        <div class="mcp-tool-card">
+          <strong>list_screenshots</strong>
+          <span>Browse all saved snips with metadata</span>
+        </div>
+        <div class="mcp-tool-card">
+          <strong>get_screenshot</strong>
+          <span>Retrieve a specific image by path</span>
+        </div>
+        <div class="mcp-tool-card">
+          <strong>transcribe_screenshot</strong>
+          <span>Extract text via native macOS OCR</span>
+        </div>
+        <div class="mcp-tool-card">
+          <strong>organize_screenshot</strong>
+          <span>AI categorization with local LLM</span>
+        </div>
+        <div class="mcp-tool-card">
+          <strong>open_in_snip</strong>
+          <span>Open image in editor, get annotated result</span>
+        </div>
+        <div class="mcp-tool-card">
+          <strong>install_extension</strong>
+          <span>Install sandboxed extensions via AI</span>
+        </div>
+        <div class="mcp-tool-card">
+          <strong>get_categories</strong>
+          <span>List all screenshot categories</span>
+        </div>
+      </div>
+      <div class="mcp-setup">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <div>
+          <strong>Quick Setup</strong>
+          <p>Works with Claude Desktop, Claude Code, Cursor, Windsurf, and any MCP-compatible client.</p>
+          <ol>
+            <li>Open Snip Settings &rarr; toggle <strong>MCP Server</strong> on</li>
+            <li>Click <strong>Copy</strong> to copy the client config</li>
+            <li>Paste into your MCP client's config file</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Extensions -->
+  <section class="extensions-demo" id="extensions">
+    <div class="section-inner">
+      <div class="section-header">
+        <div class="section-badge">Extensions</div>
+        <h2>Built to extend.</h2>
+        <p>Every tool in Snip is an extension — rectangle, arrow, text, segment, upscale, transcribe. Add new capabilities by dropping a folder, or let AI agents install sandboxed extensions via MCP.</p>
+      </div>
+      <div class="extensions-grid">
+        <div class="extension-point">
+          <strong>Source Extensions</strong>
+          <span>Add a folder to <code>src/extensions/</code> with a manifest. Zero other files touched.</span>
+        </div>
+        <div class="extension-point">
+          <strong>User Extensions</strong>
+          <span>Install from Settings or via MCP. Sandboxed child process, blocked modules, user approval required.</span>
+        </div>
+        <div class="extension-point">
+          <strong>Permission System</strong>
+          <span>Extensions declare what they need. <code>screenshots:read</code>, <code>temp:write</code> — shown before install.</span>
         </div>
       </div>
     </div>
