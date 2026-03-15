@@ -29,7 +29,7 @@ const SOCKET_PATH = path.join(
   os.homedir(), 'Library', 'Application Support', 'snip', 'snip.sock'
 );
 
-const PROTOCOL_VERSION = '2024-11-05';
+const PROTOCOL_VERSION = '2025-11-25';
 const SERVER_NAME = 'snip';
 const SERVER_VERSION = '1.0.0';
 
@@ -38,7 +38,7 @@ const SERVER_VERSION = '1.0.0';
 const TOOLS = [
   {
     name: 'capture_screen',
-    description: 'Take a screenshot of the current screen. Returns the image as a base64 data URL with dimensions.',
+    description: 'Capture a full screenshot of the current screen. Returns the image and its pixel dimensions. No user interaction required — the capture happens silently in the background.',
     inputSchema: {
       type: 'object',
       properties: {},
@@ -47,18 +47,18 @@ const TOOLS = [
   },
   {
     name: 'search_screenshots',
-    description: 'Search saved screenshots using natural language. Uses semantic embeddings for relevance ranking.',
+    description: 'Search the user\'s saved screenshot library using a natural language query. Uses semantic embeddings for relevance ranking. Returns matching entries with category, name, description, tags, relevance score, and file path. Use get_screenshot to retrieve the actual image for a result.',
     inputSchema: {
       type: 'object',
       properties: {
-        query: { type: 'string', description: 'Natural language search query' }
+        query: { type: 'string', description: 'Natural language search query (e.g. "login form", "error message", "chart")' }
       },
       required: ['query']
     }
   },
   {
     name: 'list_screenshots',
-    description: 'List all indexed screenshots with their metadata (category, name, description, tags, path).',
+    description: 'List all saved screenshots with their metadata. Returns an array of index entries, each containing: category, name, description, tags, file path, and timestamp. Use get_screenshot with the file path to retrieve an actual image.',
     inputSchema: {
       type: 'object',
       properties: {},
@@ -67,43 +67,55 @@ const TOOLS = [
   },
   {
     name: 'get_screenshot',
-    description: 'Get a screenshot image and metadata by file path. Returns base64 image data and index entry.',
+    description: 'Retrieve a specific screenshot image by file path. Returns the image and its index metadata (category, name, description, tags). File path must be inside the screenshots directory (~/Documents/snip/screenshots/). Use list_screenshots or search_screenshots first to discover valid paths.',
     inputSchema: {
       type: 'object',
       properties: {
-        filepath: { type: 'string', description: 'Absolute path to the screenshot file' }
+        filepath: { type: 'string', description: 'Absolute path to the screenshot file, as returned by list_screenshots or search_screenshots' }
       },
       required: ['filepath']
     }
   },
   {
     name: 'transcribe_screenshot',
-    description: 'Extract text from a screenshot using OCR (macOS Vision framework). Provide a file path to a screenshot.',
+    description: 'Extract text from a saved screenshot using OCR (macOS Vision framework). Returns recognized text and detected languages. Works best with screenshots containing readable text (code, documents, UI labels, error messages). File path must be inside the screenshots directory.',
     inputSchema: {
       type: 'object',
       properties: {
-        filepath: { type: 'string', description: 'Absolute path to the screenshot file' }
+        filepath: { type: 'string', description: 'Absolute path to the screenshot file, as returned by list_screenshots or search_screenshots' }
       },
       required: ['filepath']
     }
   },
   {
     name: 'organize_screenshot',
-    description: 'Trigger AI categorization for a screenshot. The AI will analyze the image and assign a category, name, description, and tags.',
+    description: 'Queue a screenshot for AI categorization. A local vision LLM will analyze the image and assign a category, descriptive name, description, and tags. Processing happens in the background — this call returns immediately with a confirmation. The file must be inside the screenshots directory.',
     inputSchema: {
       type: 'object',
       properties: {
-        filepath: { type: 'string', description: 'Absolute path to the screenshot file' }
+        filepath: { type: 'string', description: 'Absolute path to the screenshot file to categorize' }
       },
       required: ['filepath']
     }
   },
   {
     name: 'get_categories',
-    description: 'List all screenshot categories (both default and custom).',
+    description: 'List all screenshot categories available for organization. Returns both default categories (code, design, web, etc.) and any custom categories the user has added.',
     inputSchema: {
       type: 'object',
       properties: {},
+      required: []
+    }
+  },
+  {
+    name: 'upload_image',
+    description: 'Open an image in Snip\'s annotation editor for the user to mark up. Pass the image as a base64 data URL (works from any MCP client) or as a local file path (only works from CLI tools like Claude Code that share the local filesystem). The editor window appears and this call blocks until the user clicks Done or Save, then returns the annotated image. Returns an error if the user cancels. PNG and JPEG supported, max 15 MB.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        imageDataURL: { type: 'string', description: 'Base64 data URL of the image (e.g. data:image/png;base64,iVBOR...). Use this from Claude Desktop or any sandboxed MCP client.' },
+        filepath: { type: 'string', description: 'Absolute path to an image file on the local filesystem. Only works from CLI tools (e.g. Claude Code) that share the same filesystem as Snip.' }
+      },
       required: []
     }
   }
@@ -181,10 +193,16 @@ function callSnip(action, params) {
 
 // ── MCP Protocol Handler ──
 
+var useFramedOutput = false; // set by auto-detect in transport
+
 function sendJsonRpc(obj) {
   var json = JSON.stringify(obj);
-  var header = 'Content-Length: ' + Buffer.byteLength(json) + '\r\n\r\n';
-  process.stdout.write(header + json);
+  if (useFramedOutput) {
+    var header = 'Content-Length: ' + Buffer.byteLength(json) + '\r\n\r\n';
+    process.stdout.write(header + json);
+  } else {
+    process.stdout.write(json + '\n');
+  }
 }
 
 function sendResult(id, result) {
@@ -274,31 +292,46 @@ async function handleToolCall(id, params) {
 function startStdioTransport() {
   let buffer = '';
   let contentLength = null;
+  let framed = null; // null = auto-detect, true = Content-Length framing, false = newline-delimited
 
-  process.stdin.on('data', function (chunk) {
-    buffer += chunk.toString();
+  function processMessage(body) {
+    try {
+      var msg = JSON.parse(body);
+      handleRequest(msg).catch(function (err) {
+        if (msg.id !== undefined) {
+          sendError(msg.id, -32603, err.message);
+        }
+      });
+    } catch (err) {
+      // Invalid JSON — skip
+    }
+  }
 
+  function processFramed() {
     while (buffer.length > 0) {
       if (contentLength === null) {
-        // Look for Content-Length header
+        // Look for header separator (accept \r\n\r\n and \n\n)
         var headerEnd = buffer.indexOf('\r\n\r\n');
+        var sepLen = 4;
+        if (headerEnd === -1) {
+          headerEnd = buffer.indexOf('\n\n');
+          sepLen = 2;
+        }
         if (headerEnd === -1) return;
 
         var header = buffer.slice(0, headerEnd);
         var match = header.match(/Content-Length:\s*(\d+)/i);
         if (!match) {
-          // Skip malformed header
-          buffer = buffer.slice(headerEnd + 4);
+          buffer = buffer.slice(headerEnd + sepLen);
           continue;
         }
         contentLength = parseInt(match[1]);
-        // Cap at 10 MB to prevent memory exhaustion
         if (contentLength > 10 * 1024 * 1024) {
-          buffer = buffer.slice(headerEnd + 4);
+          buffer = buffer.slice(headerEnd + sepLen);
           contentLength = null;
           continue;
         }
-        buffer = buffer.slice(headerEnd + 4);
+        buffer = buffer.slice(headerEnd + sepLen);
       }
 
       if (buffer.length < contentLength) return;
@@ -306,17 +339,39 @@ function startStdioTransport() {
       var body = buffer.slice(0, contentLength);
       buffer = buffer.slice(contentLength);
       contentLength = null;
+      processMessage(body);
+    }
+  }
 
-      try {
-        var msg = JSON.parse(body);
-        handleRequest(msg).catch(function (err) {
-          if (msg.id !== undefined) {
-            sendError(msg.id, -32603, err.message);
-          }
-        });
-      } catch (err) {
-        // Invalid JSON — skip
+  function processLines() {
+    var newlineIdx;
+    while ((newlineIdx = buffer.indexOf('\n')) !== -1) {
+      var line = buffer.slice(0, newlineIdx).trim();
+      buffer = buffer.slice(newlineIdx + 1);
+      if (!line) continue;
+      processMessage(line);
+    }
+  }
+
+  process.stdin.on('data', function (chunk) {
+    buffer += chunk.toString();
+
+    // Auto-detect framing on first data
+    if (framed === null) {
+      var trimmed = buffer.trimStart();
+      if (trimmed.startsWith('{')) {
+        framed = false; // newline-delimited JSON
+        useFramedOutput = false;
+      } else {
+        framed = true; // Content-Length framed
+        useFramedOutput = true;
       }
+    }
+
+    if (framed) {
+      processFramed();
+    } else {
+      processLines();
     }
   });
 

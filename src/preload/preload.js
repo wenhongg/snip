@@ -19,6 +19,7 @@ contextBridge.exposeInMainWorld('snip', {
     ipcRenderer.on('editor-image-data', (event, data) => callback(data));
   },
   closeEditor: () => ipcRenderer.send('close-editor'),
+  sendEditorResult: (dataURL) => ipcRenderer.send('editor-result', dataURL),
 
   // Screen recording permission
   getScreenPermission: () => ipcRenderer.invoke('get-screen-permission'),
@@ -106,6 +107,14 @@ contextBridge.exposeInMainWorld('snip', {
   // Settings: Animation (fal.ai)
   getAnimationConfig: () => ipcRenderer.invoke('get-animation-config'),
   setAnimationConfig: (config) => ipcRenderer.invoke('set-animation-config', config),
+
+  // Settings: MCP Server
+  getMcpConfig: () => ipcRenderer.invoke('get-mcp-config'),
+  setMcpConfig: (config) => ipcRenderer.invoke('set-mcp-config', config),
+  getMcpClientConfig: () => ipcRenderer.invoke('get-mcp-client-config'),
+  onMcpConfigChanged: (callback) => {
+    ipcRenderer.on('mcp-config-changed', (event, config) => callback(config));
+  },
 
   // Animation (fal.ai)
   checkAnimateSupport: () => ipcRenderer.invoke('check-animate-support'),

@@ -312,6 +312,74 @@
             <span id="shortcuts-status" class="shortcuts-status"></span>
           </div>
         </div>
+
+        <div class="settings-section" id="mcp-section">
+          <h3>MCP Server</h3>
+          <p>Expose Snip's capabilities to AI assistants via the Model Context Protocol (MCP).</p>
+          <div class="ai-toggle-row">
+            <span class="ai-toggle-label">MCP Server</span>
+            <span id="mcp-status-dot" class="status-dot stopped"></span>
+            <label class="ai-switch">
+              <input type="checkbox" id="mcp-toggle-input">
+              <span class="ai-switch-track"></span>
+            </label>
+          </div>
+          <div id="mcp-categories" class="mcp-category-list hidden">
+            <div class="mcp-category-row" data-category="capture">
+              <span class="mcp-category-label">Screen Capture</span>
+              <span class="mcp-category-desc">Take screenshots programmatically</span>
+              <label class="ai-switch ai-switch-sm">
+                <input type="checkbox" class="mcp-cat-toggle" data-category="capture">
+                <span class="ai-switch-track"></span>
+              </label>
+            </div>
+            <div class="mcp-category-row" data-category="library">
+              <span class="mcp-category-label">Library Access</span>
+              <span class="mcp-category-desc">List, search, and view saved snips</span>
+              <label class="ai-switch ai-switch-sm">
+                <input type="checkbox" class="mcp-cat-toggle" data-category="library">
+                <span class="ai-switch-track"></span>
+              </label>
+            </div>
+            <div class="mcp-category-row" data-category="upload">
+              <span class="mcp-category-label">Upload</span>
+              <span class="mcp-category-desc">Push images into the editor</span>
+              <label class="ai-switch ai-switch-sm">
+                <input type="checkbox" class="mcp-cat-toggle" data-category="upload">
+                <span class="ai-switch-track"></span>
+              </label>
+            </div>
+            <div class="mcp-category-row" data-category="transcribe">
+              <span class="mcp-category-label">Transcribe</span>
+              <span class="mcp-category-desc">Extract text from screenshots via OCR</span>
+              <label class="ai-switch ai-switch-sm">
+                <input type="checkbox" class="mcp-cat-toggle" data-category="transcribe">
+                <span class="ai-switch-track"></span>
+              </label>
+            </div>
+            <div class="mcp-category-row" data-category="organize">
+              <span class="mcp-category-label">Organize</span>
+              <span class="mcp-category-desc">AI categorization of screenshots</span>
+              <label class="ai-switch ai-switch-sm">
+                <input type="checkbox" class="mcp-cat-toggle" data-category="organize">
+                <span class="ai-switch-track"></span>
+              </label>
+            </div>
+          </div>
+          <div id="mcp-info" class="mcp-info hidden">
+            <p class="mcp-info-text">Add this to your MCP client config:</p>
+            <div class="mcp-config-wrapper">
+              <pre class="mcp-config-block" id="mcp-config-json"></pre>
+              <button id="mcp-copy-config" class="mcp-copy-btn" data-tooltip="Copy to clipboard">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                  <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                </svg>
+                <span class="mcp-copy-label">Copy</span>
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>

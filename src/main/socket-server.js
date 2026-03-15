@@ -63,7 +63,7 @@ function startSocketServer(handlers) {
 }
 
 async function handleMessage(conn, msg, handlers) {
-  var id = msg.id || null;
+  var id = msg.id != null ? msg.id : null;
   var action = msg.action;
   var params = msg.params || {};
 

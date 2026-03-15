@@ -57,6 +57,7 @@
     }
     initThemeToggle();
     initShortcutsSettings();
+    initMcpSettings();
     initSetupOverlay();
   }
 
@@ -1132,6 +1133,75 @@
     btn.style.display = '';
     btn.disabled = false;
     document.getElementById('setup-' + section + '-progress').classList.add('hidden');
+  }
+
+  // ── MCP Server settings ──
+  async function initMcpSettings() {
+    var masterToggle = document.getElementById('mcp-toggle-input');
+    var statusDot = document.getElementById('mcp-status-dot');
+    var categoriesDiv = document.getElementById('mcp-categories');
+    var infoDiv = document.getElementById('mcp-info');
+    var configJson = document.getElementById('mcp-config-json');
+    var copyBtn = document.getElementById('mcp-copy-config');
+
+    if (!masterToggle) return;
+
+    // Fetch resolved paths and populate config snippet
+    var clientConfig = await window.snip.getMcpClientConfig();
+    var configStr = JSON.stringify(clientConfig, null, 2);
+    if (configJson) configJson.textContent = configStr;
+
+    // Copy button
+    if (copyBtn) {
+      copyBtn.addEventListener('click', function () {
+        navigator.clipboard.writeText(configStr).then(function () {
+          var label = copyBtn.querySelector('.mcp-copy-label');
+          if (label) {
+            label.textContent = 'Copied!';
+            setTimeout(function () { label.textContent = 'Copy'; }, 1500);
+          }
+        });
+      });
+    }
+
+    function updateMcpUI(config) {
+      masterToggle.checked = config.enabled;
+      statusDot.className = 'status-dot ' + (config.enabled ? 'running' : 'stopped');
+      categoriesDiv.classList.toggle('hidden', !config.enabled);
+      infoDiv.classList.toggle('hidden', !config.enabled);
+
+      document.querySelectorAll('.mcp-cat-toggle').forEach(function (toggle) {
+        var cat = toggle.dataset.category;
+        toggle.checked = config.categories[cat] !== false;
+      });
+    }
+
+    // Load initial state
+    var config = await window.snip.getMcpConfig();
+    updateMcpUI(config);
+
+    // Master toggle
+    masterToggle.addEventListener('change', async function () {
+      var result = await window.snip.setMcpConfig({ enabled: masterToggle.checked });
+      updateMcpUI(result);
+    });
+
+    // Category toggles
+    document.querySelectorAll('.mcp-cat-toggle').forEach(function (toggle) {
+      toggle.addEventListener('change', async function () {
+        var update = { categories: {} };
+        update.categories[toggle.dataset.category] = toggle.checked;
+        var result = await window.snip.setMcpConfig(update);
+        updateMcpUI(result);
+      });
+    });
+
+    // Listen for external changes
+    if (window.snip.onMcpConfigChanged) {
+      window.snip.onMcpConfigChanged(function (config) {
+        updateMcpUI(config);
+      });
+    }
   }
 
   function initSetupOverlay() {

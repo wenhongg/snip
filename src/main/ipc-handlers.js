@@ -9,7 +9,8 @@ const {
   getTheme, setTheme,
   getAiEnabled, setAiEnabled,
   getFalApiKey, setFalApiKey,
-  getShortcuts, getDefaultShortcuts, setShortcut, resetShortcuts
+  getShortcuts, getDefaultShortcuts, setShortcut, resetShortcuts,
+  getMcpConfig, setMcpConfig
 } = require('./store');
 const { queueNewFile } = require('./organizer/watcher');
 const ollamaManager = require('./ollama-manager');
@@ -336,6 +337,58 @@ function registerIpcHandlers(getOverlayWindow, createEditorWindowFn, reregisterS
   ipcMain.handle('set-animation-config', async (event, { falApiKey }) => {
     if (falApiKey !== undefined) setFalApiKey(falApiKey);
     return true;
+  });
+
+  // Settings: MCP Server
+  ipcMain.handle('get-mcp-config', async () => {
+    return getMcpConfig();
+  });
+
+  ipcMain.handle('set-mcp-config', async (event, update) => {
+    var before = getMcpConfig();
+    setMcpConfig(update);
+    var after = getMcpConfig();
+
+    // Start or stop the socket server based on toggle
+    if (after.enabled && !before.enabled) {
+      var { startMcpServer } = require('./main');
+      startMcpServer();
+    } else if (!after.enabled && before.enabled) {
+      var { stopSocketServer } = require('./socket-server');
+      stopSocketServer();
+    }
+
+    // Broadcast change to all windows
+    for (const win of BrowserWindow.getAllWindows()) {
+      if (!win.isDestroyed()) win.webContents.send('mcp-config-changed', after);
+    }
+    return after;
+  });
+
+  // MCP: resolve paths for client config snippet
+  ipcMain.handle('get-mcp-client-config', async () => {
+    var nodePath;
+    var serverPath;
+
+    if (app.isPackaged) {
+      // Packaged: use bundled Node + unpacked MCP server
+      nodePath = path.join(process.resourcesPath, 'node', 'node');
+      serverPath = path.join(process.resourcesPath, 'app.asar.unpacked', 'src', 'mcp', 'server.js');
+    } else {
+      // Dev: use system node + source file
+      var { findNodeBinary } = require('./node-binary');
+      nodePath = findNodeBinary() || 'node';
+      serverPath = path.join(__dirname, '..', 'mcp', 'server.js');
+    }
+
+    return {
+      mcpServers: {
+        snip: {
+          command: nodePath,
+          args: [serverPath]
+        }
+      }
+    };
   });
 
   // Settings: Categories

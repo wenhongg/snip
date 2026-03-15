@@ -1,10 +1,10 @@
-const { app, BrowserWindow, screen } = require('electron');
+const { app, BrowserWindow, screen, ipcMain } = require('electron');
 const path = require('path');
 const { registerShortcuts, unregisterShortcuts, reregisterShortcuts } = require('./shortcuts');
 const { createTray, rebuildTrayMenu } = require('./tray');
 const { registerIpcHandlers } = require('./ipc-handlers');
 const { captureScreen } = require('./capturer');
-const { initStore, readIndex, getAllCategories } = require('./store');
+const { initStore, readIndex, getAllCategories, getMcpConfig } = require('./store');
 const { startWatcher } = require('./organizer/watcher');
 const { startOllama, stopOllama, setOnInstallComplete } = require('./ollama-manager');
 const { BASE_WEB_PREFERENCES } = require('./constants');
@@ -407,66 +407,10 @@ app.whenReady().then(() => {
   // Pre-warm overlay window for fast first capture
   prewarmOverlay();
 
-  // Start MCP socket server for external tool access
-  var screenshotsDir = require('./store').getScreenshotsDir();
-
-  /** Validate that filepath is inside the screenshots directory. Throws on violation. */
-  function requireScreenshotPath(filepath) {
-    if (!filepath) throw new Error('Missing filepath parameter');
-    var resolved = path.resolve(filepath);
-    var base = path.resolve(screenshotsDir);
-    if (!resolved.startsWith(base + path.sep) && resolved !== base) {
-      throw new Error('Path outside screenshots directory');
-    }
-    if (!require('fs').existsSync(resolved)) {
-      throw new Error('File not found');
-    }
-    return resolved;
+  // Start MCP socket server if enabled in settings
+  if (getMcpConfig().enabled) {
+    startMcpServer();
   }
-
-  startSocketServer({
-    capture_screen: async function () {
-      const { captureFullScreen } = require('./capturer');
-      return captureFullScreen();
-    },
-    search_screenshots: async function (params) {
-      const { searchScreenshots } = require('./organizer/embeddings');
-      return searchScreenshots(params.query);
-    },
-    list_screenshots: async function () {
-      return readIndex();
-    },
-    get_screenshot: async function (params) {
-      var filepath = requireScreenshotPath(params.filepath);
-      var fs = require('fs');
-      var buf = fs.readFileSync(filepath);
-      var ext = path.extname(filepath).slice(1).toLowerCase() || 'png';
-      var mimeType = ext === 'jpg' ? 'image/jpeg' : 'image/' + ext;
-      var entry = readIndex().find(function (e) { return e.path === filepath; });
-      return {
-        dataURL: 'data:' + mimeType + ';base64,' + buf.toString('base64'),
-        width: entry ? entry.width : null,
-        height: entry ? entry.height : null,
-        metadata: entry || null
-      };
-    },
-    transcribe_screenshot: async function (params) {
-      var filepath = requireScreenshotPath(params.filepath);
-      var buf = require('fs').readFileSync(filepath);
-      var base64 = buf.toString('base64');
-      const { transcribe } = require('./transcription/transcription');
-      return transcribe(base64);
-    },
-    organize_screenshot: async function (params) {
-      var filepath = requireScreenshotPath(params.filepath);
-      const { queueNewFile } = require('./organizer/watcher');
-      queueNewFile(filepath);
-      return { queued: true, filepath: filepath };
-    },
-    get_categories: async function () {
-      return getAllCategories();
-    }
-  });
 
   // Open home window on startup
   showHomeWindow();
@@ -489,3 +433,200 @@ app.on('window-all-closed', (e) => {
 app.on('second-instance', () => {
   showHomeWindow();
 });
+
+// ── MCP Server ──
+
+var screenshotsDir = null;
+
+function requireScreenshotPath(filepath) {
+  if (!screenshotsDir) screenshotsDir = require('./store').getScreenshotsDir();
+  if (!filepath) throw new Error('Missing filepath parameter');
+  var resolved = path.resolve(filepath);
+  var base = path.resolve(screenshotsDir);
+  if (!resolved.startsWith(base + path.sep) && resolved !== base) {
+    throw new Error('Path outside screenshots directory');
+  }
+  if (!require('fs').existsSync(resolved)) {
+    throw new Error('File not found');
+  }
+  return resolved;
+}
+
+function requireCategory(category) {
+  var config = getMcpConfig();
+  if (!config.categories[category]) {
+    throw new Error(category + ' is disabled in MCP settings');
+  }
+}
+
+// ── MCP upload_image: pending promise for editor result ──
+
+var pendingMcpResolve = null; // { resolve, reject, webContentsId, win }
+
+ipcMain.on('editor-result', function (event, dataURL) {
+  if (!pendingMcpResolve) return;
+  // Only accept results from the editor window that was opened for this upload
+  if (event.sender.id !== pendingMcpResolve.webContentsId) return;
+  var { resolve, reject, win } = pendingMcpResolve;
+  pendingMcpResolve = null;
+  if (dataURL) {
+    resolve({ dataURL: dataURL });
+  } else {
+    reject(new Error('User cancelled editing'));
+  }
+  // Close the editor window (close-editor IPC won't find it since it's not in editorWindowRef)
+  if (win && !win.isDestroyed()) win.destroy();
+});
+
+function startMcpServer() {
+  startSocketServer({
+    capture_screen: async function () {
+      requireCategory('capture');
+      const { captureFullScreen } = require('./capturer');
+      return captureFullScreen();
+    },
+    search_screenshots: async function (params) {
+      requireCategory('library');
+      const { searchScreenshots } = require('./organizer/embeddings');
+      return searchScreenshots(params.query);
+    },
+    list_screenshots: async function () {
+      requireCategory('library');
+      return readIndex();
+    },
+    get_screenshot: async function (params) {
+      requireCategory('library');
+      var filepath = requireScreenshotPath(params.filepath);
+      var fs = require('fs');
+      var buf = fs.readFileSync(filepath);
+      var ext = path.extname(filepath).slice(1).toLowerCase() || 'png';
+      var mimeType = ext === 'jpg' ? 'image/jpeg' : 'image/' + ext;
+      var entry = readIndex().find(function (e) { return e.path === filepath; });
+      return {
+        dataURL: 'data:' + mimeType + ';base64,' + buf.toString('base64'),
+        width: entry ? entry.width : null,
+        height: entry ? entry.height : null,
+        metadata: entry || null
+      };
+    },
+    transcribe_screenshot: async function (params) {
+      requireCategory('transcribe');
+      var filepath = requireScreenshotPath(params.filepath);
+      var buf = require('fs').readFileSync(filepath);
+      var base64 = buf.toString('base64');
+      const { transcribe } = require('./transcription/transcription');
+      return transcribe(base64);
+    },
+    organize_screenshot: async function (params) {
+      requireCategory('organize');
+      var filepath = requireScreenshotPath(params.filepath);
+      const { queueNewFile } = require('./organizer/watcher');
+      queueNewFile(filepath);
+      return { queued: true, filepath: filepath };
+    },
+    get_categories: async function () {
+      requireCategory('library');
+      return getAllCategories();
+    },
+    upload_image: async function (params) {
+      requireCategory('upload');
+
+      if (!params.filepath && !params.imageDataURL) {
+        throw new Error('Provide either filepath or imageDataURL');
+      }
+
+      // Check editor is not already busy
+      if (pendingMcpResolve) throw new Error('Editor is busy with another upload');
+
+      // Resolve image to raw bytes + data URL
+      var imageDataURL;
+      var headerBytes; // first bytes for dimension parsing (avoids re-decoding)
+      var fs = require('fs');
+      var ALLOWED_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif', 'webp'];
+
+      if (params.filepath) {
+        var filepath = path.resolve(params.filepath);
+        if (!fs.existsSync(filepath)) throw new Error('File not found');
+        var ext = path.extname(filepath).slice(1).toLowerCase();
+        if (!ALLOWED_EXTENSIONS.includes(ext)) throw new Error('Unsupported format — use PNG, JPEG, GIF, or WebP');
+        var stat = fs.statSync(filepath);
+        if (stat.size > 15 * 1024 * 1024) throw new Error('Image too large (max 15 MB)');
+        var buf = fs.readFileSync(filepath);
+        headerBytes = buf.slice(0, 65536);
+        var mimeType = ext === 'jpg' ? 'image/jpeg' : 'image/' + ext;
+        imageDataURL = 'data:' + mimeType + ';base64,' + buf.toString('base64');
+      } else {
+        imageDataURL = params.imageDataURL;
+        var commaIdx = imageDataURL.indexOf(',');
+        var base64Len = commaIdx >= 0 ? imageDataURL.length - commaIdx - 1 : imageDataURL.length;
+        if (base64Len > 20 * 1024 * 1024) throw new Error('Image too large (max ~15 MB)');
+        // Decode only the first 64KB for dimension parsing
+        var base64Start = commaIdx >= 0 ? commaIdx + 1 : 0;
+        headerBytes = Buffer.from(imageDataURL.slice(base64Start, base64Start + 87382), 'base64'); // 87382 base64 chars ≈ 64KB
+      }
+
+      // Parse image dimensions from header bytes (PNG/JPEG)
+      var imgWidth = 0;
+      var imgHeight = 0;
+
+      // PNG: bytes 1-3 = "PNG", width at 16-19, height at 20-23
+      if (headerBytes.length > 24 && headerBytes[1] === 0x50 && headerBytes[2] === 0x4E && headerBytes[3] === 0x47) {
+        imgWidth = headerBytes.readUInt32BE(16);
+        imgHeight = headerBytes.readUInt32BE(20);
+      }
+      // JPEG: starts with FF D8, search for SOF0/SOF2 marker (cap scan at 64KB)
+      if (!imgWidth && headerBytes.length > 2 && headerBytes[0] === 0xFF && headerBytes[1] === 0xD8) {
+        var scanLimit = Math.min(headerBytes.length - 9, 65536);
+        for (var i = 2; i <= scanLimit; i++) {
+          if (headerBytes[i] === 0xFF && (headerBytes[i + 1] === 0xC0 || headerBytes[i + 1] === 0xC2)) {
+            imgHeight = headerBytes.readUInt16BE(i + 5);
+            imgWidth = headerBytes.readUInt16BE(i + 7);
+            break;
+          }
+        }
+      }
+
+      if (!imgWidth || !imgHeight) throw new Error('Could not determine image dimensions — ensure the file is a valid PNG or JPEG');
+
+      var data = {
+        croppedDataURL: imageDataURL,
+        cssWidth: imgWidth,
+        cssHeight: imgHeight,
+        mcpUpload: true
+      };
+
+      return new Promise(function (resolve, reject) {
+        data.extensions = extensionRegistry.getRendererManifest();
+
+        var win = createEditorWindow(data.cssWidth, data.cssHeight);
+        pendingMcpResolve = { resolve: resolve, reject: reject, webContentsId: win.webContents.id, win: win };
+
+        // Bring app to front
+        app.focus({ steal: true });
+
+        var pushData = function () {
+          if (win && !win.isDestroyed()) {
+            win.webContents.send('editor-image-data', data);
+            win.show();
+          }
+        };
+        if (win.webContents.isLoading()) {
+          win.webContents.once('did-finish-load', pushData);
+        } else {
+          pushData();
+        }
+
+        // Reject if window is closed without sending a result
+        win.on('closed', function () {
+          if (pendingMcpResolve) {
+            pendingMcpResolve.reject(new Error('Editor closed without saving'));
+            pendingMcpResolve = null;
+          }
+          prewarmEditor();
+        });
+      });
+    }
+  });
+}
+
+module.exports = { startMcpServer };

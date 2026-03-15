@@ -8,7 +8,7 @@
   "shortcut": "s",
   "toolbarPosition": 7,
   "hidden": true,
-  "toolbarGroups": ["segment-color-group"],
+  "toolbarGroups": [],
   "renderer": "../../renderer/tools/segment.js",
   "main": "main.js",
   "ipc": [
