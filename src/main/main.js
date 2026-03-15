@@ -4,10 +4,12 @@ const { registerShortcuts, unregisterShortcuts, reregisterShortcuts } = require(
 const { createTray, rebuildTrayMenu } = require('./tray');
 const { registerIpcHandlers } = require('./ipc-handlers');
 const { captureScreen } = require('./capturer');
-const { initStore } = require('./store');
+const { initStore, readIndex, getAllCategories } = require('./store');
 const { startWatcher } = require('./organizer/watcher');
 const { startOllama, stopOllama, setOnInstallComplete } = require('./ollama-manager');
 const { BASE_WEB_PREFERENCES } = require('./constants');
+const extensionRegistry = require('./extension-registry');
+const { startSocketServer, stopSocketServer } = require('./socket-server');
 
 // Native Liquid Glass (macOS 26+) — safe no-op on older systems
 let liquidGlass = null;
@@ -365,6 +367,14 @@ app.whenReady().then(() => {
 
   createTray(triggerCapture, showSearchPage, showHomeWindow, triggerQuickSnip);
   registerShortcuts(triggerCapture, showSearchPage, triggerQuickSnip);
+  // Load extension registry and register extension IPC handlers
+  extensionRegistry.loadAll();
+  extensionRegistry.setContext({
+    getEditorData: function () { return require('./ipc-handlers').getPendingEditorData(); },
+    getOverlayWindow: getOverlayWindow
+  });
+  extensionRegistry.registerIpcHandlers();
+
   registerIpcHandlers(getOverlayWindow, createEditorWindow, reregisterShortcuts, rebuildTrayMenu);
 
   // Pre-warm editor window (load HTML + Fabric.js + tools in background)
@@ -391,12 +401,72 @@ app.whenReady().then(() => {
     console.log('[Snip] AI disabled — skipping Ollama startup');
   }
 
-  // Pre-warm SAM segmentation model
-  const { warmUp } = require('./segmentation/segmentation');
-  warmUp();
+  // Warm up extension models (SAM segmentation, etc.)
+  extensionRegistry.warmUp();
 
   // Pre-warm overlay window for fast first capture
   prewarmOverlay();
+
+  // Start MCP socket server for external tool access
+  var screenshotsDir = require('./store').getScreenshotsDir();
+
+  /** Validate that filepath is inside the screenshots directory. Throws on violation. */
+  function requireScreenshotPath(filepath) {
+    if (!filepath) throw new Error('Missing filepath parameter');
+    var resolved = path.resolve(filepath);
+    var base = path.resolve(screenshotsDir);
+    if (!resolved.startsWith(base + path.sep) && resolved !== base) {
+      throw new Error('Path outside screenshots directory');
+    }
+    if (!require('fs').existsSync(resolved)) {
+      throw new Error('File not found');
+    }
+    return resolved;
+  }
+
+  startSocketServer({
+    capture_screen: async function () {
+      const { captureFullScreen } = require('./capturer');
+      return captureFullScreen();
+    },
+    search_screenshots: async function (params) {
+      const { searchScreenshots } = require('./organizer/embeddings');
+      return searchScreenshots(params.query);
+    },
+    list_screenshots: async function () {
+      return readIndex();
+    },
+    get_screenshot: async function (params) {
+      var filepath = requireScreenshotPath(params.filepath);
+      var fs = require('fs');
+      var buf = fs.readFileSync(filepath);
+      var ext = path.extname(filepath).slice(1).toLowerCase() || 'png';
+      var mimeType = ext === 'jpg' ? 'image/jpeg' : 'image/' + ext;
+      var entry = readIndex().find(function (e) { return e.path === filepath; });
+      return {
+        dataURL: 'data:' + mimeType + ';base64,' + buf.toString('base64'),
+        width: entry ? entry.width : null,
+        height: entry ? entry.height : null,
+        metadata: entry || null
+      };
+    },
+    transcribe_screenshot: async function (params) {
+      var filepath = requireScreenshotPath(params.filepath);
+      var buf = require('fs').readFileSync(filepath);
+      var base64 = buf.toString('base64');
+      const { transcribe } = require('./transcription/transcription');
+      return transcribe(base64);
+    },
+    organize_screenshot: async function (params) {
+      var filepath = requireScreenshotPath(params.filepath);
+      const { queueNewFile } = require('./organizer/watcher');
+      queueNewFile(filepath);
+      return { queued: true, filepath: filepath };
+    },
+    get_categories: async function () {
+      return getAllCategories();
+    }
+  });
 
   // Open home window on startup
   showHomeWindow();
@@ -405,8 +475,8 @@ app.whenReady().then(() => {
 app.on('will-quit', (e) => {
   e.preventDefault();
   unregisterShortcuts();
-  try { require('./segmentation/segmentation').killWorker(); } catch (_) {}
-  try { require('./upscaler/upscaler').killWorker(); } catch (_) {}
+  extensionRegistry.killWorkers();
+  stopSocketServer();
   stopOllama().finally(() => app.exit(0));
 });
 

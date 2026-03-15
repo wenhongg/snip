@@ -1,4 +1,4 @@
-/* global EditorCanvasManager, Toolbar, RectangleTool, TextTool, ArrowTool, TagTool, BlurBrushTool, SegmentTool, AnimateTool, TranscribeTool, ToolUtils */
+/* global EditorCanvasManager, ExtensionLoader, Toolbar, RectangleTool, TextTool, ArrowTool, TagTool, BlurBrushTool, SegmentTool, AnimateTool, TranscribeTool, ToolUtils */
 
 (function() {
   'use strict';
@@ -43,6 +43,11 @@
 
     // Setup annotation tools (only once)
     if (!_editorReady) {
+      // Build toolbar buttons from extension manifests
+      if (imageData.extensions && typeof ExtensionLoader !== 'undefined') {
+        ExtensionLoader.buildToolbar(imageData.extensions);
+      }
+
       // Load fonts
       const fonts = await window.snip.getSystemFonts();
       var fontSelect = document.getElementById('font-select');

@@ -185,4 +185,22 @@ function getCapturedImage() {
   return storedNativeImage.toDataURL();
 }
 
-module.exports = { captureScreen, getCapturedImage };
+/**
+ * Programmatic full-screen capture (no overlay UI). Used by MCP server.
+ * Returns { dataURL, width, height } or throws on failure.
+ */
+async function captureFullScreen() {
+  const cursorDisplay = screen.getDisplayNearestPoint(screen.getCursorScreenPoint());
+  await captureScreenImage(cursorDisplay);
+  if (!storedNativeImage) {
+    throw new Error('Screen capture returned no image');
+  }
+  var size = storedNativeImage.getSize();
+  return {
+    dataURL: storedNativeImage.toDataURL(),
+    width: size.width,
+    height: size.height
+  };
+}
+
+module.exports = { captureScreen, getCapturedImage, captureFullScreen };
