@@ -1,4 +1,4 @@
-const { BrowserWindow, dialog } = require('electron');
+const { app, BrowserWindow, dialog } = require('electron');
 
 const CHECK_DELAY_MS = 10000;
 const RECHECK_INTERVAL_MS = 12 * 60 * 60 * 1000; // 12 hours
@@ -6,11 +6,21 @@ const RECHECK_INTERVAL_MS = 12 * 60 * 60 * 1000; // 12 hours
 var timeoutHandle = null;
 var intervalHandle = null;
 var updaterRef = null;
+var dialogOpen = false;
+var isDownloading = false;
+var pendingInstall = false;
 
 function getParentWindow() {
   return BrowserWindow.getFocusedWindow() ||
-    BrowserWindow.getAllWindows().find(function (w) { return !w.isDestroyed(); }) ||
+    BrowserWindow.getAllWindows().find(function (w) { return !w.isDestroyed() && w.isVisible(); }) ||
     null;
+}
+
+function showDialog(opts) {
+  // LSUIElement apps are background agents — bring to front so dialog is visible
+  if (app.isPackaged) app.focus({ steal: true });
+  var parent = getParentWindow();
+  return parent ? dialog.showMessageBox(parent, opts) : dialog.showMessageBox(opts);
 }
 
 function initAutoUpdater() {
@@ -21,13 +31,14 @@ function initAutoUpdater() {
       updaterRef = autoUpdater;
       autoUpdater.autoDownload = false;
       autoUpdater.autoInstallOnAppQuit = false;
+      autoUpdater.allowDowngrade = false;
       autoUpdater.logger = null; // suppress default logging
 
       autoUpdater.on('update-available', function (info) {
         console.log('[AutoUpdate] Update available:', info.version);
-        var parent = getParentWindow();
-        var showFn = parent ? dialog.showMessageBox.bind(dialog, parent) : dialog.showMessageBox.bind(dialog);
-        showFn({
+        if (dialogOpen) return;
+        dialogOpen = true;
+        showDialog({
           type: 'info',
           title: 'Update Available',
           message: 'Snip ' + info.version + ' is available.',
@@ -35,10 +46,12 @@ function initAutoUpdater() {
           buttons: ['Download', 'Later'],
           defaultId: 1
         }).then(function (result) {
+          dialogOpen = false;
           if (result.response === 0) {
+            isDownloading = true;
             autoUpdater.downloadUpdate();
           }
-        }).catch(function () {});
+        }).catch(function () { dialogOpen = false; });
       });
 
       autoUpdater.on('update-not-available', function () {
@@ -47,9 +60,10 @@ function initAutoUpdater() {
 
       autoUpdater.on('update-downloaded', function (info) {
         console.log('[AutoUpdate] Downloaded:', info.version);
-        var parent = getParentWindow();
-        var showFn = parent ? dialog.showMessageBox.bind(dialog, parent) : dialog.showMessageBox.bind(dialog);
-        showFn({
+        isDownloading = false;
+        if (dialogOpen) return;
+        dialogOpen = true;
+        showDialog({
           type: 'info',
           title: 'Update Ready',
           message: 'Snip ' + info.version + ' has been downloaded.',
@@ -57,27 +71,38 @@ function initAutoUpdater() {
           buttons: ['Restart Now', 'Later'],
           defaultId: 1
         }).then(function (result) {
+          dialogOpen = false;
           if (result.response === 0) {
-            // Let electron-updater handle the quit + relaunch
+            // Set flag so will-quit handler doesn't block the quit
+            pendingInstall = true;
             autoUpdater.quitAndInstall(false, true);
           }
-        }).catch(function () {});
+        }).catch(function () { dialogOpen = false; });
       });
 
       autoUpdater.on('error', function (err) {
         console.error('[AutoUpdate] Error:', err.message);
+        isDownloading = false;
       });
 
       autoUpdater.checkForUpdates();
 
       // Periodic re-check for long-running tray app
       intervalHandle = setInterval(function () {
-        autoUpdater.checkForUpdates();
+        if (!dialogOpen && !isDownloading) {
+          try { autoUpdater.checkForUpdates(); } catch (err) {
+            console.error('[AutoUpdate] Check failed:', err.message);
+          }
+        }
       }, RECHECK_INTERVAL_MS);
     } catch (err) {
       console.warn('[AutoUpdate] Not available:', err.message);
     }
   }, CHECK_DELAY_MS);
+}
+
+function isPendingInstall() {
+  return pendingInstall;
 }
 
 function cancelAutoUpdater() {
@@ -95,4 +120,4 @@ function cancelAutoUpdater() {
   }
 }
 
-module.exports = { initAutoUpdater, cancelAutoUpdater };
+module.exports = { initAutoUpdater, cancelAutoUpdater, isPendingInstall };

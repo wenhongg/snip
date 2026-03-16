@@ -41,12 +41,12 @@ jobs:
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx electron-builder --mac dmg --arm64 --publish always
+        run: npx electron-builder --mac dmg zip --arm64 --publish always
 
       - name: Generate release notes
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release edit "${{ github.ref_name }}" --generate-notes
+        run: gh release edit "$GITHUB_REF_NAME" --generate-notes
 
   update-cask:
     needs: build
@@ -64,7 +64,8 @@ jobs:
           DMG_ARM64="https://github.com/rixinhahaha/snip/releases/download/v${VERSION}/Snip-${VERSION}-arm64.dmg"
           # Wait for release asset to be available (GitHub propagation delay)
           for i in 1 2 3 4 5; do curl -o /dev/null -sf "$DMG_ARM64" && break; echo "Waiting for release asset..."; sleep 30; done
-          SHA_ARM64=$(curl -sL "$DMG_ARM64" | shasum -a 256 | cut -d' ' -f1)
+          if ! curl -o /dev/null -sf "$DMG_ARM64"; then echo "Release asset not available after retries"; exit 1; fi
+          SHA_ARM64=$(curl -sLf "$DMG_ARM64" | shasum -a 256 | cut -d' ' -f1)
 
           cat > Casks/snip.rb << EOF
           cask "snip" do
