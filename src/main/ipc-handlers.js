@@ -450,7 +450,7 @@ function registerIpcHandlers(getOverlayWindow, createEditorWindowFn, reregisterS
   var snipRulesContent = [
     '# Snip — Image Editor',
     'For any image editing, annotation, markup, highlighting, or visual feedback, use the `snip` CLI.',
-    '- `snip open <filepath>` — Opens image in Snip editor. Blocks until done. Returns JSON: `{"status":"edited","path":"...","message":"..."}`. Read the file at `path` to see the annotated result. If the user cancels, the command exits with code 1.',
+    '- `snip open <filepath>` — Opens image in Snip editor. Blocks until done. Returns JSON: `{"status":"done","path":"...","message":"..."}`. Read the file at `path` to see the result. If the user cancels, the command exits with code 1.',
     '- `snip search "<query>"` — Search screenshot library. Returns JSON array.',
     '- `snip list` — List saved screenshots with metadata. Returns JSON array.',
     '- `snip transcribe <filepath>` — Extract text via OCR. Returns plain text.',
