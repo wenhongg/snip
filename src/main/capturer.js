@@ -52,7 +52,8 @@ function getWindowList(cursorDisplay) {
           width: w.width,
           height: w.height,
           owner: w.owner,
-          name: w.name
+          name: w.name,
+          pid: w.pid
         };
       });
     } catch (e) {
@@ -173,7 +174,12 @@ async function captureScreen(createOverlayFn, getOverlayFn, opts) {
   // (macOS may push the window below menu bar on show)
   const bounds = cursorDisplay.bounds;
   overlayWindow.setBounds({ x: bounds.x, y: bounds.y, width, height });
-  overlayWindow.webContents.send('screenshot-captured', { displayOrigin: { x: bounds.x, y: bounds.y }, windowList, mode });
+  const actualBounds = overlayWindow.getBounds();
+  overlayWindow.webContents.send('screenshot-captured', {
+    displayOrigin: { x: bounds.x, y: bounds.y },
+    overlayOrigin: { x: actualBounds.x, y: actualBounds.y },
+    windowList, mode
+  });
 }
 
 /**
