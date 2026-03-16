@@ -404,6 +404,12 @@ app.whenReady().then(() => {
 
   // Open home window on startup
   showHomeWindow();
+
+  // Auto-update (packaged app only)
+  if (app.isPackaged) {
+    const { initAutoUpdater } = require('./auto-updater');
+    initAutoUpdater();
+  }
 });
 
 var isQuitting = false;
@@ -411,6 +417,7 @@ app.on('will-quit', (e) => {
   if (isQuitting) return; // already shutting down
   isQuitting = true;
   e.preventDefault();
+  try { require('./auto-updater').cancelAutoUpdater(); } catch (_) {}
   unregisterShortcuts();
   flushConfig();
   extensionRegistry.killWorkers();
