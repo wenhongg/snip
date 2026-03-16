@@ -4,7 +4,7 @@ const { registerShortcuts, unregisterShortcuts, reregisterShortcuts } = require(
 const { createTray, rebuildTrayMenu } = require('./tray');
 const { registerIpcHandlers } = require('./ipc-handlers');
 const { captureScreen } = require('./capturer');
-const { initStore, readIndex, getAllCategories, getMcpConfig } = require('./store');
+const { initStore, readIndex, getAllCategories, getMcpConfig, flushConfig } = require('./store');
 const { startWatcher } = require('./organizer/watcher');
 const { startOllama, stopOllama, setOnInstallComplete } = require('./ollama-manager');
 const { BASE_WEB_PREFERENCES } = require('./constants');
@@ -343,16 +343,7 @@ function sendToHomeWindow(channel) {
 
 function showSearchPage() {
   showHomeWindow();
-  // Send IPC to switch to search page after window is ready
-  if (homeWindow && !homeWindow.isDestroyed()) {
-    if (homeWindow.webContents.isLoading()) {
-      homeWindow.webContents.once('did-finish-load', () => {
-        homeWindow.webContents.send('navigate-to-search');
-      });
-    } else {
-      homeWindow.webContents.send('navigate-to-search');
-    }
-  }
+  sendToHomeWindow('navigate-to-search');
 }
 
 app.whenReady().then(() => {
@@ -418,6 +409,7 @@ app.whenReady().then(() => {
 app.on('will-quit', (e) => {
   e.preventDefault();
   unregisterShortcuts();
+  flushConfig();
   extensionRegistry.killWorkers();
   stopSocketServer();
   stopOllama().finally(() => app.exit(0));
