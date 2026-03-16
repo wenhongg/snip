@@ -41,6 +41,7 @@ src/
     shortcuts.js             # Global keyboard shortcuts (Cmd+Shift+2, Cmd+Shift+S, Cmd+Shift+1), reregisterShortcuts() for dynamic rebinding
     store.js                 # Config persistence, index I/O, fal.ai API key storage, aiEnabled flag, reloadConfig(), getShortcuts(), getDefaultShortcuts(), setShortcut(), resetShortcuts()
     constants.js             # Shared constants (BASE_WEB_PREFERENCES)
+    auto-updater.js          # Auto-update via electron-updater (check, prompt, download, install)
     ollama-manager.js        # Ollama process lifecycle (spawn/kill on dynamic port, ready/status/model pull)
     model-paths.js           # Bundled model path resolution (dev vs packaged)
     organizer/               # AI screenshot organization pipeline
@@ -297,6 +298,18 @@ An MCP (Model Context Protocol) server exposes Snip's capabilities to external A
 ```
 
 **Security:** Library, transcribe, and organize MCP tools validate that paths are inside the screenshots directory (`path.resolve` + `startsWith` check). `open_in_snip` intentionally accepts any local file path (restricted to PNG/JPEG by extension check, size-capped at 15 MB) since it's designed for uploading external images to annotate. The socket buffer is capped at 16 MB per connection, and MCP Content-Length is capped at 10 MB. The `open_in_snip` action validates base64 length before decoding (max ~15 MB raw). The `editor-result` IPC channel validates `event.sender.id` against the editor window's `webContentsId` to prevent other windows from resolving the pending upload promise.
+
+### Auto-Update
+The packaged app checks for updates via `electron-updater` against GitHub Releases. The flow:
+
+1. 10 seconds after `app.whenReady()`, `auto-updater.js` calls `autoUpdater.checkForUpdates()` (packaged builds only)
+2. If a newer version exists, a dialog prompts "Download?" — `autoDownload` is `false`, no silent downloads
+3. User clicks Download → ZIP downloaded in background from GitHub Releases
+4. Download complete → dialog prompts "Restart Now?" with "Later" as default
+5. User clicks Restart Now → `pendingInstall` flag set → `quitAndInstall()` called → `will-quit` handler skips `e.preventDefault()` and does synchronous cleanup only → app relaunches with new version
+6. Re-checks every 12 hours for long-running tray sessions
+
+The `publish` config in `electron-builder.yml` points to `rixinhahaha/snip` GitHub Releases. The release workflow builds DMG + ZIP with `--publish always`, which uploads both artifacts and a `latest-mac.yml` manifest (contains version, SHA-512 hashes, download URLs). `electron-updater` fetches this manifest to detect new versions. Code signature verification happens automatically on macOS — the downloaded ZIP's signature must match the running app's Developer ID certificate.
 
 ### Single Index File
 All screenshot metadata lives in `~/Documents/snip/screenshots/.index.json`. Simple, atomic, easy to debug. No database.

@@ -1364,3 +1364,44 @@ After CLI installation, the app scans for installed AI coding tools and shows th
 | 1 | Click "Remove" on a configured provider row | Snip marker block removed from provider's config file |
 | 2 | -- | Button reverts to "Configure" |
 | 3 | -- | Rest of config file preserved (only Snip block removed) |
+
+---
+
+## 18. Auto-Update
+
+### 18.1 Update Available
+
+**Preconditions:** Packaged app installed from DMG, internet connection, newer version published to GitHub Releases.
+
+| Step | Action | Expected Result |
+|------|--------|-----------------|
+| 1 | App launches | Auto-update check runs 10 seconds after startup |
+| 2 | -- | Checks `latest-mac.yml` on GitHub Releases for newer version |
+| 3 | -- | If newer version found: app brought to front, dialog shows "Snip X.Y.Z is available. Download?" |
+| 4a | Click "Download" | ZIP downloads in background; no progress UI |
+| 4b | Click "Later" (default) | Dialog dismissed; re-checks in 12 hours |
+| 5 | Download complete | Dialog shows "Snip X.Y.Z has been downloaded. Restart now?" |
+| 6a | Click "Restart Now" | App quits, replaces itself, relaunches with new version |
+| 6b | Click "Later" (default) | Dialog dismissed; re-prompted on next check |
+
+### 18.2 No Update Available
+
+| Step | Action | Expected Result |
+|------|--------|-----------------|
+| 1 | App launches, 10s passes | Checks GitHub Releases |
+| 2 | -- | Current version matches latest |
+| 3 | -- | Logs "[AutoUpdate] Up to date"; no dialog shown |
+| 4 | -- | Re-checks every 12 hours silently |
+
+### 18.3 Update Check Failures
+
+| Condition | Expected Behavior |
+|-----------|-------------------|
+| No internet connection | Error logged; app continues normally; retries in 12h |
+| GitHub API rate limited | Error logged; retries in 12h |
+| `latest-mac.yml` missing from release | Error logged; auto-update silently disabled until next check |
+| Code signature mismatch on downloaded ZIP | electron-updater rejects the update; error logged |
+| App not packaged (dev mode) | Auto-updater not initialized (`app.isPackaged` guard) |
+| User quits within 10s of launch | Timeout cleared in `will-quit` handler; no update check |
+| Dialog open when 12h re-check fires | Re-check skipped (dialogOpen guard) |
+| Download in progress when 12h re-check fires | Re-check skipped (isDownloading guard) |

@@ -178,7 +178,12 @@ git tag v1.0.9
 git push origin v1.0.9
 ```
 
-The workflow downloads HuggingFace models and the Node.js binary, builds an arm64 DMG (with models and Node.js bundled), creates a GitHub release, and auto-updates the Homebrew cask.
+The workflow:
+1. Downloads HuggingFace models and the Node.js binary
+2. Builds arm64 DMG + ZIP (with models and Node.js bundled), signs with Developer ID, and notarizes with Apple
+3. Publishes directly to GitHub Releases via `electron-builder --publish always` (uploads DMG, ZIP, `latest-mac.yml` for auto-update)
+4. Generates release notes via `gh release edit --generate-notes`
+5. Auto-updates the Homebrew cask (with retry loop for asset availability)
 
 ### Homebrew
 
