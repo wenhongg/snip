@@ -19,7 +19,7 @@ Detailed user flows for every feature in Snip. Each flow describes preconditions
 | 3 | -- | `~/Documents/snip/screenshots/` directory created automatically |
 | 4 | -- | Config file created at `~/Library/Application Support/snip/snip-config.json` with default categories |
 | 5 | -- | Home window opens; if first launch and Screen Recording not granted, permission view shown first (see §8.0) |
-| 5a | -- | If permission granted (or skipped), shows AI choice view (see §8.1) or Gallery page |
+| 5a | -- | If permission granted (or skipped), shows save location view (§8.0.1), then AI choice view (§8.1) or Gallery page |
 | 6 | -- | SAM segmentation model begins loading in background (logged: `[Segmentation Worker] Loading SlimSAM model...`) |
 | 7 | -- | File watcher starts monitoring screenshots directory (logged: `[Organizer] Watching: ...`) |
 | 8 | -- | Ollama managed process starts: `findOllamaBinary()` locates CLI binary, `findFreePort()` gets a dynamic port, spawns `ollama serve` |
@@ -707,13 +707,13 @@ On first launch, Snip checks Screen Recording permission **before** showing the 
 | 4a | User allows | **"Restart Snip"** button shown with hint "Restart is needed for Screen Recording to take effect." |
 | 4b | User denies | Switches to denied state: **"Open System Settings"** + **"Restart Snip"** buttons + hint |
 | 5 | Click "Restart Snip" | App relaunches via `app.relaunch(); app.exit(0)` |
-| 6 | After restart, permission = `granted` | Permission view skipped, proceeds to AI Choice (§8.1) |
+| 6 | After restart, permission = `granted` | Permission view skipped, proceeds to Save Location (§8.0.1) |
 
 **First Launch — Permission already granted (e.g. MDM pre-configured):**
 
 | Condition | Expected Behavior |
 |-----------|-------------------|
-| `getMediaAccessStatus('screen')` returns `granted` | Permission view skipped entirely, goes straight to AI Choice (§8.1) |
+| `getMediaAccessStatus('screen')` returns `granted` | Permission view skipped entirely, goes to Save Location (§8.0.1) |
 
 **Denied state:**
 
@@ -728,8 +728,32 @@ On first launch, Snip checks Screen Recording permission **before** showing the 
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
-| 1 | Press Esc or click "Skip for now" | Overlay dismissed entirely |
+| 1 | Press Esc or click "Skip for now" | Proceeds to Save Location step (§8.0.1) |
 | 2 | User tries to capture | Existing reactive dialog in `capturer.js` handles permission (§2.6) |
+
+### 8.0.1 Save Location
+
+After the Screen Recording permission step (or if permission is already granted), the user is shown a save location picker.
+
+| Step | Action | Expected Result |
+|------|--------|-----------------|
+| 1 | Permission granted or skipped | Overlay shows "Save Location" view with current default path (`~/Documents/snip/screenshots/`) |
+| 2a | Click "Choose Folder" (or press Enter) | Native macOS folder picker opens |
+| 3a | User selects a folder | Path saved to config as `screenshotsDir`; proceeds to AI Choice (§8.1) |
+| 3b | User cancels folder picker | Stays on save location view (no change) |
+| 2b | Click "Use default" (or press Esc) | Warning shown briefly: "Snips will be saved to the default location shown above." After 1.5s, proceeds to AI Choice (§8.1) |
+
+**Changing Save Location from Settings (§8.4.1):**
+
+| Step | Action | Expected Result |
+|------|--------|-----------------|
+| 1 | Click "Change" button in Save Location settings section | Native macOS folder picker opens |
+| 2 | User selects a new folder | If existing snips exist: migration dialog shown (see below). If no snips: directory switched immediately |
+| 3 | Migration dialog offers three options: | |
+| 3a | **Copy snips** | All files copied to new location, originals remain. Index paths rewritten |
+| 3b | **Move snips** | All files moved to new location, originals removed. Index paths rewritten |
+| 3c | **Start fresh** | New empty library at new location. Old files untouched |
+| 4 | After migration completes | File watcher restarted on new directory. Settings path display updated. File grid refreshed |
 
 ### 8.1 AI Choice Screen
 

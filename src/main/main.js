@@ -460,7 +460,8 @@ app.on('second-instance', () => {
 var screenshotsDir = null;
 
 function requireScreenshotPath(filepath) {
-  if (!screenshotsDir) screenshotsDir = require('./store').getScreenshotsDir();
+  // Always re-read in case the user changed the save location
+  screenshotsDir = require('./store').getScreenshotsDir();
   if (!filepath) throw new Error('Missing filepath parameter');
   var resolved = path.resolve(filepath);
   var base = path.resolve(screenshotsDir);
