@@ -1915,15 +1915,6 @@ kbd {
 }
 
 
-/* AI choice buttons container */
-.setup-ai-choice-btns {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  margin-top: 28px;
-}
-
 /* Skip / continue in background button */
 .setup-btn-skip {
   display: inline-flex;

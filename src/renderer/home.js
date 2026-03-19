@@ -1556,41 +1556,29 @@
     var locationChooseBtn = document.getElementById('setup-location-choose-btn');
     var locationSkipBtn = document.getElementById('setup-location-skip-btn');
 
+    function finishLocationStep() {
+      window.snip.setAiEnabled(false);
+      updateAiSettingsVisibility(false);
+      showSetupView('welcome');
+    }
+
     locationChooseBtn.addEventListener('click', async function() {
       var chosen = await window.snip.chooseScreenshotsDir();
       if (chosen) {
         await window.snip.setScreenshotsDir(chosen, 'none');
-        // Update displayed path
         var pathEl = document.getElementById('setup-location-path');
         if (pathEl) pathEl.textContent = shortenPath(chosen);
+        finishLocationStep();
       }
-      showSetupView('ai-choice');
     });
 
     locationSkipBtn.addEventListener('click', function() {
-      // Show warning briefly, then proceed
       var warning = document.getElementById('setup-location-warning');
       warning.classList.remove('hidden');
       setTimeout(function() {
         warning.classList.add('hidden');
-        showSetupView('ai-choice');
+        finishLocationStep();
       }, 1500);
-    });
-
-    // AI choice buttons
-    var aiEnableBtn = document.getElementById('setup-ai-enable-btn');
-    var aiSkipBtn = document.getElementById('setup-ai-skip-btn');
-
-    aiEnableBtn.addEventListener('click', async function() {
-      await window.snip.setAiEnabled(true);
-      updateAiSettingsVisibility(true);
-      applySetupStatus(await window.snip.getOllamaStatus());
-    });
-
-    aiSkipBtn.addEventListener('click', async function() {
-      await window.snip.setAiEnabled(false);
-      updateAiSettingsVisibility(false);
-      hideSetupOverlay();
     });
 
     // Permission view buttons
@@ -1658,15 +1646,6 @@
         return;
       }
 
-      // AI choice screen — Y to enable, N to skip
-      var aiChoiceView = document.getElementById('setup-ai-choice-view');
-      if (aiChoiceView && !aiChoiceView.classList.contains('hidden')) {
-        if (e.key === 'y' || e.key === 'Y') { aiEnableBtn.click(); return; }
-        if (e.key === 'n' || e.key === 'N') { aiSkipBtn.click(); return; }
-        if (e.key === 'Enter') { aiEnableBtn.click(); return; }
-        return;
-      }
-
       // Escape → skip / continue in background
       if (e.key === 'Escape') {
         hideSetupOverlay();
@@ -1727,9 +1706,6 @@
 
     if (window.snip.onShowSetupOverlay) {
       window.snip.onShowSetupOverlay(function() {
-        // Don't override the AI choice view if it's showing
-        var aiChoiceView = document.getElementById('setup-ai-choice-view');
-        if (aiChoiceView && !aiChoiceView.classList.contains('hidden')) return;
         showSetupOverlay();
       });
     }
@@ -1849,7 +1825,7 @@
 
   async function showSetupOverlay() {
     document.getElementById('setup-overlay').classList.remove('hidden');
-    // When opened from Settings, set aiEnabled=true and skip choice view
+    // When opened from Settings, enable AI and start setup
     if (setupFromSettings) {
       await window.snip.setAiEnabled(true);
       updateAiSettingsVisibility(true);
@@ -1883,7 +1859,7 @@
   }
 
   function showSetupView(viewName) {
-    var views = { permission: 'setup-permission-view', location: 'setup-location-view', 'ai-choice': 'setup-ai-choice-view', steps: 'setup-steps-view', welcome: 'setup-welcome-view', failed: 'setup-failed-view' };
+    var views = { permission: 'setup-permission-view', location: 'setup-location-view', steps: 'setup-steps-view', welcome: 'setup-welcome-view', failed: 'setup-failed-view' };
     var keys = Object.keys(views);
     for (var i = 0; i < keys.length; i++) {
       document.getElementById(views[keys[i]]).classList.add('hidden');
@@ -1899,9 +1875,6 @@
     } else if (viewName === 'failed') {
       document.getElementById(views.failed).classList.remove('hidden');
       stopSparkles();
-    } else if (viewName === 'ai-choice') {
-      document.getElementById(views['ai-choice']).classList.remove('hidden');
-      startSparkles();
     } else if (viewName === 'location') {
       document.getElementById(views.location).classList.remove('hidden');
       // Show the default/current path
