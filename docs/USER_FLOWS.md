@@ -19,15 +19,11 @@ Detailed user flows for every feature in Snip. Each flow describes preconditions
 | 3 | -- | `~/Documents/snip/screenshots/` directory created automatically |
 | 4 | -- | Config file created at `~/Library/Application Support/snip/snip-config.json` with default categories |
 | 5 | -- | Home window opens; if first launch and Screen Recording not granted, permission view shown first (see §8.0) |
-| 5a | -- | If permission granted (or skipped), shows save location view (§8.0.1), then AI choice view (§8.1) or Gallery page |
+| 5a | -- | If permission granted (or skipped), shows save location view (§8.0.1), then CLI install (§8.0.2), then Welcome screen |
 | 6 | -- | SAM segmentation model begins loading in background (logged: `[Segmentation Worker] Loading SlimSAM model...`) |
 | 7 | -- | File watcher starts monitoring screenshots directory (logged: `[Organizer] Watching: ...`) |
-| 8 | -- | Ollama managed process starts: `findOllamaBinary()` locates CLI binary, `findFreePort()` gets a dynamic port, spawns `ollama serve` |
-| 8a | -- | If binary found: server spawns on dynamic port (logged: `[Ollama] Spawned server on port XXXXX`) |
-| 8b | -- | If binary not found but Ollama.app installed: sets status, prompts to install CLI |
-| 8c | -- | If Ollama not installed: Setup overlay shows "Setting Up Your AI Assistant" with Install button. Pressing Enter on welcome screen dismisses the overlay. |
-| 9 | -- | If connected and minicpm-v model found: status shows "Running" immediately |
-| 9a | -- | If connected but model missing: Settings shows "Download Model" button (~5 GB) |
+| 8 | -- | AI disabled by default — Ollama is not started on first launch |
+| 8a | -- | User can enable AI later from Settings, which triggers Ollama install/model download (see §8.1, §8.2) |
 
 ### 1.2 Native Glass Layer Initialization
 
@@ -748,9 +744,28 @@ After the Screen Recording permission step (or if permission is already granted)
 |------|--------|-----------------|
 | 1 | Permission granted or skipped | Overlay shows "Save Location" view with current default path (`~/Documents/snip/screenshots/`) |
 | 2a | Click "Choose Folder" (or press Enter) | Native macOS folder picker opens |
-| 3a | User selects a folder | Path saved to config as `screenshotsDir`; proceeds to AI Choice (§8.1) |
+| 3a | User selects a folder | Path saved to config as `screenshotsDir`; `aiEnabled` set to `false`; proceeds to CLI install (§8.0.2) |
 | 3b | User cancels folder picker | Stays on save location view (no change) |
-| 2b | Click "Use default" (or press Esc) | Warning shown briefly: "Snips will be saved to the default location shown above." After 1.5s, proceeds to AI Choice (§8.1) |
+| 2b | Click "Use default" (or press Esc) | Warning shown briefly: "Snips will be saved to the default location shown above." After 1.5s, `aiEnabled` set to `false`; proceeds to CLI install (§8.0.2) |
+
+### 8.0.2 CLI Installation
+
+After the Save Location step, the user is offered CLI installation to enable AI coding tool integration. If CLI is already installed (verified by checking for our wrapper signature), this step is auto-skipped.
+
+| Step | Action | Expected Result |
+|------|--------|-----------------|
+| 1 | Save Location step completes | Checks `checkCliInstalled()` |
+| 1a | CLI already installed (returns `true`) | Auto-skip to Welcome screen |
+| 1b | CLI not installed (returns `false` or `'stale'`) | Show CLI Install view |
+| 2 | CLI Install view shown | Terminal icon + "Install CLI" title + tool badges (Claude Code, Cursor, Windsurf, Cline) |
+| 3a | Click "Install" (or press Enter) | Calls `installCli()`, creates shell wrapper at `/usr/local/bin/snip` (or fallback) |
+| 4a | Install succeeds | Green checkmark with install path shown. Detects AI providers |
+| 4a-i | Providers detected (Claude Code, Cursor, etc.) | Provider rows shown with "Configure" buttons. "Continue" button replaces "Skip" |
+| 4a-ii | Click "Configure" on a provider | Snip rules added to that provider's config file. Button changes to "Remove" |
+| 4a-iii | Click "Continue" (or press Enter) | Proceeds to Welcome screen |
+| 4a-iv | No providers detected | Auto-advances to Welcome after 1.5s |
+| 4b | Install fails | Error message shown inline with "Try again" button |
+| 3b | Click "Skip for now" (or press Esc) | Proceeds to Welcome screen |
 
 **Changing Save Location from Settings (§8.4.1):**
 
@@ -764,55 +779,44 @@ After the Screen Recording permission step (or if permission is already granted)
 | 3c | **Start fresh** | New empty library at new location. Old files untouched |
 | 4 | After migration completes | File watcher restarted on new directory. Settings path display updated. File grid refreshed |
 
-### 8.1 AI Choice Screen
+### 8.1 AI Organization (Settings-Only)
 
-On first launch (after Screen Recording permission is handled), the app presents an AI choice screen before any Ollama setup. The user's decision is persisted as `aiEnabled` in the config file.
+AI organization is **disabled by default**. On first launch, `aiEnabled` is set to `false` automatically (no choice screen is shown). Users can enable AI later from Settings.
 
-**First Launch (aiEnabled = undefined):**
-
-| Step | Action | Expected Result |
-|------|--------|-----------------|
-| 1 | App launches, `aiEnabled` not set in config | main.js starts Ollama detection (may find it not installed) |
-| 2 | -- | Overlay shows AI choice view first, with title **"Smart Organization"** |
-| 3 | -- | Description: "Snip can use a local AI to automatically name, tag, and organize your snips. Everything runs on your machine." |
-| 4 | -- | Two buttons: **"Set up AI"** and **"Continue without AI"** |
-| 5a | Click "Set up AI" | `aiEnabled` set to `true` in config; proceeds to install/running/model setup steps (see 8.2) |
-| 5b | Click "Continue without AI" | `aiEnabled` set to `false` in config; overlay dismissed; app works without AI |
-
-**Subsequent Launch (aiEnabled = true):**
-
-| Condition | Expected Behavior |
-|-----------|-------------------|
-| Ollama fully ready | Normal startup, no overlay |
-| Ollama not fully ready | Setup overlay shows install/running/model steps (see 8.2), skips AI choice screen |
-
-**Subsequent Launch (aiEnabled = false):**
+**With AI disabled (default):**
 
 | Condition | Expected Behavior |
 |-----------|-------------------|
 | App starts | Ollama skipped entirely — no spawn, no health check |
 | -- | No setup overlay shown |
 | -- | Screenshots indexed with basic metadata only (filename, `category: 'other'`, no AI naming/tagging) |
-| -- | AI assistant section hidden in Settings page |
+| -- | AI details hidden in Settings page (toggle is OFF) |
 
-**Settings "Set up" button (when aiEnabled = false):**
+**Enabling AI from Settings:**
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
-| 1 | User navigates to Settings, clicks "Set up" | Goes straight to steps view (skips AI choice screen) |
-| 2 | -- | `aiEnabled` set to `true` |
-| 3 | -- | Ollama install/running/model flow proceeds normally |
+| 1 | User toggles AI Organization ON in Settings | `aiEnabled` set to `true`; Ollama starts; checklist shown |
+| 2 | User clicks "Set up" button | Setup overlay opens with steps view (install/running/model) |
+| 3 | -- | Ollama install/running/model flow proceeds normally (see §8.2) |
+
+**With AI enabled (subsequent launches):**
+
+| Condition | Expected Behavior |
+|-----------|-------------------|
+| Ollama fully ready | Normal startup, no overlay |
+| Ollama not fully ready | Setup overlay shows install/running/model steps (see §8.2) |
 
 ### 8.2 Setting Up Your AI Assistant (Inline Overlay)
 
-The setup wizard appears as a **full-window inline overlay** inside the home window (not a separate popup). It auto-shows on first launch if the user chose "Set up AI" (aiEnabled = true) and Ollama is not fully ready, and can be reopened from the Settings "Set up" button.
+The setup wizard appears as a **full-window inline overlay** inside the home window (not a separate popup). It can be opened from the Settings "Set up" button when AI is enabled.
 
-**Overlay structure:** Five views — Permission (first launch, if not granted), AI Choice (first launch only), Steps (install/running/model), Welcome, Failed. Only one visible at a time. Step cards show numbered indicators (pending -> active -> done with checkmark).
+**Overlay structure:** Five views — Permission (first launch, if not granted), CLI Install (first launch, if not already installed), Steps (install/running/model), Welcome, Failed. Only one visible at a time. Step cards show numbered indicators (pending -> active -> done with checkmark).
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
-| 1 | App launches without Ollama ready (and aiEnabled = true) | Inline overlay covers home window with step-by-step wizard |
-| 2 | -- | App auto-detects current state and shows appropriate step |
+| 1 | User clicks "Set up" in Settings (with AI enabled) | Inline overlay covers home window with step-by-step wizard |
+| 2 | -- | App auto-detects current Ollama state and shows appropriate step |
 
 **Step: Install Ollama**
 

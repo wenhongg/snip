@@ -385,7 +385,7 @@ The preload script (`preload.js`) exposes `window.snip` with these methods:
 | `getScreenPermission()` | R -> M | Check Screen Recording permission status (`granted`, `denied`, `not-determined`) |
 | `requestScreenPermission()` | R -> M | Trigger macOS native Screen Recording prompt via lightweight `desktopCapturer.getSources()` call; returns new status |
 | `restartApp()` | R -> M | Relaunch and exit the app (used after granting Screen Recording permission) |
-| `getAiEnabled()` / `setAiEnabled(val)` | R -> M | AI opt-in flag (`true`, `false`, or `undefined` on first launch) |
+| `getAiEnabled()` / `setAiEnabled(val)` | R -> M | AI organization toggle (`true` or `false`; defaults to `false`) |
 | `getOllamaConfig()` / `setOllamaConfig(cfg)` | R -> M | Ollama model/URL settings |
 | `getOllamaStatus()` | R -> M | Server running? Model ready? Pull progress? |
 | `getOllamaPullProgress()` | R -> M | Current model download progress |
@@ -549,7 +549,7 @@ The native Liquid Glass layer is always present (macOS 26+). Dark and Light them
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `aiEnabled` | `boolean \| undefined` | `undefined` on first launch (triggers AI choice screen), `true` if user opted in, `false` if user opted out. When `false`, Ollama is not started and AI organization is skipped entirely. |
+| `aiEnabled` | `boolean` | `false` by default (set during first launch onboarding). `true` if user enabled from Settings. When `false`, Ollama is not started and AI organization is skipped entirely. |
 | `mcpEnabled` | `boolean` | Controls MCP config visibility in Settings UI. Socket server always runs. Default `false`. |
 | `mcpCategories` | `object` | Per-category toggles: `{ library, upload, transcribe, organize }`. Each is boolean, all default to `true`. Controls which MCP tools are active. |
 | `ollamaModel` | `string` | Ollama model name. Default `'minicpm-v'`. |

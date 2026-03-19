@@ -495,32 +495,50 @@
       </div>
     </div>
 
-    <!-- AI choice view (first-launch opt-in/out) -->
-    <div id="setup-ai-choice-view" class="setup-view hidden">
+    <!-- CLI install view -->
+    <div id="setup-cli-view" class="setup-view hidden">
       <div class="setup-header">
         <div class="setup-header-icon">
           <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-            <rect x="22" y="20" width="4" height="24" rx="2" transform="rotate(-45 22 20)" fill="var(--accent)" opacity="0.85"/>
-            <path d="M14 6L16 11.5L21.5 13L16 15L14 20.5L12 15L6.5 13L12 11.5L14 6Z" fill="var(--accent)"/>
-            <path d="M8 24L9 26.5L11.5 27.5L9 28.5L8 31L7 28.5L4.5 27.5L7 26.5L8 24Z" fill="var(--accent)" opacity="0.5"/>
-            <path d="M26 4L26.8 6L28.8 6.8L26.8 7.6L26 9.6L25.2 7.6L23.2 6.8L25.2 6L26 4Z" fill="var(--accent)" opacity="0.4"/>
-            <circle cx="21" cy="3" r="1.2" fill="var(--accent)" opacity="0.35"/>
-            <circle cx="4" cy="16" r="1" fill="var(--accent)" opacity="0.3"/>
+            <rect x="6" y="10" width="36" height="28" rx="4" stroke="var(--accent)" stroke-width="2.5" fill="none"/>
+            <polyline points="14 22 20 28 14 34" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.9"/>
+            <line x1="24" y1="34" x2="34" y2="34" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" opacity="0.5"/>
           </svg>
         </div>
-        <h2>Smart Organization</h2>
-        <p>Snip can use a local AI to automatically name, tag, and organize your snips. Everything runs on your machine.</p>
+        <h2>Install CLI</h2>
+        <p>Let AI coding tools use Snip for screenshots and annotation.</p>
       </div>
-      <div class="setup-ai-choice-btns">
-        <button id="setup-ai-enable-btn" class="setup-btn-icon setup-btn-glow">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M5 12h14"/>
-            <path d="M12 5l7 7-7 7"/>
+      <div class="setup-cli-tools">
+        <span class="setup-cli-tool-badge">Claude Code</span>
+        <span class="setup-cli-tool-badge">Cursor</span>
+        <span class="setup-cli-tool-badge">Windsurf</span>
+        <span class="setup-cli-tool-badge">Cline</span>
+      </div>
+      <div class="setup-cli-btns">
+        <button id="setup-cli-install-btn" class="setup-btn-icon setup-btn-glow">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/>
           </svg>
-          Enable <kbd class="setup-kbd">Y</kbd>
+          Install <kbd class="setup-kbd">Enter</kbd>
         </button>
-        <button id="setup-ai-skip-btn" class="setup-btn-skip">Skip for now <kbd class="setup-kbd">N</kbd></button>
+        <div id="setup-cli-success" class="setup-cli-result hidden">
+          <span class="setup-cli-success-icon">&#10003;</span>
+          <span id="setup-cli-success-path"></span>
+        </div>
+        <div id="setup-cli-error" class="setup-cli-result hidden">
+          <span id="setup-cli-error-text" class="setup-cli-error-text"></span>
+          <button id="setup-cli-retry" class="setup-btn-retry">Try again</button>
+        </div>
       </div>
+      <div id="setup-cli-providers" class="setup-cli-providers hidden"></div>
+      <button id="setup-cli-continue-btn" class="setup-btn-icon setup-btn-glow hidden">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 12h14"/>
+          <path d="M12 5l7 7-7 7"/>
+        </svg>
+        Continue <kbd class="setup-kbd">Enter</kbd>
+      </button>
+      <button id="setup-cli-skip-btn" class="setup-btn-skip">Skip for now <kbd class="setup-kbd">Esc</kbd></button>
     </div>
 
     <!-- Steps view (install / running / model) -->

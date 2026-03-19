@@ -1318,6 +1318,106 @@
   }
 
   // ── CLI + AI Integration ──
+
+  function applyCliButtonState(btn, state) {
+    if (state === true) {
+      btn.textContent = 'CLI Installed ✓';
+      btn.className = 'install-cli-btn-installed';
+      btn.title = 'Click to remove CLI';
+    } else if (state === 'stale') {
+      btn.textContent = 'Update CLI';
+      btn.className = 'install-cli-btn-primary';
+      btn.title = 'CLI path changed — click to fix';
+    } else {
+      btn.textContent = 'Install CLI';
+      btn.className = 'install-cli-btn-primary';
+      btn.title = '';
+    }
+  }
+
+  var PROVIDER_FILES = {
+    'claude-code': '~/.claude/CLAUDE.md',
+    'cursor': '~/.cursor/rules/snip.mdc',
+    'windsurf': '~/.windsurf/rules/snip.md',
+    'cline': '~/.cline/rules/snip.md'
+  };
+
+  async function renderProviderRows(container, onError) {
+    var providers = await window.snip.detectAiProviders();
+    if (providers.length === 0) return false;
+
+    var results = await Promise.allSettled(
+      providers.map(function(p) { return window.snip.checkAiProviderStatus(p.id); })
+    );
+    var statuses = results.map(function(r) { return r.status === 'fulfilled' ? r.value : false; });
+
+    var fragment = document.createDocumentFragment();
+    var label = document.createElement('div');
+    label.className = 'ai-providers-label';
+    label.textContent = 'Add Snip to your AI tools:';
+    fragment.appendChild(label);
+
+    for (var pi = 0; pi < providers.length; pi++) {
+      (function(provider, isConfigured) {
+        var row = document.createElement('div');
+        row.className = 'ai-provider-row';
+
+        var nameCol = document.createElement('div');
+        nameCol.className = 'ai-provider-name';
+
+        var nameText = document.createElement('span');
+        nameText.textContent = provider.name;
+        nameCol.appendChild(nameText);
+
+        var statusText = document.createElement('span');
+        statusText.className = 'ai-provider-status';
+        nameCol.appendChild(statusText);
+
+        function updateStatus() {
+          var file = PROVIDER_FILES[provider.id] || '';
+          statusText.textContent = isConfigured ? 'Added to ' + file : '';
+        }
+        updateStatus();
+
+        var btn = document.createElement('button');
+        btn.className = 'ai-provider-btn' + (isConfigured ? ' configured' : '');
+        btn.textContent = isConfigured ? 'Remove' : 'Configure';
+
+        btn.addEventListener('click', async function() {
+          if (isConfigured) {
+            var result = await window.snip.removeAiProvider(provider.id);
+            if (!result.error) {
+              isConfigured = false;
+              btn.textContent = 'Configure';
+              btn.className = 'ai-provider-btn';
+              updateStatus();
+            } else if (onError) {
+              onError(result.error);
+            }
+          } else {
+            var result = await window.snip.configureAiProvider(provider.id);
+            if (result.configured) {
+              isConfigured = true;
+              btn.textContent = 'Remove';
+              btn.className = 'ai-provider-btn configured';
+              updateStatus();
+            } else if (onError) {
+              onError(result.error);
+            }
+          }
+        });
+
+        row.appendChild(nameCol);
+        row.appendChild(btn);
+        fragment.appendChild(row);
+      })(providers[pi], statuses[pi]);
+    }
+
+    container.innerHTML = '';
+    container.appendChild(fragment);
+    return true;
+  }
+
   async function initCliSettings() {
     var installBtn = document.getElementById('install-cli-btn');
     var cliStatus = document.getElementById('cli-status');
@@ -1335,20 +1435,8 @@
     var cliState = await window.snip.checkCliInstalled();
 
     function updateCliButton(state) {
-      if (state === true) {
-        installBtn.textContent = 'CLI Installed ✓';
-        installBtn.className = 'install-cli-btn-installed';
-        installBtn.title = 'Click to remove CLI';
-      } else if (state === 'stale') {
-        installBtn.textContent = 'Update CLI';
-        installBtn.className = 'install-cli-btn-primary';
-        installBtn.title = 'CLI path changed — click to fix';
-        showCliStatus('CLI needs update — app path changed', true);
-      } else {
-        installBtn.textContent = 'Install CLI';
-        installBtn.className = 'install-cli-btn-primary';
-        installBtn.title = '';
-      }
+      applyCliButtonState(installBtn, state);
+      if (state === 'stale') showCliStatus('CLI needs update — app path changed', true);
       if (state === true || state === 'stale') loadAiProviders();
     }
 
@@ -1378,82 +1466,13 @@
     });
 
     async function loadAiProviders() {
-      var providers = await window.snip.detectAiProviders();
-      if (providers.length === 0) {
+      var found = await renderProviderRows(aiProvidersDiv, function(err) {
+        showCliStatus(err, true);
+      });
+      if (found) {
+        aiProvidersDiv.classList.remove('hidden');
+      } else {
         aiProvidersDiv.classList.add('hidden');
-        return;
-      }
-
-      aiProvidersDiv.classList.remove('hidden');
-      aiProvidersDiv.innerHTML = '<div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;">Add Snip to your AI tools:</div>';
-
-      var PROVIDER_FILES = {
-        'claude-code': '~/.claude/CLAUDE.md',
-        'cursor': '~/.cursor/rules/snip.mdc',
-        'windsurf': '~/.windsurf/rules/snip.md',
-        'cline': '~/.cline/rules/snip.md'
-      };
-
-      for (var pi = 0; pi < providers.length; pi++) {
-        (async function (provider) {
-          var row = document.createElement('div');
-          row.className = 'ai-provider-row';
-
-          var nameCol = document.createElement('div');
-          nameCol.className = 'ai-provider-name';
-
-          var nameText = document.createElement('span');
-          nameText.textContent = provider.name;
-          nameCol.appendChild(nameText);
-
-          var statusText = document.createElement('span');
-          statusText.className = 'ai-provider-status';
-          nameCol.appendChild(statusText);
-
-          var isConfigured = await window.snip.checkAiProviderStatus(provider.id);
-
-          function updateStatus() {
-            var file = PROVIDER_FILES[provider.id] || '';
-            if (isConfigured) {
-              statusText.textContent = 'Added to ' + file;
-            } else {
-              statusText.textContent = '';
-            }
-          }
-          updateStatus();
-
-          var btn = document.createElement('button');
-          btn.className = 'ai-provider-btn' + (isConfigured ? ' configured' : '');
-          btn.textContent = isConfigured ? 'Remove' : 'Configure';
-
-          btn.addEventListener('click', async function () {
-            if (isConfigured) {
-              var result = await window.snip.removeAiProvider(provider.id);
-              if (!result.error) {
-                isConfigured = false;
-                btn.textContent = 'Configure';
-                btn.className = 'ai-provider-btn';
-                updateStatus();
-              } else {
-                showCliStatus(result.error, true);
-              }
-            } else {
-              var result = await window.snip.configureAiProvider(provider.id);
-              if (result.configured) {
-                isConfigured = true;
-                btn.textContent = 'Remove';
-                btn.className = 'ai-provider-btn configured';
-                updateStatus();
-              } else {
-                showCliStatus(result.error, true);
-              }
-            }
-          });
-
-          row.appendChild(nameCol);
-          row.appendChild(btn);
-          aiProvidersDiv.appendChild(row);
-        })(providers[pi]);
       }
     }
   }
@@ -1556,42 +1575,85 @@
     var locationChooseBtn = document.getElementById('setup-location-choose-btn');
     var locationSkipBtn = document.getElementById('setup-location-skip-btn');
 
+    function finishLocationStep() {
+      window.snip.setAiEnabled(false);
+      updateAiSettingsVisibility(false);
+      window.snip.checkCliInstalled().then(function(state) {
+        if (state === true) {
+          showSetupView('welcome');
+        } else {
+          showSetupView('cli');
+        }
+      });
+    }
+
     locationChooseBtn.addEventListener('click', async function() {
       var chosen = await window.snip.chooseScreenshotsDir();
       if (chosen) {
         await window.snip.setScreenshotsDir(chosen, 'none');
-        // Update displayed path
         var pathEl = document.getElementById('setup-location-path');
         if (pathEl) pathEl.textContent = shortenPath(chosen);
+        finishLocationStep();
       }
-      showSetupView('ai-choice');
     });
 
     locationSkipBtn.addEventListener('click', function() {
-      // Show warning briefly, then proceed
       var warning = document.getElementById('setup-location-warning');
       warning.classList.remove('hidden');
       setTimeout(function() {
         warning.classList.add('hidden');
-        showSetupView('ai-choice');
+        finishLocationStep();
       }, 1500);
     });
 
-    // AI choice buttons
-    var aiEnableBtn = document.getElementById('setup-ai-enable-btn');
-    var aiSkipBtn = document.getElementById('setup-ai-skip-btn');
+    // CLI install buttons
+    var cliInstallBtn = document.getElementById('setup-cli-install-btn');
+    var cliSkipBtn = document.getElementById('setup-cli-skip-btn');
+    var cliContinueBtn = document.getElementById('setup-cli-continue-btn');
+    var cliSuccessDiv = document.getElementById('setup-cli-success');
+    var cliErrorDiv = document.getElementById('setup-cli-error');
+    var cliProvidersDiv = document.getElementById('setup-cli-providers');
 
-    aiEnableBtn.addEventListener('click', async function() {
-      await window.snip.setAiEnabled(true);
-      updateAiSettingsVisibility(true);
-      applySetupStatus(await window.snip.getOllamaStatus());
+    function finishCliStep() {
+      showSetupView('welcome');
+    }
+
+    async function showSetupProviders() {
+      var found = await renderProviderRows(cliProvidersDiv);
+      if (!found) {
+        setTimeout(finishCliStep, 1500);
+        return;
+      }
+      cliProvidersDiv.classList.remove('hidden');
+      cliContinueBtn.classList.remove('hidden');
+      cliSkipBtn.classList.add('hidden');
+    }
+
+    cliInstallBtn.addEventListener('click', async function() {
+      cliInstallBtn.disabled = true;
+      cliErrorDiv.classList.add('hidden');
+      var result = await window.snip.installCli();
+      if (result.error) {
+        cliInstallBtn.disabled = false;
+        document.getElementById('setup-cli-error-text').textContent = result.error;
+        cliErrorDiv.classList.remove('hidden');
+      } else {
+        cliInstallBtn.style.display = 'none';
+        cliSuccessDiv.classList.remove('hidden');
+        var pathText = 'Installed at ' + result.path;
+        if (result.addToPath) pathText += ' — add to PATH: ' + result.addToPath;
+        document.getElementById('setup-cli-success-path').textContent = pathText;
+        showSetupProviders();
+      }
     });
 
-    aiSkipBtn.addEventListener('click', async function() {
-      await window.snip.setAiEnabled(false);
-      updateAiSettingsVisibility(false);
-      hideSetupOverlay();
+    document.getElementById('setup-cli-retry').addEventListener('click', function() {
+      cliErrorDiv.classList.add('hidden');
+      cliInstallBtn.click();
     });
+
+    cliContinueBtn.addEventListener('click', finishCliStep);
+    cliSkipBtn.addEventListener('click', finishCliStep);
 
     // Permission view buttons
     var permAllowBtn = document.getElementById('setup-perm-allow-btn');
@@ -1658,12 +1720,15 @@
         return;
       }
 
-      // AI choice screen — Y to enable, N to skip
-      var aiChoiceView = document.getElementById('setup-ai-choice-view');
-      if (aiChoiceView && !aiChoiceView.classList.contains('hidden')) {
-        if (e.key === 'y' || e.key === 'Y') { aiEnableBtn.click(); return; }
-        if (e.key === 'n' || e.key === 'N') { aiSkipBtn.click(); return; }
-        if (e.key === 'Enter') { aiEnableBtn.click(); return; }
+      // CLI screen — Enter to install/continue, Esc to skip
+      var cliView = document.getElementById('setup-cli-view');
+      if (cliView && !cliView.classList.contains('hidden')) {
+        if (e.key === 'Enter') {
+          if (!cliContinueBtn.classList.contains('hidden')) { cliContinueBtn.click(); }
+          else { cliInstallBtn.click(); }
+          return;
+        }
+        if (e.key === 'Escape') { cliSkipBtn.click(); return; }
         return;
       }
 
@@ -1727,9 +1792,6 @@
 
     if (window.snip.onShowSetupOverlay) {
       window.snip.onShowSetupOverlay(function() {
-        // Don't override the AI choice view if it's showing
-        var aiChoiceView = document.getElementById('setup-ai-choice-view');
-        if (aiChoiceView && !aiChoiceView.classList.contains('hidden')) return;
         showSetupOverlay();
       });
     }
@@ -1849,7 +1911,7 @@
 
   async function showSetupOverlay() {
     document.getElementById('setup-overlay').classList.remove('hidden');
-    // When opened from Settings, set aiEnabled=true and skip choice view
+    // When opened from Settings, enable AI and start setup
     if (setupFromSettings) {
       await window.snip.setAiEnabled(true);
       updateAiSettingsVisibility(true);
@@ -1866,6 +1928,43 @@
     stopSparkles();
     setupFromSettings = false;
     permissionFromCapture = false;
+    // Refresh settings that may have changed during onboarding
+    refreshSettingsAfterSetup().catch(function(err) {
+      console.error('refreshSettingsAfterSetup failed:', err);
+    });
+  }
+
+  async function refreshSettingsAfterSetup() {
+    var installBtn = document.getElementById('install-cli-btn');
+    var pathEl = document.getElementById('settings-screenshots-path');
+
+    // Parallelize independent IPC calls
+    var promises = [window.snip.checkCliInstalled()];
+    if (pathEl) promises.push(window.snip.getScreenshotsDir());
+    var results = await Promise.all(promises);
+
+    var cliState = results[0];
+
+    // Refresh CLI button state
+    if (installBtn) {
+      applyCliButtonState(installBtn, cliState);
+
+      // Refresh AI providers if CLI is available
+      if (cliState === true || cliState === 'stale') {
+        var aiProvidersDiv = document.getElementById('ai-providers');
+        if (aiProvidersDiv) {
+          var found = await renderProviderRows(aiProvidersDiv, null);
+          if (found) {
+            aiProvidersDiv.classList.remove('hidden');
+          }
+        }
+      }
+    }
+
+    // Refresh save location path
+    if (pathEl && results[1]) {
+      pathEl.textContent = shortenPath(results[1]);
+    }
   }
 
   async function refreshSetupOverlay() {
@@ -1883,7 +1982,7 @@
   }
 
   function showSetupView(viewName) {
-    var views = { permission: 'setup-permission-view', location: 'setup-location-view', 'ai-choice': 'setup-ai-choice-view', steps: 'setup-steps-view', welcome: 'setup-welcome-view', failed: 'setup-failed-view' };
+    var views = { permission: 'setup-permission-view', location: 'setup-location-view', cli: 'setup-cli-view', steps: 'setup-steps-view', welcome: 'setup-welcome-view', failed: 'setup-failed-view' };
     var keys = Object.keys(views);
     for (var i = 0; i < keys.length; i++) {
       document.getElementById(views[keys[i]]).classList.add('hidden');
@@ -1899,9 +1998,6 @@
     } else if (viewName === 'failed') {
       document.getElementById(views.failed).classList.remove('hidden');
       stopSparkles();
-    } else if (viewName === 'ai-choice') {
-      document.getElementById(views['ai-choice']).classList.remove('hidden');
-      startSparkles();
     } else if (viewName === 'location') {
       document.getElementById(views.location).classList.remove('hidden');
       // Show the default/current path
@@ -1909,6 +2005,9 @@
         var el = document.getElementById('setup-location-path');
         if (el) el.textContent = shortenPath(defaultDir);
       });
+      startSparkles();
+    } else if (viewName === 'cli') {
+      document.getElementById(views.cli).classList.remove('hidden');
       startSparkles();
     } else if (viewName === 'permission') {
       document.getElementById(views.permission).classList.remove('hidden');
