@@ -453,9 +453,14 @@ app.on('will-quit', (e) => {
   stopOllama().finally(() => { clearTimeout(forceExit); app.exit(0); });
 });
 
+app.on('before-quit', () => {
+  isQuitting = true;
+});
+
 app.on('window-all-closed', (e) => {
-  // Prevent quit — tray app stays alive
-  e.preventDefault();
+  if (!isQuitting) {
+    e.preventDefault();
+  }
 });
 
 // Show home window if second instance tries to launch
@@ -500,7 +505,7 @@ function getDiagramWindow() {
   if (cachedDiagramWin && !cachedDiagramWin.isDestroyed()) return cachedDiagramWin;
 
   cachedDiagramWin = new BrowserWindow({
-    width: 2048,
+    width: 4096,
     height: 2048,
     show: false,
     frame: false,

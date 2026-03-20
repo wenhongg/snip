@@ -18,9 +18,27 @@
       var result = await mermaid.render('snip-diagram-' + renderCount, data.code);
       container.innerHTML = result.svg;
 
+      var svg = container.querySelector('svg');
+      if (svg) {
+        // Remove Mermaid's max-width so large diagrams render at full size
+        svg.style.maxWidth = 'none';
+      }
+
       await new Promise(function (r) { requestAnimationFrame(r); });
 
-      // Measure container (includes 24px padding on each side)
+      // Measure natural size, then scale 2x for crisp text
+      // (hidden windows capture at 1x DPR regardless of display)
+      var svgRect = svg ? svg.getBoundingClientRect() : container.getBoundingClientRect();
+      var naturalW = Math.ceil(svgRect.width);
+      var naturalH = Math.ceil(svgRect.height);
+
+      if (svg) {
+        svg.style.width = (naturalW * 2) + 'px';
+        svg.style.height = (naturalH * 2) + 'px';
+      }
+
+      await new Promise(function (r) { requestAnimationFrame(r); });
+
       var containerRect = container.getBoundingClientRect();
 
       window.snip.diagramRendered({
