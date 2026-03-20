@@ -543,17 +543,25 @@ function renderDiagramToImage(code, format) {
       if (!result.success) {
         settled = true;
         cleanup();
-        reject(new Error('Mermaid syntax error: ' + (result.error || 'unknown')));
+        reject(new Error('Mermaid syntax error: ' + String(result.error || 'unknown').slice(0, 500)));
+        return;
+      }
+
+      var w = result.width, h = result.height;
+      if (!Number.isFinite(w) || !Number.isFinite(h) || w < 1 || h < 1 || w > 8192 || h > 8192) {
+        settled = true;
+        cleanup();
+        reject(new Error('Invalid diagram dimensions'));
         return;
       }
 
       // Resize to fit diagram, wait a frame, then capture
-      diagramWin.setContentSize(result.width, result.height);
+      diagramWin.setContentSize(w, h);
 
       setTimeout(function () {
         if (settled || !diagramWin || diagramWin.isDestroyed()) return;
 
-        var captureRect = { x: 0, y: 0, width: result.width, height: result.height };
+        var captureRect = { x: 0, y: 0, width: w, height: h };
         diagramWin.webContents.capturePage(captureRect).then(function (nativeImage) {
           if (settled) return;
           settled = true;
@@ -603,6 +611,11 @@ function openEditorWithData(data) {
 
     var { setPendingEditorData } = require('./ipc-handlers');
     setPendingEditorData(data);
+
+    // Hide home window so it doesn't appear when editor closes
+    if (homeWindow && !homeWindow.isDestroyed() && homeWindow.isVisible()) {
+      homeWindow.hide();
+    }
 
     var win = createEditorWindow(data.cssWidth, data.cssHeight);
     pendingMcpResolve = { resolve: resolve, reject: reject, webContentsId: win.webContents.id, win: win };

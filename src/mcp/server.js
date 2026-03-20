@@ -146,7 +146,7 @@ function mapToolToCli(toolName, args) {
       // imageDataURL can't go through CLI (too large for argv, path.resolve breaks it)
       if (!args.filepath && args.imageDataURL) return null;
       var cliArgs = ['open', args.filepath || ''];
-      if (args.message) cliArgs.push('--message', args.message);
+      if (args.message) cliArgs.push('--message', String(args.message).slice(0, 2000));
       return cliArgs;
     case 'render_diagram': return null; // diagram code can be large, use socket directly
     case 'install_extension': return null; // handled via socket directly

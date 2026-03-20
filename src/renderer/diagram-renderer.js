@@ -20,22 +20,13 @@
 
       await new Promise(function (r) { requestAnimationFrame(r); });
 
-      var svg = container.querySelector('svg');
-      var rect = svg.getBoundingClientRect();
-      var naturalW = Math.ceil(rect.width);
-      var naturalH = Math.ceil(rect.height);
-
-      // Scale SVG to 2x for crisp text on Retina
-      svg.style.width = (naturalW * 2) + 'px';
-      svg.style.height = (naturalH * 2) + 'px';
-      svg.style.maxWidth = 'none';
-
-      await new Promise(function (r) { requestAnimationFrame(r); });
+      // Measure container (includes 24px padding on each side)
+      var containerRect = container.getBoundingClientRect();
 
       window.snip.diagramRendered({
         success: true,
-        width: naturalW * 2 + 48,
-        height: naturalH * 2 + 48
+        width: Math.ceil(containerRect.width),
+        height: Math.ceil(containerRect.height)
       });
     } catch (err) {
       window.snip.diagramRendered({
