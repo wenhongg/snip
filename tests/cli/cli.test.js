@@ -427,3 +427,119 @@ describe('CLI render command', () => {
     expect(res.stderr).toContain('Mermaid syntax error');
   });
 });
+
+// ── Review mode structured output ──
+
+describe('CLI review mode output', () => {
+  it('approved without edits → status + path, no message', async () => {
+    var outPath = join(tmpDir, 'img.png');
+    writeFileSync(outPath, 'fake');
+    await startTestServer({
+      open_in_snip: async () => ({ action: 'approved', edited: false, outputPath: outPath })
+    });
+    var res = await runCli(['open', '/tmp/test.png']);
+    expect(res.code).toBe(0);
+    var data = JSON.parse(res.stdout);
+    expect(data.status).toBe('approved');
+    expect(data.edited).toBe(false);
+    expect(data.path).toBe(outPath);
+    expect(data.message).toBeUndefined();
+    expect(data.text).toBeUndefined();
+  });
+
+  it('approved with edits → includes message about annotations', async () => {
+    var outPath = join(tmpDir, 'img.png');
+    writeFileSync(outPath, 'fake');
+    await startTestServer({
+      open_in_snip: async () => ({ action: 'approved', edited: true, outputPath: outPath })
+    });
+    var res = await runCli(['open', '/tmp/test.png']);
+    var data = JSON.parse(res.stdout);
+    expect(data.status).toBe('approved');
+    expect(data.edited).toBe(true);
+    expect(data.message).toContain('annotations');
+  });
+
+  it('approved with text → includes text field', async () => {
+    var outPath = join(tmpDir, 'img.png');
+    writeFileSync(outPath, 'fake');
+    await startTestServer({
+      open_in_snip: async () => ({ action: 'approved', edited: false, outputPath: outPath, text: 'looks great' })
+    });
+    var res = await runCli(['open', '/tmp/test.png']);
+    var data = JSON.parse(res.stdout);
+    expect(data.status).toBe('approved');
+    expect(data.text).toBe('looks great');
+    expect(data.message).toBeUndefined();
+  });
+
+  it('changes_requested with text only → text field, no message', async () => {
+    var outPath = join(tmpDir, 'img.png');
+    writeFileSync(outPath, 'fake');
+    await startTestServer({
+      open_in_snip: async () => ({ action: 'changes_requested', edited: false, outputPath: outPath, text: 'fix the auth flow' })
+    });
+    var res = await runCli(['open', '/tmp/test.png']);
+    var data = JSON.parse(res.stdout);
+    expect(data.status).toBe('changes_requested');
+    expect(data.edited).toBe(false);
+    expect(data.text).toBe('fix the auth flow');
+    expect(data.message).toBeUndefined();
+  });
+
+  it('changes_requested with edits → message about annotations', async () => {
+    var outPath = join(tmpDir, 'img.png');
+    writeFileSync(outPath, 'fake');
+    await startTestServer({
+      open_in_snip: async () => ({ action: 'changes_requested', edited: true, outputPath: outPath })
+    });
+    var res = await runCli(['open', '/tmp/test.png']);
+    var data = JSON.parse(res.stdout);
+    expect(data.status).toBe('changes_requested');
+    expect(data.edited).toBe(true);
+    expect(data.message).toContain('annotations');
+    expect(data.text).toBeUndefined();
+  });
+
+  it('changes_requested with edits + text → both message and text', async () => {
+    var outPath = join(tmpDir, 'img.png');
+    writeFileSync(outPath, 'fake');
+    await startTestServer({
+      open_in_snip: async () => ({ action: 'changes_requested', edited: true, outputPath: outPath, text: 'move the button' })
+    });
+    var res = await runCli(['open', '/tmp/test.png']);
+    var data = JSON.parse(res.stdout);
+    expect(data.status).toBe('changes_requested');
+    expect(data.edited).toBe(true);
+    expect(data.text).toBe('move the button');
+    expect(data.message).toContain('annotations');
+  });
+
+  it('--message flag is passed to handler', async () => {
+    var receivedParams = null;
+    var outPath = join(tmpDir, 'img.png');
+    writeFileSync(outPath, 'fake');
+    await startTestServer({
+      open_in_snip: async (params) => {
+        receivedParams = params;
+        return { action: 'approved', edited: false, outputPath: outPath };
+      }
+    });
+    await runCli(['open', '/tmp/test.png', '--message', 'Does this look right?']);
+    expect(receivedParams.message).toBe('Does this look right?');
+  });
+
+  it('render with --message passes message to handler', async () => {
+    var receivedParams = null;
+    var outPath = join(tmpDir, 'img.png');
+    writeFileSync(outPath, 'fake');
+    await startTestServer({
+      render_diagram: async (params) => {
+        receivedParams = params;
+        return { action: 'approved', edited: false, outputPath: outPath };
+      }
+    });
+    await runCliWithStdin(['render', '--format', 'mermaid', '--message', 'Check the flow'], 'graph TD; A-->B');
+    expect(receivedParams.message).toBe('Check the flow');
+  });
+});

@@ -1638,9 +1638,7 @@ select:hover {
   background: rgba(239, 68, 68, 0.2);
 }
 
-/* Review mode: minimize toolbar action buttons */
-.review-mode #btn-save,
-.review-mode #btn-done,
+/* Review mode: hide cancel, keep copy/save as non-closing utilities */
 .review-mode #btn-cancel {
   display: none;
 }

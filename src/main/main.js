@@ -667,11 +667,11 @@ ipcMain.on('editor-result', function (event, payload) {
   var { resolve, reject, win } = pendingMcpResolve;
   pendingMcpResolve = null;
 
-  // Structured result from review mode: { action, edited, dataURL?, message? }
+  // Structured result from review mode: { action, edited, dataURL?, text? }
   if (payload && typeof payload === 'object' && payload.action) {
     var result = { action: payload.action, edited: !!payload.edited };
-    if (payload.message && typeof payload.message === 'string') {
-      result.message = payload.message.slice(0, 2000);
+    if (payload.text && typeof payload.text === 'string') {
+      result.text = payload.text.slice(0, 2000);
     }
     if (payload.dataURL && typeof payload.dataURL === 'string' && payload.dataURL.startsWith('data:image/png;')) {
       var outputPath = saveImageToTmp(payload.dataURL);

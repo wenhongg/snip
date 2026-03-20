@@ -842,8 +842,32 @@
           canvas.renderAll();
         }
       },
-      onDone: function() { _mcpUpload ? sendMcpResult('approved') : copyToClipboardAndClose(); },
-      onSave: function() { saveScreenshot(); },
+      onDone: function() {
+        if (_mcpUpload) {
+          canvas.discardActiveObject();
+          canvas.renderAll();
+          var dataURL = EditorCanvasManager.exportAsDataURL('png', 1.0);
+          window.snip.copyToClipboard(dataURL);
+          window.snip.showNotification('Copied to clipboard');
+          return;
+        }
+        copyToClipboardAndClose();
+      },
+      onSave: function() {
+        if (_mcpUpload) {
+          canvas.discardActiveObject();
+          canvas.renderAll();
+          var jpegDataURL = EditorCanvasManager.exportAsDataURL('jpeg', 0.92);
+          var now = new Date();
+          var timestamp = now.toISOString().replace(/T/, '_').replace(/:/g, '-').replace(/\..+/, '');
+          window.snip.saveScreenshot(jpegDataURL, timestamp);
+          var pngDataURL = EditorCanvasManager.exportAsDataURL('png', 1.0);
+          window.snip.copyToClipboard(pngDataURL);
+          window.snip.showNotification('Saved & copied to clipboard');
+          return;
+        }
+        saveScreenshot();
+      },
       onCancel: function() {
         if (_mcpUpload) {
           sendMcpResult('changes_requested');
@@ -1080,8 +1104,11 @@
   // ── Review Mode (MCP sessions) ──
 
   function initReviewMode(message) {
-    // Add review-mode class to body for CSS overrides
     document.body.classList.add('review-mode');
+
+    // Update tooltip for non-closing copy button
+    var doneBtn = document.getElementById('btn-done');
+    if (doneBtn) doneBtn.setAttribute('data-tooltip', 'Copy');
 
     var panel = document.getElementById('mcp-review-panel');
     var msgEl = document.getElementById('mcp-review-message');
@@ -1098,7 +1125,8 @@
     panel.classList.remove('hidden');
 
     approveBtn.addEventListener('click', function () {
-      sendMcpResult('approved');
+      var text = inputEl.value.trim();
+      sendMcpResult('approved', text || undefined);
     });
 
     changesBtn.addEventListener('click', function () {
@@ -1134,7 +1162,7 @@
 
     var edited = canvas.getObjects().length > 0;
     var result = { action: action, edited: edited };
-    if (text) result.message = text;
+    if (text) result.text = text;
 
     result.dataURL = edited
       ? EditorCanvasManager.exportAsDataURL('png', 1.0)
@@ -1170,6 +1198,10 @@
     var pngDataURL = EditorCanvasManager.exportAsDataURL('png', 1.0);
     await window.snip.copyToClipboard(pngDataURL);
 
+    if (_mcpUpload) {
+      window.snip.showNotification('Saved & copied to clipboard');
+      return;
+    }
     EditorCanvasManager.clearAnnotations();
     window.snip.closeEditor();
     window.snip.showNotification('Saved & copied to clipboard');
@@ -1216,7 +1248,9 @@
     // Review mode: Cmd+Enter = Approve
     if (_mcpUpload && (e.metaKey || e.ctrlKey) && e.key === 'Enter') {
       e.preventDefault();
-      sendMcpResult('approved');
+      var inputEl = document.getElementById('mcp-review-input');
+      var text = inputEl ? inputEl.value.trim() : '';
+      sendMcpResult('approved', text || undefined);
       return;
     }
 
@@ -1232,7 +1266,9 @@
         // Finish drawing session: switch to select mode
         Toolbar.setTool(TOOLS.SELECT);
       } else if (_mcpUpload) {
-        sendMcpResult('approved');
+        var inputEl = document.getElementById('mcp-review-input');
+        var text = inputEl ? inputEl.value.trim() : '';
+        sendMcpResult('approved', text || undefined);
       } else {
         await copyToClipboardAndClose();
       }

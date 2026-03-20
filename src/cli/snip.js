@@ -240,17 +240,10 @@ function formatOutput(command, result) {
     var output = { status: status };
     if (result.edited !== undefined) output.edited = result.edited;
     if (outPath) output.path = outPath;
-    if (result.message) output.text = result.message;
+    if (result.text) output.text = result.text;
 
-    if (status === 'approved') {
-      if (result.edited) {
-        output.message = 'User approved with annotations. Read the file at path to see notes.';
-      }
-    } else if (status === 'changes_requested') {
-      var parts = [];
-      if (result.edited) parts.push('See annotations at path.');
-      if (result.message) parts.push(result.message);
-      if (parts.length > 0) output.message = parts.join(' ');
+    if (result.edited) {
+      output.message = 'See annotations at path.';
     }
 
     printJson(output);
