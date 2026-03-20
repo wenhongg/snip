@@ -16,7 +16,6 @@ const https = require('https');
 const { execFile, execFileSync, fork } = require('child_process');
 const { promisify } = require('util');
 var execFileAsync = promisify(execFile);
-const { app } = require('electron');
 const { findNodeBinary } = require('./node-binary');
 
 // ── Add-on definitions ──
@@ -63,6 +62,7 @@ function getRuntimeDownloadUrl() {
 
 function getAddonsDir() {
   try {
+    var app = require('electron').app;
     return path.join(app.getPath('userData'), 'addons');
   } catch (_) {
     // Fallback for test environment or when app is not ready
