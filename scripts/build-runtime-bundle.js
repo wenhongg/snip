@@ -18,7 +18,7 @@
 var path = require('path');
 var fs = require('fs');
 var os = require('os');
-var { execSync } = require('child_process');
+var { execSync, execFileSync } = require('child_process');
 
 var PROJECT_DIR = path.join(__dirname, '..');
 var OUTPUT_DIR = path.join(PROJECT_DIR, 'dist');
@@ -117,6 +117,19 @@ async function main() {
   removeDir(path.join(nmDir, 'onnxruntime-web'));
   console.log('  Removed onnxruntime-web');
 
+  // Remove wrong-platform sharp binaries (keep only darwin-arm64)
+  var imgDir = path.join(nmDir, '@img');
+  if (fs.existsSync(imgDir)) {
+    var imgPackages = fs.readdirSync(imgDir);
+    for (var si = 0; si < imgPackages.length; si++) {
+      var pkg2 = imgPackages[si];
+      if ((pkg2.startsWith('sharp-') || pkg2.startsWith('sharp-libvips-')) && pkg2.indexOf('darwin-arm64') === -1) {
+        removeDir(path.join(imgDir, pkg2));
+        console.log('  Removed @img/' + pkg2);
+      }
+    }
+  }
+
   // Remove .map files, READMEs, tests, docs
   function stripJunk(dir) {
     if (!fs.existsSync(dir)) return;
@@ -145,7 +158,7 @@ async function main() {
   var outputPath = path.join(OUTPUT_DIR, OUTPUT_NAME);
 
   console.log('==> Creating tarball...');
-  execSync('tar czf ' + JSON.stringify(outputPath) + ' -C ' + JSON.stringify(tmpDir) + ' node_modules', { stdio: 'pipe' });
+  execFileSync('tar', ['czf', outputPath, '-C', tmpDir, 'node_modules'], { stdio: 'pipe' });
 
   var tarSize = fs.statSync(outputPath).size;
   console.log('==> Output: ' + outputPath);
@@ -159,5 +172,11 @@ async function main() {
 main().catch(function (err) {
   console.error('Failed:', err.message);
   console.error(err.stack);
+  // Clean up temp dir on failure
+  try {
+    var tmpPattern = path.join(os.tmpdir(), 'snip-runtime-build-*');
+    var entries = fs.readdirSync(os.tmpdir()).filter(function (e) { return e.startsWith('snip-runtime-build-'); });
+    entries.forEach(function (e) { removeDir(path.join(os.tmpdir(), e)); });
+  } catch (_) {}
   process.exit(1);
 });
