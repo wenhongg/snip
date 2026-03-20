@@ -88,7 +88,7 @@ These are non-negotiable rules. Violating them causes crashes or broken UX:
 
 ## Project Overview
 
-**Snip** is a macOS Electron screenshot app. Menu-bar only (no Dock icon). Capture via global shortcut, annotate with Fabric.js tools, save with AI-powered organization via local Ollama LLM, find later via semantic search.
+**Snip** is a macOS Electron app — the visual communication layer between humans and AI agents. Menu-bar only (no Dock icon). Capture via global shortcut, annotate with Fabric.js tools, render diagrams via Mermaid, review agent-generated visuals with approve/request-changes flow. AI-powered organization via local Ollama LLM, semantic search.
 
 ### Key Paths
 | What | Where |
@@ -104,7 +104,8 @@ These are non-negotiable rules. Violating them causes crashes or broken UX:
 | Extensions (bundled) | `src/extensions/` + `extensions.json` |
 | Extensions (user) | `~/Library/Application Support/snip/extensions/` |
 | CLI | `src/cli/snip.js` |
-| MCP adapter | `src/mcp/server.js` (wraps CLI) |
+| MCP adapter | `src/mcp/server.js` (wraps CLI, direct socket for `render_diagram`) |
+| Diagram renderer | `src/renderer/diagram.html` + `diagram-renderer.js` + `src/preload/diagram-preload.js` |
 | Extension sandbox | `src/main/extension-sandbox.js` + `extension-sandbox-worker.js` |
 | Ollama manager | `src/main/ollama-manager.js` |
 | Ollama (system) | `/Applications/Ollama.app` or `/usr/local/bin/ollama` (user-installed) |

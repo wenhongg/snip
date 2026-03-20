@@ -1,7 +1,7 @@
 {
   "name": "snip",
-  "version": "1.1.0",
-  "description": "macOS screenshot annotation tool with AI-powered organization",
+  "version": "1.1.1",
+  "description": "Visual communication layer between humans and AI agents — capture, annotate, render diagrams, review",
   "author": "rixinw",
   "license": "MIT",
   "main": "src/main/main.js",

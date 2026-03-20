@@ -8,9 +8,9 @@
 
 ## Vision
 
-Snip is a **menu-bar-only** macOS screenshot tool that makes capturing, annotating, and finding screenshots effortless. Every screenshot is automatically analyzed by AI, given a descriptive name, sorted into categories, and made searchable via natural language.
+Snip is a **menu-bar-only** macOS app that serves as the visual communication layer between humans and AI agents. Capture, annotate, render diagrams, and review visual artifacts — all in one tool. Screenshots are automatically organized by AI and searchable via natural language.
 
-The app should feel **invisible until needed** — a global shortcut captures, a quick annotation pass adds context, and the screenshot is instantly on your clipboard and organized for later.
+The app should feel **invisible until needed** — a global shortcut captures, a quick annotation pass adds context, and the result is instantly on your clipboard or returned to the agent.
 
 ---
 
@@ -123,16 +123,28 @@ Power users on macOS who take 5-50 screenshots per day: developers, designers, P
 - **Extensions**: Lists user-installed extensions with name, type, and permissions. Install button opens a folder picker to load a new extension (shows a manifest preview and permission approval dialog before installing). Uninstall button removes extension and kills its sandbox process.
 
 ### Diagram Rendering
-- `snip render --format mermaid` — renders Mermaid diagram code piped via stdin to a PNG, opens the result in the annotation editor
-- Enables the agent-to-human visual round-trip: agent generates diagram code → Snip renders it → user annotates → annotated result returned to agent
+- `snip render --format mermaid` — renders Mermaid diagram code piped via stdin to a PNG, opens in the editor with Review Mode
+- Enables the agent-to-human visual round-trip: agent generates diagram code → Snip renders it → user reviews → structured feedback returned to agent
 - Rendering uses Electron's built-in Chromium via a hidden BrowserWindow — zero agent-side dependencies (no mmdc, no Puppeteer)
 - Also available as `render_diagram` MCP tool for direct agent integration
+- `--message` parameter lets the agent provide context (e.g., "Does the auth flow look right?")
 - Extensible to additional formats (DOT, SVG, HTML) via `--format` flag
 
+### Review Mode
+- When the editor opens via MCP (`open_in_snip` or `render_diagram`), a review panel appears at the bottom
+- Agent context message displayed at the top of the panel (passed via `--message` or MCP `message` parameter)
+- **Approve** button (or ⌘+Enter / Enter) — returns the image as approval
+- **Request Changes** button — returns with `changes_requested` status
+- Text input for typed feedback — included in the `text` field of the response
+- Annotation tools remain available — user can draw on the image before approving or requesting changes
+- Copy and Save buttons remain in toolbar as non-closing utility actions
+- Structured return: `{ status: "approved" | "changes_requested", edited: true/false, path, text?, message? }`
+
 ### MCP Integration
-- When MCP is enabled, external AI agents can search screenshots, list and retrieve files, transcribe text, trigger AI organization, open files in the editor, render diagrams, and install extensions
+- External AI agents can search screenshots, list and retrieve files, transcribe text, trigger AI organization, open files in the editor with Review Mode, render diagrams, and install extensions
 - MCP server runs as a stdio process (`src/mcp/server.js`) that bridges to Snip's Unix socket
 - Per-category toggles in Settings control which tools are exposed
+- All review tools (`open_in_snip`, `render_diagram`) support `message` parameter for agent context and return structured results
 
 ### Tray Menu
 - Quick Snip, Snip and Annotate, Search Snips, Open Snip, Theme submenu (Dark / Light / Glass), Quit Snip

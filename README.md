@@ -7,9 +7,9 @@
 
 **[snipit.dev](https://snipit.dev)**
 
-macOS screenshot tool with annotation and AI-powered organization.
+Visual communication layer between humans and AI agents for macOS.
 
-Capture a region of your screen, annotate with shapes, text, blur, or AI segmentation, then save. An AI agent automatically categorizes, names, and tags each screenshot. Semantic search lets you find any screenshot by description.
+Capture and annotate screenshots, render diagrams from code, review agent-generated visuals with approve/request-changes flow — all from the menu bar. AI organizes and indexes everything for semantic search. CLI and MCP integration let any AI agent use Snip as their visual I/O.
 
 ## Install
 
@@ -40,6 +40,22 @@ For AI-powered organization, install [Ollama](https://ollama.com/download) separ
 
 Screenshots saved to `~/Documents/snip/screenshots/`. AI renames, categorizes, and indexes them for search.
 
+## Agent Integration (CLI & MCP)
+
+Snip exposes a CLI and MCP server so AI agents can use it as their visual I/O:
+
+```bash
+# Render a Mermaid diagram and open for review
+echo 'graph LR; A-->B-->C' | snip render --format mermaid --message "Does this flow look right?"
+
+# Open an image for agent review
+snip open screenshot.png --message "Is the layout correct?"
+```
+
+The agent gets structured feedback: `{ status: "approved" | "changes_requested", edited, path, text? }`. The user can annotate spatially, type text feedback, or just approve.
+
+MCP tools: `render_diagram`, `open_in_snip`, `search_screenshots`, `list_screenshots`, `get_screenshot`, `transcribe_screenshot`, `organize_screenshot`, `get_categories`, `install_extension`.
+
 ## Key Shortcuts
 
 | Shortcut | Action |
@@ -66,7 +82,7 @@ Screenshots saved to `~/Documents/snip/screenshots/`. AI renames, categorizes, a
 
 ## Tech Stack
 
-Electron 33 / Fabric.js 7 / Ollama (local LLM) / HuggingFace Transformers.js / SlimSAM (ONNX) / Chokidar 4 / electron-liquid-glass
+Electron 33 / Fabric.js 7 / Mermaid.js 11 / Ollama (local LLM) / HuggingFace Transformers.js / SlimSAM (ONNX) / Chokidar 4 / electron-liquid-glass
 
 ### On-Device Models
 

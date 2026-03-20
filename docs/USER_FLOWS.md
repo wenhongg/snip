@@ -1212,7 +1212,7 @@ The MCP adapter (`src/mcp/server.js`) is a **thin CLI wrapper** — it spawns `s
 
 ---
 
-## 15. Diagram Rendering
+## 15. Diagram Rendering & Review Mode
 
 ### 15.1 Render Mermaid Diagram via CLI
 
@@ -1220,13 +1220,13 @@ The MCP adapter (`src/mcp/server.js`) is a **thin CLI wrapper** — it spawns `s
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
-| 1 | Agent pipes Mermaid code: `echo 'graph TD; A-->B-->C' \| snip render --format mermaid` | CLI reads stdin, sends `render_diagram` to socket |
-| 2 | -- | Hidden BrowserWindow created, Mermaid.js renders diagram to SVG |
-| 3 | -- | `capturePage()` captures rendered diagram as PNG |
-| 4 | -- | Diagram window destroyed, editor window opens with rendered PNG |
-| 5 | User annotates the diagram (circles, arrows, text) | Annotations drawn on Fabric.js canvas |
-| 6 | User presses Esc/Enter or clicks Done | Annotated PNG saved to `.tmp/`, path returned to CLI |
-| 7 | -- | CLI outputs JSON: `{ "status": "done", "path": "...", "message": "..." }` |
+| 1 | Agent pipes Mermaid code: `echo 'graph LR; A-->B-->C' \| snip render --format mermaid --message "Does this look right?"` | CLI reads stdin, sends `render_diagram` to socket |
+| 2 | -- | Hidden BrowserWindow renders Mermaid to SVG, `capturePage()` captures as PNG |
+| 3 | -- | Editor opens with rendered PNG in Review Mode |
+| 4 | -- | Review panel at bottom shows agent's message, text input, Approve / Request Changes buttons |
+| 5 | User reviews diagram, optionally annotates and/or types feedback | Annotations drawn on canvas, text entered in input |
+| 6 | User clicks Approve or Request Changes | Structured result returned to CLI |
+| 7 | -- | CLI outputs JSON: `{ "status": "approved", "edited": false, "path": "..." }` |
 
 **Edge cases:**
 
@@ -1239,6 +1239,33 @@ The MCP adapter (`src/mcp/server.js`) is a **thin CLI wrapper** — it spawns `s
 | Unsupported format | Error: "Unsupported format: X (supported: mermaid)" |
 | Editor already busy | Error: "Editor is busy with another upload" |
 | Rendering takes > 30s | Timeout error, diagram window destroyed |
+| Diagram code > 100 KB | Error: "Diagram code too large" |
+
+### 15.2 Review Mode (MCP Editor Sessions)
+
+**Preconditions:** Editor opened via MCP (`open_in_snip` or `render_diagram`).
+
+When the editor opens via an agent action, it enters Review Mode automatically. The toolbar Done/Save buttons become non-closing (copy/save for user's own use). Cancel is hidden. A review panel appears at the bottom.
+
+| Step | Action | Expected Result |
+|------|--------|-----------------|
+| 1 | Editor opens via MCP | Review panel appears at bottom with agent's context message (if provided) |
+| 2 | -- | Toolbar: annotation tools available, Copy (tick) and Save are non-closing, Cancel hidden |
+| 3a | User clicks **Approve** (or ⌘+Enter or Enter) | Returns `{ status: "approved", edited: false/true, path }` |
+| 3b | User types text + clicks **Request Changes** | Returns `{ status: "changes_requested", edited: false/true, path, text: "..." }` |
+| 3c | User annotates + clicks **Approve** | Returns `{ status: "approved", edited: true, path }` with annotations in the image |
+| 3d | User annotates + types text + clicks **Request Changes** | Returns `{ status: "changes_requested", edited: true, path, text: "..." }` |
+| 4 | -- | `message: "See annotations at path."` included only when `edited: true` |
+
+**Keyboard shortcuts in Review Mode:**
+
+| Key | Action |
+|-----|--------|
+| ⌘+Enter | Approve (includes text if typed) |
+| Enter (not in text input) | Approve |
+| Enter (in text input) | Request Changes with text |
+| Esc (in text input) | Blur text input |
+| Esc (not in input) | No-op (use buttons to finish) |
 
 ---
 
