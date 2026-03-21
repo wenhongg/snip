@@ -44,6 +44,9 @@ function findFiles(dir, pattern, results) {
 }
 
 module.exports = async function afterPack(context) {
+  // All afterPack logic is macOS-specific (codesigning, .app bundle structure)
+  if (context.packager.platform.name !== 'mac') return;
+
   var appOutDir = context.appOutDir;
   var appName = context.packager.appInfo.productFilename;
   var appPath = path.join(appOutDir, appName + '.app');

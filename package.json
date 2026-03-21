@@ -14,6 +14,7 @@
     "postinstall": "electron-builder install-app-deps",
     "prebuild": "node-gyp rebuild",
     "build": "node-gyp rebuild && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac --arm64 && npm run sign:adhoc",
+    "build:linux": "electron-builder --linux --x64",
     "sign:adhoc": "for app in dist/mac-*/Snip.app; do if codesign -v \"$app\" 2>/dev/null; then echo \"Already signed: $app\"; else codesign --force --deep --sign - \"$app\" 2>/dev/null && echo \"Ad-hoc signed: $app\"; fi; done",
     "download-models": "node scripts/download-models.js",
     "download-node": "node scripts/download-node.js",

@@ -559,8 +559,7 @@ function registerIpcHandlers(getOverlayWindow, createEditorWindowFn, reregisterS
   });
 
   ipcMain.handle('check-cli-installed', async () => {
-    var home = require('os').homedir();
-    var targets = ['/usr/local/bin/snip', path.join(home, '.local', 'bin', 'snip'), path.join(home, 'bin', 'snip')];
+    var targets = platform.getCliInstallPaths();
     for (var target of targets) {
       if (fs.existsSync(target)) {
         try {
@@ -568,7 +567,7 @@ function registerIpcHandlers(getOverlayWindow, createEditorWindowFn, reregisterS
           // Verify this is our wrapper, not another app's binary
           if (content.indexOf('Snip CLI') === -1) continue;
           // Verify the wrapper still points to a valid node binary
-          var match = content.match(/exec "([^"]+)"/);
+          var match = content.match(/exec ['"]([^'"]+)['"]/);
           if (match && match[1] && !fs.existsSync(match[1])) {
             return 'stale'; // wrapper exists but points to deleted app
           }
@@ -580,8 +579,7 @@ function registerIpcHandlers(getOverlayWindow, createEditorWindowFn, reregisterS
   });
 
   ipcMain.handle('uninstall-cli', async () => {
-    var home = require('os').homedir();
-    var targets = ['/usr/local/bin/snip', path.join(home, '.local', 'bin', 'snip'), path.join(home, 'bin', 'snip')];
+    var targets = platform.getCliInstallPaths();
     var removed = false;
     for (var target of targets) {
       try {
