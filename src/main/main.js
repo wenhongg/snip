@@ -87,11 +87,10 @@ function prewarmEditor() {
       y: -9999,
       show: false,
       frame: true,
-      transparent: true,
-      backgroundColor: '#00000000',
       resizable: false,
       webPreferences: { ...BASE_WEB_PREFERENCES }
     }, platform.getWindowOptions('editor')));
+    prewarmedEditor.setMenuBarVisibility(false);
     prewarmedEditor.loadFile(EDITOR_HTML);
     prewarmedEditor.on('closed', () => { prewarmedEditor = null; });
   } catch (e) {
@@ -155,8 +154,6 @@ function createHomeWindow() {
     width: 900,
     height: 620,
     title: 'Snip',
-    transparent: true,
-    backgroundColor: '#00000000',
     webPreferences: { ...BASE_WEB_PREFERENCES }
   }, platform.getWindowOptions('home'));
 
@@ -166,6 +163,7 @@ function createHomeWindow() {
   }
 
   homeWindow = new BrowserWindow(homeOpts);
+  homeWindow.setMenuBarVisibility(false);
   homeWindow.loadFile(path.join(__dirname, '..', 'renderer', 'home.html'));
   // Apply native liquid glass if available, with vibrancy fallback
   if (liquidGlass) {
@@ -233,8 +231,6 @@ function createEditorWindow(cssWidth, cssHeight) {
       y,
       show: false,
       frame: true,
-      transparent: true,
-      backgroundColor: '#00000000',
       resizable: false,
       webPreferences: { ...BASE_WEB_PREFERENCES }
     }, platform.getWindowOptions('editor'));
@@ -244,6 +240,7 @@ function createEditorWindow(cssWidth, cssHeight) {
     }
 
     editorWindow = new BrowserWindow(editorOpts);
+    editorWindow.setMenuBarVisibility(false);
     editorWindow.loadFile(EDITOR_HTML);
   }
 

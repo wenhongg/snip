@@ -89,8 +89,8 @@ function setMoveToActiveSpace(overlayWindow) {
 // ── Window chrome ──
 
 var WINDOW_OPTIONS = {
-  home: { titleBarStyle: 'hiddenInset', trafficLightPosition: { x: 16, y: 16 } },
-  editor: { titleBarStyle: 'hiddenInset', trafficLightPosition: { x: 12, y: 14 } }
+  home: { titleBarStyle: 'hiddenInset', trafficLightPosition: { x: 16, y: 16 }, transparent: true, backgroundColor: '#00000000' },
+  editor: { titleBarStyle: 'hiddenInset', trafficLightPosition: { x: 12, y: 14 }, transparent: true, backgroundColor: '#00000000' }
 };
 
 function getWindowOptions(type) {

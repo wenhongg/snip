@@ -199,16 +199,19 @@ describe('darwin module', () => {
     expect(config.appBinary).toContain('Ollama.app');
   });
 
-  it('getWindowOptions returns titleBarStyle for home', () => {
+  it('getWindowOptions returns titleBarStyle and transparency for home', () => {
     var opts = darwin.getWindowOptions('home');
     expect(opts.titleBarStyle).toBe('hiddenInset');
     expect(opts.trafficLightPosition).toEqual({ x: 16, y: 16 });
+    expect(opts.transparent).toBe(true);
+    expect(opts.backgroundColor).toBe('#00000000');
   });
 
-  it('getWindowOptions returns titleBarStyle for editor', () => {
+  it('getWindowOptions returns titleBarStyle and transparency for editor', () => {
     var opts = darwin.getWindowOptions('editor');
     expect(opts.titleBarStyle).toBe('hiddenInset');
     expect(opts.trafficLightPosition).toEqual({ x: 12, y: 14 });
+    expect(opts.transparent).toBe(true);
   });
 
   it('getWindowOptions returns same object on repeated calls (cached)', () => {
