@@ -1070,7 +1070,7 @@ function registerIpcHandlers(getOverlayWindow, createEditorWindowFn, reregisterS
   });
 
   ipcMain.handle('check-compositor-shortcut', async (event, { action }) => {
-    if (!VALID_SHORTCUT_ACTIONS.includes(action)) throw new Error('Invalid action');
+    if (!VALID_SHORTCUT_ACTIONS.includes(action)) return { installed: false, binding: null, unsupported: true };
     return platform.checkCompositorShortcut(action);
   });
 

@@ -771,7 +771,11 @@
       // Check current compositor status
       (function(d, btn, accel) {
         window.snip.checkCompositorShortcut(d.action).then(function(status) {
-          if (status.installed) {
+          if (status.unsupported) {
+            btn.textContent = 'N/A';
+            btn.disabled = true;
+            btn.title = 'Not available as a system shortcut';
+          } else if (status.installed) {
             btn.textContent = 'Linked';
             btn.classList.add('installed');
             btn.disabled = true;
