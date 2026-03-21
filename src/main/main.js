@@ -1,5 +1,6 @@
 const { app, BrowserWindow, screen, ipcMain } = require('electron');
 const path = require('path');
+const platform = require('./platform');
 const { registerShortcuts, unregisterShortcuts, reregisterShortcuts } = require('./shortcuts');
 const { createTray, rebuildTrayMenu } = require('./tray');
 const { registerIpcHandlers } = require('./ipc-handlers');
@@ -79,7 +80,7 @@ function prewarmEditor() {
   if (prewarmedEditor && !prewarmedEditor.isDestroyed()) return;
 
   try {
-    prewarmedEditor = new BrowserWindow({
+    prewarmedEditor = new BrowserWindow(Object.assign({
       width: 1,
       height: 1,
       x: -9999,
@@ -89,10 +90,8 @@ function prewarmEditor() {
       transparent: true,
       backgroundColor: '#00000000',
       resizable: false,
-      titleBarStyle: 'hiddenInset',
-      trafficLightPosition: { x: 12, y: 14 },
       webPreferences: { ...BASE_WEB_PREFERENCES }
-    });
+    }, platform.getWindowOptions('editor')));
     prewarmedEditor.loadFile(EDITOR_HTML);
     prewarmedEditor.on('closed', () => { prewarmedEditor = null; });
   } catch (e) {
@@ -152,16 +151,14 @@ function createHomeWindow() {
     return;
   }
 
-  const homeOpts = {
+  const homeOpts = Object.assign({
     width: 900,
     height: 620,
     title: 'Snip',
-    titleBarStyle: 'hiddenInset',
-    trafficLightPosition: { x: 16, y: 16 },
     transparent: true,
     backgroundColor: '#00000000',
     webPreferences: { ...BASE_WEB_PREFERENCES }
-  };
+  }, platform.getWindowOptions('home'));
 
   // Use native vibrancy only if liquid glass is not available
   if (!liquidGlass) {
@@ -229,7 +226,7 @@ function createEditorWindow(cssWidth, cssHeight) {
     }
   } else {
     // Fallback: create fresh window (show: false — IPC handler will show after data push)
-    const editorOpts = {
+    const editorOpts = Object.assign({
       width: winWidth,
       height: winHeight,
       x,
@@ -239,10 +236,8 @@ function createEditorWindow(cssWidth, cssHeight) {
       transparent: true,
       backgroundColor: '#00000000',
       resizable: false,
-      titleBarStyle: 'hiddenInset',
-      trafficLightPosition: { x: 12, y: 14 },
       webPreferences: { ...BASE_WEB_PREFERENCES }
-    };
+    }, platform.getWindowOptions('editor'));
 
     if (!liquidGlass) {
       editorOpts.vibrancy = 'under-window';
@@ -351,12 +346,8 @@ function showSearchPage() {
 app.whenReady().then(() => {
   initStore();
 
-  // Hide dock icon to match production LSUIElement:true behavior.
-  // This prevents macOS from switching Spaces when the capture shortcut fires.
-  // The app is tray-only — users interact via the menu-bar icon.
-  if (app.dock) {
-    app.dock.hide();
-  }
+  // Hide dock/taskbar icon — the app is tray-only.
+  platform.hideFromDock(app);
 
   createTray(triggerCapture, showSearchPage, showHomeWindow, triggerQuickSnip);
   registerShortcuts(triggerCapture, showSearchPage, triggerQuickSnip);

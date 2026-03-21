@@ -1,6 +1,7 @@
 const { ipcMain, clipboard, nativeImage, app, Notification, shell, BrowserWindow, screen, systemPreferences, desktopCapturer, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const platform = require('./platform');
 const {
   getScreenshotsDir, getDefaultScreenshotsDir, setScreenshotsDir,
   getOllamaModel, setOllamaModel, getOllamaUrl, setOllamaUrl,
@@ -249,16 +250,22 @@ function registerIpcHandlers(getOverlayWindow, createEditorWindowFn, reregisterS
     ];
   });
 
-  // Screen recording permission
+  // Screen recording permission (macOS-specific; other platforms return 'granted')
   ipcMain.handle('get-screen-permission', async () => {
-    return systemPreferences.getMediaAccessStatus('screen');
+    if (systemPreferences.getMediaAccessStatus) {
+      return systemPreferences.getMediaAccessStatus('screen');
+    }
+    return 'granted';
   });
 
   ipcMain.handle('request-screen-permission', async () => {
     try {
       await desktopCapturer.getSources({ types: ['screen'], thumbnailSize: { width: 1, height: 1 } });
     } catch (e) { console.log('[Snip] Screen permission probe error (expected):', e.message); }
-    return systemPreferences.getMediaAccessStatus('screen');
+    if (systemPreferences.getMediaAccessStatus) {
+      return systemPreferences.getMediaAccessStatus('screen');
+    }
+    return 'granted';
   });
 
   ipcMain.handle('restart-app', () => {
@@ -378,35 +385,30 @@ function registerIpcHandlers(getOverlayWindow, createEditorWindowFn, reregisterS
   ipcMain.handle('install-cli', async () => {
     var { findNodeBinary } = require('./node-binary');
     var nodePath, cliPath;
+    var nodeBin = platform.getNodeBinaryName();
     if (app.isPackaged) {
-      nodePath = findNodeBinary() || '/usr/local/bin/node';
+      nodePath = findNodeBinary() || path.join(platform.getNodeSearchPaths()[0] || '/usr/local/bin', nodeBin);
       cliPath = path.join(process.resourcesPath, 'cli', 'snip.js');
     } else {
-      nodePath = findNodeBinary() || '/usr/local/bin/node';
+      nodePath = findNodeBinary() || path.join(platform.getNodeSearchPaths()[0] || '/usr/local/bin', nodeBin);
       cliPath = path.join(__dirname, '..', 'cli', 'snip.js');
     }
 
-    // Sanitize paths for shell safety (escape double quotes)
-    var safeNode = nodePath.replace(/"/g, '\\"');
-    var safeCli = cliPath.replace(/"/g, '\\"');
-    var wrapper = '#!/bin/sh\n# Snip CLI — installed by Snip.app\nexec "' + safeNode + '" "' + safeCli + '" "$@"\n';
-    var home = require('os').homedir();
-    var targets = [
-      '/usr/local/bin/snip',
-      path.join(home, '.local', 'bin', 'snip'),
-      path.join(home, 'bin', 'snip')
-    ];
+    var wrapper = platform.getCliWrapperContent(nodePath, cliPath);
+    if (!wrapper) {
+      return { error: 'CLI install is not supported on this platform' };
+    }
 
-    // Directories that are commonly in shell PATH even if Electron doesn't see them
-    // (Electron launched via Finder gets a minimal PATH without shell profile additions)
-    var commonShellPaths = ['/usr/local/bin', path.join(home, '.local', 'bin'), path.join(home, 'bin')];
+    var targets = platform.getCliInstallPaths();
+    var home = require('os').homedir();
+    var commonShellPaths = targets.map(function (t) { return path.dirname(t); });
 
     for (var target of targets) {
       try {
         fs.mkdirSync(path.dirname(target), { recursive: true });
         fs.writeFileSync(target, wrapper, { mode: 0o755 });
         var dir = path.dirname(target);
-        var inPath = (process.env.PATH || '').split(':').includes(dir) || commonShellPaths.includes(dir);
+        var inPath = (process.env.PATH || '').split(path.delimiter).includes(dir) || commonShellPaths.includes(dir);
         return {
           installed: true,
           path: target,
@@ -415,7 +417,7 @@ function registerIpcHandlers(getOverlayWindow, createEditorWindowFn, reregisterS
         };
       } catch {}
     }
-    return { error: 'Could not install CLI. Run manually: sudo ln -sf "' + safeCli + '" /usr/local/bin/snip' };
+    return { error: 'Could not install CLI to any target path' };
   });
 
   ipcMain.handle('detect-ai-providers', async () => {
