@@ -7,6 +7,8 @@
     document.documentElement.dataset.theme = theme;
   })();
   document.documentElement.dataset.platform = window.snip.platform;
+  var shortcutHint = document.getElementById('empty-folder-shortcut');
+  if (shortcutHint) shortcutHint.textContent = (window.snip.platform === 'darwin' ? 'Cmd' : 'Ctrl') + '+Shift+2';
   window.snip.onThemeChanged(function(theme) {
     document.documentElement.dataset.theme = theme;
   });
@@ -668,12 +670,12 @@
     { action: null, name: 'Transcribe', context: 'Annotation', configurable: false, display: 'W' },
     { action: null, name: 'Confirm / full screen', context: 'Selection', configurable: false, display: 'Enter' },
     { action: null, name: 'Cancel selection', context: 'Selection', configurable: false, display: 'Esc' },
-    { action: null, name: 'Save snip', context: 'Annotation', configurable: false, display: 'Cmd + S' },
-    { action: null, name: 'Undo', context: 'Annotation', configurable: false, display: 'Cmd + Z' },
-    { action: null, name: 'Redo', context: 'Annotation', configurable: false, display: 'Cmd + Shift + Z' },
+    { action: null, name: 'Save snip', context: 'Annotation', configurable: false, display: (window.snip.platform === 'darwin' ? 'Cmd' : 'Ctrl') + ' + S' },
+    { action: null, name: 'Undo', context: 'Annotation', configurable: false, display: (window.snip.platform === 'darwin' ? 'Cmd' : 'Ctrl') + ' + Z' },
+    { action: null, name: 'Redo', context: 'Annotation', configurable: false, display: (window.snip.platform === 'darwin' ? 'Cmd' : 'Ctrl') + ' + Shift + Z' },
     { action: null, name: 'Delete selected', context: 'Annotation', configurable: false, display: 'Delete' },
     { action: null, name: 'Copy & close', context: 'Annotation', configurable: false, display: 'Esc' },
-    { action: null, name: 'Save GIF', context: 'GIF Preview', configurable: false, display: 'Enter / Cmd + S', addon: 'segment' },
+    { action: null, name: 'Save GIF', context: 'GIF Preview', configurable: false, display: 'Enter / ' + (window.snip.platform === 'darwin' ? 'Cmd' : 'Ctrl') + ' + S', addon: 'segment' },
     { action: null, name: 'Redo animation', context: 'GIF Preview', configurable: false, display: 'R', addon: 'segment' },
     { action: null, name: 'Discard animation', context: 'GIF Preview', configurable: false, display: 'Esc', addon: 'segment' }
   ];

@@ -123,6 +123,8 @@ module.exports = {
   installCompositorShortcut: function () { throw new Error('Compositor shortcuts not supported on Windows'); },
   removeCompositorShortcut: function () {},
   checkCompositorShortcut: function () { return { installed: false, binding: null }; },
+  shouldStealFocusOnCapture: function () { return false; },
+  getBlurCancelDelay: function () { return 0; },
   copyImageToClipboard: function (nativeImage, clipboard) { clipboard.writeImage(nativeImage); },
   checkDependencies: function () { return { wayland: false, wlCopy: true, python3Gi: true }; }
 };

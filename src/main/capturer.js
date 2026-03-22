@@ -91,7 +91,7 @@ async function captureScreen(createOverlayFn, getOverlayFn, opts) {
   // app.focus() is needed to bring it forward. Skip in macOS dev mode where
   // app.dock.hide() already handles it and app.focus() causes Space switching.
   // On Linux, always call app.focus() — the WM won't raise a background window otherwise.
-  if (app.isPackaged || process.platform === 'linux') {
+  if (app.isPackaged || platform.shouldStealFocusOnCapture()) {
     app.focus({ steal: true });
   }
 
@@ -107,8 +107,9 @@ async function captureScreen(createOverlayFn, getOverlayFn, opts) {
       if (!overlayWindow.isDestroyed()) overlayWindow.destroy();
     });
   };
-  if (process.platform === 'linux') {
-    setTimeout(attachBlurCancel, 300);
+  var blurDelay = platform.getBlurCancelDelay ? platform.getBlurCancelDelay() : 0;
+  if (blurDelay > 0) {
+    setTimeout(attachBlurCancel, blurDelay);
   } else {
     attachBlurCancel();
   }

@@ -200,6 +200,11 @@ async function checkCompositorShortcut(action) {
   return { installed: !!binding, binding: binding || null };
 }
 
+// ── Capture behavior ──
+
+function shouldStealFocusOnCapture() { return true; }
+function getBlurCancelDelay() { return 300; }
+
 // ── Clipboard ──
 
 function copyImageToClipboard(nativeImage, clipboard) {
@@ -261,6 +266,8 @@ module.exports = {
   getCliInstallPaths: shared.getCliInstallPaths,
   getCliWrapperContent: shared.getCliWrapperContent,
   getTrayIcon,
+  shouldStealFocusOnCapture,
+  getBlurCancelDelay,
   copyImageToClipboard,
   checkDependencies,
   getShortcutMode,
