@@ -200,6 +200,50 @@ async function checkCompositorShortcut(action) {
   return { installed: !!binding, binding: binding || null };
 }
 
+// ── Clipboard ──
+
+function copyImageToClipboard(nativeImage, clipboard) {
+  // On Wayland, Electron's clipboard dies when the window closes.
+  // Use wl-copy or xclip to persist the clipboard independently.
+  var pngBuf = nativeImage.toPNG();
+  var tools = [
+    { cmd: 'wl-copy', args: ['--type', 'image/png'] },
+    { cmd: 'xclip', args: ['-selection', 'clipboard', '-t', 'image/png', '-i'] }
+  ];
+  for (var i = 0; i < tools.length; i++) {
+    try {
+      require('child_process').execFileSync('which', [tools[i].cmd], { stdio: 'pipe' });
+      var proc = require('child_process').spawn(tools[i].cmd, tools[i].args, { stdio: ['pipe', 'pipe', 'pipe'] });
+      proc.on('error', function () {});
+      proc.stdin.write(pngBuf);
+      proc.stdin.end();
+      return;
+    } catch (_) {}
+  }
+  // Fallback to Electron clipboard (may not persist after window close on Wayland)
+  clipboard.writeImage(nativeImage);
+}
+
+// ── Dependency check ──
+
+function checkDependencies() {
+  var wayland = process.env.XDG_SESSION_TYPE === 'wayland';
+  var { execFileSync } = require('child_process');
+  var wlCopy = false;
+  try { execFileSync('which', ['wl-copy'], { stdio: 'pipe' }); wlCopy = true; } catch (_) {}
+  var python3Gi = false;
+  try { execFileSync('python3', ['-c', 'import gi'], { stdio: 'pipe', timeout: 5000 }); python3Gi = true; } catch (_) {}
+  var distro = 'unknown';
+  try {
+    var fs = require('fs');
+    var osRelease = fs.readFileSync('/etc/os-release', 'utf8');
+    if (/ID_LIKE=.*debian|ID=ubuntu|ID=debian/i.test(osRelease)) distro = 'debian';
+    else if (/ID_LIKE=.*fedora|ID=fedora|ID_LIKE=.*rhel/i.test(osRelease)) distro = 'fedora';
+    else if (/ID=arch|ID_LIKE=.*arch/i.test(osRelease)) distro = 'arch';
+  } catch (_) {}
+  return { wayland: wayland, wlCopy: wlCopy, python3Gi: python3Gi, distro: distro };
+}
+
 module.exports = {
   getOllamaConfig,
   installOllama,
@@ -217,6 +261,8 @@ module.exports = {
   getCliInstallPaths: shared.getCliInstallPaths,
   getCliWrapperContent: shared.getCliWrapperContent,
   getTrayIcon,
+  copyImageToClipboard,
+  checkDependencies,
   getShortcutMode,
   installCompositorShortcut,
   removeCompositorShortcut,

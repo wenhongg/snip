@@ -152,32 +152,7 @@ function registerIpcHandlers(getOverlayWindow, createEditorWindowFn, reregisterS
   // Copy annotated image to clipboard
   ipcMain.handle('copy-to-clipboard', async (event, dataURL) => {
     const image = nativeImage.createFromDataURL(dataURL);
-    if (process.platform === 'linux') {
-      // On Wayland, Electron's clipboard dies when the window closes.
-      // Use wl-copy or xclip to persist the clipboard independently.
-      var pngBuf = image.toPNG();
-      var copied = false;
-      var tools = [
-        { cmd: 'wl-copy', args: ['--type', 'image/png'] },
-        { cmd: 'xclip', args: ['-selection', 'clipboard', '-t', 'image/png', '-i'] }
-      ];
-      for (var i = 0; i < tools.length && !copied; i++) {
-        try {
-          var { execFileSync } = require('child_process');
-          execFileSync('which', [tools[i].cmd], { stdio: 'pipe' });
-          var proc = require('child_process').spawn(tools[i].cmd, tools[i].args, { stdio: ['pipe', 'pipe', 'pipe'] });
-          proc.stdin.write(pngBuf);
-          proc.stdin.end();
-          copied = true;
-        } catch (_) {}
-      }
-      if (!copied) {
-        // Fallback to Electron clipboard (may not persist after window close)
-        clipboard.writeImage(image);
-      }
-    } else {
-      clipboard.writeImage(image);
-    }
+    platform.copyImageToClipboard(image, clipboard);
     return true;
   });
 
@@ -614,6 +589,11 @@ function registerIpcHandlers(getOverlayWindow, createEditorWindowFn, reregisterS
       } catch {}
     }
     return { removed: removed };
+  });
+
+  // Platform dependency check (Wayland clipboard, portal screenshot on Linux; no-op elsewhere)
+  ipcMain.handle('check-linux-deps', async () => {
+    return platform.checkDependencies();
   });
 
   // Settings: User Extensions

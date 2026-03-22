@@ -45,6 +45,9 @@ contextBridge.exposeInMainWorld('snip', {
   requestScreenPermission: () => ipcRenderer.invoke('request-screen-permission'),
   restartApp: () => ipcRenderer.invoke('restart-app'),
 
+  // Linux dependency check
+  checkLinuxDeps: () => ipcRenderer.invoke('check-linux-deps'),
+
   // AI preference
   getAiEnabled: () => ipcRenderer.invoke('get-ai-enabled'),
   setAiEnabled: (enabled) => ipcRenderer.invoke('set-ai-enabled', enabled),

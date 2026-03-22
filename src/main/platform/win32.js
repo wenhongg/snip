@@ -122,5 +122,7 @@ module.exports = {
   getShortcutMode: function () { return 'native'; },
   installCompositorShortcut: function () { throw new Error('Compositor shortcuts not supported on Windows'); },
   removeCompositorShortcut: function () {},
-  checkCompositorShortcut: function () { return { installed: false, binding: null }; }
+  checkCompositorShortcut: function () { return { installed: false, binding: null }; },
+  copyImageToClipboard: function (nativeImage, clipboard) { clipboard.writeImage(nativeImage); },
+  checkDependencies: function () { return { wayland: false, wlCopy: true, python3Gi: true }; }
 };

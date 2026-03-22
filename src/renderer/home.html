@@ -501,6 +501,43 @@
       </div>
     </div>
 
+    <!-- Linux deps view (Wayland clipboard) -->
+    <div id="setup-deps-view" class="setup-view hidden">
+      <div class="setup-header">
+        <div class="setup-header-icon">
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+            <rect x="8" y="8" width="32" height="32" rx="6" stroke="var(--accent)" stroke-width="2.5" fill="none"/>
+            <path d="M16 24h16M24 16v16" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" opacity="0.7"/>
+            <circle cx="38" cy="10" r="5" fill="var(--accent)" opacity="0.9"/>
+            <path d="M36 10h4M38 8v4" stroke="var(--bg-primary)" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <h2>One more thing</h2>
+        <p>Wayland needs a clipboard tool to copy screenshots.</p>
+      </div>
+      <div class="setup-deps-command">
+        <code id="setup-deps-cmd">sudo apt install wl-clipboard</code>
+        <button id="setup-deps-copy-btn" class="setup-deps-copy-btn" title="Copy command">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+          </svg>
+        </button>
+      </div>
+      <p class="setup-deps-hint">Run this in your terminal, then click Check again.</p>
+      <div class="setup-deps-btns">
+        <button id="setup-deps-check-btn" class="setup-btn-icon setup-btn-glow">
+          Check again <kbd class="setup-kbd">Enter</kbd>
+        </button>
+        <button id="setup-deps-skip-btn" class="setup-btn-skip">
+          Skip for now <kbd class="setup-kbd">Esc</kbd>
+        </button>
+      </div>
+      <div id="setup-deps-ok" class="setup-cli-result hidden">
+        <span class="setup-cli-success-icon">&#10003;</span>
+        <span>wl-clipboard installed</span>
+      </div>
+    </div>
+
     <!-- CLI install view -->
     <div id="setup-cli-view" class="setup-view hidden">
       <div class="setup-header">

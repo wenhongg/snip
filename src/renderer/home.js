@@ -1902,9 +1902,7 @@
     var locationChooseBtn = document.getElementById('setup-location-choose-btn');
     var locationSkipBtn = document.getElementById('setup-location-skip-btn');
 
-    function finishLocationStep() {
-      window.snip.setAiEnabled(false);
-      updateAiSettingsVisibility(false);
+    function advanceToCliOrWelcome() {
       window.snip.checkCliInstalled().then(function(state) {
         if (state === true) {
           showSetupView('welcome');
@@ -1912,6 +1910,28 @@
           showSetupView('cli');
         }
       });
+    }
+
+    function finishLocationStep() {
+      window.snip.setAiEnabled(false);
+      updateAiSettingsVisibility(false);
+      // On Wayland Linux, check for wl-clipboard before proceeding
+      if (window.snip.platform === 'linux') {
+        window.snip.checkLinuxDeps().then(function(deps) {
+          if (deps.wayland && !deps.wlCopy) {
+            showSetupView('deps');
+            // Set the right install command for the distro
+            var cmdEl = document.getElementById('setup-deps-cmd');
+            if (deps.distro === 'fedora') cmdEl.textContent = 'sudo dnf install wl-clipboard';
+            else if (deps.distro === 'arch') cmdEl.textContent = 'sudo pacman -S wl-clipboard';
+            else cmdEl.textContent = 'sudo apt install wl-clipboard';
+          } else {
+            advanceToCliOrWelcome();
+          }
+        });
+      } else {
+        advanceToCliOrWelcome();
+      }
     }
 
     locationChooseBtn.addEventListener('click', async function() {
@@ -1932,6 +1952,41 @@
         finishLocationStep();
       }, 1500);
     });
+
+    // Linux deps buttons
+    var depsCheckBtn = document.getElementById('setup-deps-check-btn');
+    var depsSkipBtn = document.getElementById('setup-deps-skip-btn');
+    var depsCopyBtn = document.getElementById('setup-deps-copy-btn');
+    var depsOkDiv = document.getElementById('setup-deps-ok');
+
+    if (depsCheckBtn) {
+      depsCheckBtn.addEventListener('click', function() {
+        window.snip.checkLinuxDeps().then(function(deps) {
+          if (deps.wlCopy) {
+            depsCheckBtn.style.display = 'none';
+            depsOkDiv.classList.remove('hidden');
+            setTimeout(function() { advanceToCliOrWelcome(); }, 1000);
+          } else {
+            depsCheckBtn.innerHTML = 'Not found — try again';
+            setTimeout(function() { depsCheckBtn.innerHTML = 'Check again <kbd class="setup-kbd">Enter</kbd>'; }, 2000);
+          }
+        });
+      });
+    }
+    if (depsSkipBtn) {
+      depsSkipBtn.addEventListener('click', function() { advanceToCliOrWelcome(); });
+    }
+    if (depsCopyBtn) {
+      depsCopyBtn.addEventListener('click', function() {
+        var cmd = document.getElementById('setup-deps-cmd').textContent;
+        navigator.clipboard.writeText(cmd).then(function() {
+          depsCopyBtn.innerHTML = '<span style="font-size:14px">&#10003;</span>';
+          setTimeout(function() {
+            depsCopyBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
+          }, 1500);
+        });
+      });
+    }
 
     // CLI install buttons
     var cliInstallBtn = document.getElementById('setup-cli-install-btn');
@@ -2044,6 +2099,14 @@
       if (locationView && !locationView.classList.contains('hidden')) {
         if (e.key === 'Enter') { locationChooseBtn.click(); return; }
         if (e.key === 'Escape') { locationSkipBtn.click(); return; }
+        return;
+      }
+
+      // Deps screen — Enter to check, Esc to skip
+      var depsView = document.getElementById('setup-deps-view');
+      if (depsView && !depsView.classList.contains('hidden')) {
+        if (e.key === 'Enter') { depsCheckBtn.click(); return; }
+        if (e.key === 'Escape') { depsSkipBtn.click(); return; }
         return;
       }
 
@@ -2309,7 +2372,7 @@
   }
 
   function showSetupView(viewName) {
-    var views = { permission: 'setup-permission-view', location: 'setup-location-view', cli: 'setup-cli-view', steps: 'setup-steps-view', welcome: 'setup-welcome-view', failed: 'setup-failed-view' };
+    var views = { permission: 'setup-permission-view', location: 'setup-location-view', deps: 'setup-deps-view', cli: 'setup-cli-view', steps: 'setup-steps-view', welcome: 'setup-welcome-view', failed: 'setup-failed-view' };
     var keys = Object.keys(views);
     for (var i = 0; i < keys.length; i++) {
       document.getElementById(views[keys[i]]).classList.add('hidden');
@@ -2335,6 +2398,9 @@
       startSparkles();
     } else if (viewName === 'cli') {
       document.getElementById(views.cli).classList.remove('hidden');
+      startSparkles();
+    } else if (viewName === 'deps') {
+      document.getElementById(views.deps).classList.remove('hidden');
       startSparkles();
     } else if (viewName === 'permission') {
       document.getElementById(views.permission).classList.remove('hidden');
