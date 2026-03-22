@@ -13,7 +13,7 @@ The marketing site lives in `site/` and is hosted on GitHub Pages at [snipit.dev
 | `site/index.html` | Landing page (all features, download CTA) |
 | `site/guide.html` | Setup guide (permissions, AI, MCP) |
 | `site/styles.css` | Shared styles |
-| `site/script.js` | Download link (fetches latest release from GitHub API), sparkle canvas, scroll animations |
+| `site/script.js` | Platform-aware download link (detects macOS/Linux, fetches correct asset from GitHub API), sparkle canvas, scroll animations |
 | `site/sitemap.xml` | Sitemap — update `lastmod` on every content change |
 | `site/robots.txt` | Crawler rules |
 | `site/CNAME` | Custom domain config (`snipit.dev`) |
@@ -27,7 +27,7 @@ The marketing site lives in `site/` and is hosted on GitHub Pages at [snipit.dev
 
 1. **`<meta name="description">`** — reflects current feature set
 2. **`<meta property="og:description">`** — 1-2 sentence hook for social sharing
-3. **Structured data (`ld+json`)** — keep `featureList` and `softwareVersion` in sync with the app
+3. **Structured data (`ld+json`)** — keep `featureList`, `softwareVersion`, and `operatingSystem` in sync with the app
 4. **`sitemap.xml`** — update `lastmod` to today's date on any changed page
 
 **Canonical URL rules (critical for Google Search Console):**
@@ -41,6 +41,12 @@ The marketing site lives in `site/` and is hosted on GitHub Pages at [snipit.dev
 2. Add it to `<meta name="description">` if major
 3. Add a section in `index.html` with a `<section>`, `<h2>`, demo video/image, and `alt` text
 4. Add it to `site/guide.html` if it requires user setup
+5. Note if the feature is **macOS-only** (e.g., Transcribe/OCR) or **cross-platform**
+
+**Platform messaging:**
+- Snip supports **macOS and Linux**. Download buttons detect the user's platform and show the correct asset.
+- Linux targets **Wayland** sessions (X11 is untested). Always note this when mentioning Linux support.
+- macOS-only features (Liquid Glass, Transcribe/OCR, auto Ollama install) should be labeled "(macOS only)" in copy.
 
 ---
 

@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Snip — Stop Describing What You See | Visual AI Tool for macOS</title>
-  <meta name="description" content="Free, open-source macOS app. Screenshot a bug, circle it, paste to your AI agent. Or let the agent render a diagram and get your spatial feedback. CLI and MCP integration. Local AI organization.">
+  <title>Snip — Stop Describing What You See | Visual AI Tool for macOS & Linux</title>
+  <meta name="description" content="Free, open-source app for macOS and Linux. Screenshot a bug, circle it, paste to your AI agent. Or let the agent render a diagram and get your spatial feedback. CLI and MCP integration. Local AI organization.">
   <meta name="theme-color" content="#8B5CF6">
 
   <!-- Open Graph -->
@@ -22,9 +22,9 @@
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Snip — Stop Describing What You See">
-  <meta name="twitter:description" content="Screenshot a bug, circle it, paste to your AI agent. The visual channel between you and AI. Free, open source, macOS.">
+  <meta name="twitter:description" content="Screenshot a bug, circle it, paste to your AI agent. The visual channel between you and AI. Free, open source. macOS & Linux.">
   <meta name="twitter:image" content="https://snipit.dev/assets/og-image.png">
-  <meta name="twitter:image:alt" content="Snip — visual AI tool for macOS">
+  <meta name="twitter:image:alt" content="Snip — visual AI tool for macOS and Linux">
 
   <link rel="canonical" href="https://snipit.dev/">
 
@@ -48,17 +48,17 @@
     "description": "Visual communication layer between humans and AI agents. Capture, annotate, render diagrams, review visuals. CLI and MCP integration for any AI agent. Local AI organization and semantic search.",
     "url": "https://snipit.dev/",
     "applicationCategory": "UtilitiesApplication",
-    "operatingSystem": "macOS 14+",
+    "operatingSystem": "macOS 14+, Linux (x86_64)",
     "offers": {
       "@type": "Offer",
       "price": "0",
       "priceCurrency": "USD"
     },
     "screenshot": "https://snipit.dev/assets/og-image.png",
-    "softwareRequirements": "macOS 14+ with Apple M-series chip",
+    "softwareRequirements": "macOS 14+ (Apple Silicon) or Linux x86_64 (Wayland)",
     "downloadUrl": "https://github.com/rixinhahaha/snip/releases",
     "featureList": "Screen capture, Annotation tools, Diagram rendering (Mermaid), Review Mode (approve/request changes), Agent context messages, Structured feedback, AI-powered organization, Semantic search, CLI for AI agents, MCP server, Object segmentation, AI upscaling, Text transcription (OCR), Extension system",
-    "softwareVersion": "1.1.1"
+    "softwareVersion": "1.2.0"
   }
   </script>
 </head>
@@ -135,7 +135,7 @@
       <div class="sparkle-star sparkle-star-8"></div>
     </div>
     <div class="hero-content">
-      <div class="hero-badge"><svg width="14" height="14" viewBox="0 0 814 1000" fill="currentColor" aria-hidden="true"><path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76.5 0-103.7 40.8-165.9 40.8s-105.6-57.8-155.5-127.4c-58.3-81.3-105.6-207.4-105.6-326.5 0-192 124.7-293.6 247.2-293.6 65.2 0 119.6 42.8 160.5 42.8 39.2 0 100.2-45.3 174.5-45.3 28.2 0 129.6 2.6 196.5 99.8zm-269.5-86.7c31.9-38.5 54.6-92 54.6-145.5 0-7.4-.8-14.8-2.6-20.7-52 1.9-113.6 34.6-150.8 78.4-28.2 32.6-57.2 86-57.2 140.2 0 8.1 1.3 16.1 1.9 18.7 3.2.6 8.4 1.3 13.5 1.3 46.6 0 105.6-31.2 140.6-72.4z"/></svg> Visual AI Tool for macOS</div>
+      <div class="hero-badge"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg> Visual AI Tool for macOS & Linux</div>
       <h1>Stop describing<br><span class="hero-gradient">what you see.</span></h1>
       <p class="hero-subtitle">
         A screenshot with an arrow beats a paragraph of explanation.
@@ -150,6 +150,7 @@
           View Source
         </a>
       </div>
+      <p class="all-platforms-link" style="display:none;margin-top:0.5rem;font-size:0.85rem;opacity:0.7;"><a href="https://github.com/rixinhahaha/snip/releases/latest" style="color:inherit;text-decoration:underline;" target="_blank" rel="noopener noreferrer">All platforms &rarr;</a></p>
       <div class="brew-install">
         <span class="brew-prompt">$</span>
         <code>brew install --cask rixinhahaha/snip/snip</code>
@@ -208,7 +209,7 @@
         </div>
         <div class="mcp-tool-card">
           <strong>snip transcribe &lt;file&gt;</strong>
-          <span>Extract text via native macOS OCR</span>
+          <span>Extract text via native OCR (macOS only)</span>
         </div>
         <div class="mcp-tool-card">
           <strong>snip list</strong>
@@ -379,6 +380,7 @@
           View on GitHub
         </a>
       </div>
+      <p class="all-platforms-link" style="display:none;margin-top:0.5rem;font-size:0.85rem;opacity:0.7;"><a href="https://github.com/rixinhahaha/snip/releases/latest" style="color:inherit;text-decoration:underline;" target="_blank" rel="noopener noreferrer">All platforms &rarr;</a></p>
       <p class="hero-note">Requires macOS 14+ with Apple M-series chip.</p>
     </div>
   </section>
@@ -421,7 +423,7 @@
           </svg>
           Claude Code
         </span>
-        on macOS.
+        on macOS & Linux.
       </p>
       <div class="footer-links">
         <a href="https://github.com/rixinhahaha/snip" target="_blank" rel="noopener noreferrer">GitHub</a>

@@ -9,7 +9,18 @@
   // --- Download constants ---
   var REPO = 'rixinhahaha/snip';
   var FALLBACK_URL = 'https://github.com/' + REPO + '/releases/latest';
-  var ASSET_PATTERN = /Snip-.*-arm64\.dmg$/;
+
+  // Platform detection
+  var userAgent = navigator.userAgent || '';
+  var platform = navigator.platform || '';
+  var IS_LINUX = /Linux/.test(platform) || /Linux/.test(userAgent);
+  var IS_MAC = /Mac/.test(platform);
+
+  var ASSET_PATTERN = IS_LINUX ? /Snip-.*-x86_64\.AppImage$/ : /Snip-.*-arm64\.dmg$/;
+  var PLATFORM_LABEL = IS_LINUX ? 'Download for Linux (x86_64)' : 'Download for macOS (Apple Silicon)';
+  var PLATFORM_NOTE = IS_LINUX
+    ? 'Requires a Wayland session. Also available as .deb.'
+    : 'Requires macOS 14+ with Apple M-series chip (M1, M2, M3, M4).';
 
   // --- Nav scroll effect ---
   var nav = document.getElementById('nav');
@@ -111,11 +122,35 @@
     });
   }
 
+  function setDownloadLabels() {
+    document.querySelectorAll('.download-link').forEach(function (link) {
+      // Only update text nodes inside the link (preserve SVG icon)
+      var textNodes = [];
+      for (var i = 0; i < link.childNodes.length; i++) {
+        if (link.childNodes[i].nodeType === 3) textNodes.push(link.childNodes[i]);
+      }
+      if (textNodes.length > 0) {
+        textNodes[textNodes.length - 1].textContent = '\n          ' + PLATFORM_LABEL + '\n        ';
+      }
+    });
+    document.querySelectorAll('.hero-note').forEach(function (note) {
+      // Only update notes that contain platform requirement text
+      if (/Requires|Wayland|macOS/.test(note.textContent)) {
+        note.textContent = PLATFORM_NOTE + ' Free and open source.';
+      }
+    });
+    // Show "All platforms" link
+    document.querySelectorAll('.all-platforms-link').forEach(function (el) {
+      el.style.display = '';
+    });
+  }
+
   function initDownloadLinks() {
     // Start with fallback so buttons are never broken
     setDownloadHref(FALLBACK_URL);
+    setDownloadLabels();
 
-    // Fetch latest release from GitHub API and update with direct DMG link
+    // Fetch latest release from GitHub API and update with direct asset link
     fetch('https://api.github.com/repos/' + REPO + '/releases/latest')
       .then(function (res) { return res.json(); })
       .then(function (release) {

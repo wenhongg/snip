@@ -3,28 +3,28 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Snip Setup Guide — macOS Screen Recording Permissions & AI Configuration</title>
-  <meta name="description" content="Step-by-step guide to set up Snip on macOS. Enable Screen Recording permissions, configure local AI with Ollama for automatic naming, tagging, and search.">
+  <title>Snip Setup Guide — macOS & Linux Setup, Permissions & AI Configuration</title>
+  <meta name="description" content="Step-by-step guide to set up Snip on macOS and Linux. Enable permissions, configure local AI with Ollama for automatic naming, tagging, and search.">
   <meta name="theme-color" content="#8B5CF6">
 
   <!-- Open Graph -->
-  <meta property="og:title" content="Snip Setup Guide — macOS Permissions & AI Configuration">
-  <meta property="og:description" content="Get Snip working perfectly on your Mac. Step-by-step guide for Screen Recording permissions and local AI setup with Ollama.">
+  <meta property="og:title" content="Snip Setup Guide — macOS & Linux Setup, AI Configuration">
+  <meta property="og:description" content="Get Snip working perfectly on macOS or Linux. Step-by-step guide for permissions and local AI setup with Ollama.">
   <meta property="og:type" content="article">
   <meta property="og:url" content="https://snipit.dev/guide">
   <meta property="og:image" content="https://snipit.dev/assets/og-image.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="Snip setup guide showing macOS permissions and AI configuration">
+  <meta property="og:image:alt" content="Snip setup guide showing permissions and AI configuration">
   <meta property="og:site_name" content="Snip">
   <meta property="og:locale" content="en_US">
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Snip Setup Guide — macOS Permissions & AI Configuration">
-  <meta name="twitter:description" content="Get Snip working perfectly on your Mac. Step-by-step guide for Screen Recording permissions and local AI setup.">
+  <meta name="twitter:title" content="Snip Setup Guide — macOS & Linux Setup, AI Configuration">
+  <meta name="twitter:description" content="Get Snip working perfectly on macOS or Linux. Step-by-step guide for permissions and local AI setup.">
   <meta name="twitter:image" content="https://snipit.dev/assets/og-image.png">
-  <meta name="twitter:image:alt" content="Snip setup guide showing macOS permissions and AI configuration">
+  <meta name="twitter:image:alt" content="Snip setup guide showing permissions and AI configuration">
 
   <link rel="canonical" href="https://snipit.dev/guide">
 
@@ -43,8 +43,8 @@
   {
     "@context": "https://schema.org",
     "@type": "HowTo",
-    "name": "How to Set Up Snip on macOS",
-    "description": "Step-by-step guide to set up Snip on macOS. Enable Screen Recording permissions and configure local AI with Ollama.",
+    "name": "How to Set Up Snip on macOS and Linux",
+    "description": "Step-by-step guide to set up Snip on macOS and Linux. Enable permissions and configure local AI with Ollama.",
     "url": "https://snipit.dev/guide",
     "image": "https://snipit.dev/assets/og-image.png",
     "totalTime": "PT5M",
@@ -565,8 +565,8 @@
         <div class="guide-step">
           <div class="guide-step-num">1</div>
           <div class="guide-step-content">
-            <h3>Screen Recording permission</h3>
-            <p>Snip asks you to allow Screen Recording. Click <strong>Allow</strong>, grant permission in the macOS dialog, then <strong>Restart Snip</strong> when prompted.</p>
+            <h3>Screen Recording permission (macOS)</h3>
+            <p>Snip asks you to allow Screen Recording. Click <strong>Allow</strong>, grant permission in the macOS dialog, then <strong>Restart Snip</strong> when prompted. On Linux, this step is skipped — no permission is needed.</p>
           </div>
         </div>
         <div class="guide-step">
@@ -580,7 +580,7 @@
           <div class="guide-step-num">3</div>
           <div class="guide-step-content">
             <h3>Automatic Ollama install &amp; model download</h3>
-            <p>If you chose AI, Snip downloads and installs Ollama automatically, then pulls the vision model (~5 GB). A progress bar shows each step. No terminal commands needed.</p>
+            <p>If you chose AI, Snip downloads and installs Ollama automatically (macOS), then pulls the vision model (~5 GB). A progress bar shows each step. On Linux, install Ollama manually first — see <a href="#linux-setup" class="inline-link">Linux Setup</a>.</p>
           </div>
         </div>
       </div>
@@ -662,6 +662,71 @@
         <div>
           <strong>Shortcuts not working?</strong>
           <p>Check that no other app is using the same shortcut in <span class="guide-path">System Settings → Keyboard → Keyboard Shortcuts</span>.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section: Linux Setup -->
+    <section class="guide-section" id="linux-setup">
+      <div class="guide-section-header">
+        <div class="guide-section-icon">
+          <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+        </div>
+        <div>
+          <h2>Linux Setup</h2>
+          <p>Wayland-specific configuration for Linux users</p>
+        </div>
+      </div>
+
+      <div class="guide-callout">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <div>
+          <strong>No Screen Recording permission needed</strong>
+          <p>Unlike macOS, Linux does not require a separate screen recording permission. Snip uses Electron's desktopCapturer, which works automatically on Wayland.</p>
+        </div>
+      </div>
+
+      <p class="guide-section-label">Recommended packages</p>
+      <div class="guide-steps">
+        <div class="guide-step">
+          <div class="guide-step-num">1</div>
+          <div class="guide-step-content">
+            <h3>Install wl-clipboard</h3>
+            <p>Required for clipboard persistence on Wayland. Without it, copied images are lost when the editor closes.</p>
+            <p><code>sudo apt install wl-clipboard</code></p>
+          </div>
+        </div>
+        <div class="guide-step">
+          <div class="guide-step-num">2</div>
+          <div class="guide-step-content">
+            <h3>Install PyGObject (optional)</h3>
+            <p>Enables portal-based screenshot fallback via D-Bus.</p>
+            <p><code>sudo apt install python3-gi gir1.2-glib-2.0</code></p>
+          </div>
+        </div>
+        <div class="guide-step">
+          <div class="guide-step-num">3</div>
+          <div class="guide-step-content">
+            <h3>Install Ollama (for AI features)</h3>
+            <p>On Linux, Ollama must be installed manually (auto-install is macOS only).</p>
+            <p><code>curl -fsSL https://ollama.com/install.sh | sh</code></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="guide-callout guide-callout-warning">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <div>
+          <strong>X11 is untested</strong>
+          <p>Snip targets Wayland sessions. X11 may work but is not officially supported. GNOME on Wayland is the recommended environment for full shortcut and clipboard support.</p>
+        </div>
+      </div>
+
+      <div class="guide-callout">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <div>
+          <strong>Transcription not available</strong>
+          <p>The OCR/Transcribe feature uses macOS Vision framework and is not available on Linux.</p>
         </div>
       </div>
     </section>
@@ -944,7 +1009,7 @@
           </svg>
           Claude Code
         </span>
-        on macOS.
+        on macOS & Linux.
       </p>
       <div class="footer-links">
         <a href="https://github.com/rixinhahaha/snip" target="_blank" rel="noopener noreferrer">GitHub</a>
