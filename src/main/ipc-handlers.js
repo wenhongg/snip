@@ -12,7 +12,8 @@ const {
   getAiEnabled, setAiEnabled,
   getFalApiKey, setFalApiKey,
   getShortcuts, getDefaultShortcuts, setShortcut, resetShortcuts,
-  getMcpConfig, setMcpConfig
+  getMcpConfig, setMcpConfig,
+  getShortcutsSkipped, setShortcutsSkipped
 } = require('./store');
 const { queueNewFile } = require('./organizer/watcher');
 const ollamaManager = require('./ollama-manager');
@@ -594,6 +595,15 @@ function registerIpcHandlers(getOverlayWindow, createEditorWindowFn, reregisterS
   // Platform dependency check (Wayland clipboard, portal screenshot on Linux; no-op elsewhere)
   ipcMain.handle('check-linux-deps', async () => {
     return platform.checkDependencies();
+  });
+
+  ipcMain.handle('get-shortcuts-skipped', async () => {
+    return getShortcutsSkipped();
+  });
+
+  ipcMain.handle('set-shortcuts-skipped', async (event, skipped) => {
+    setShortcutsSkipped(skipped);
+    return true;
   });
 
   // Settings: User Extensions

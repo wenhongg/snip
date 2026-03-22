@@ -1914,6 +1914,27 @@
       });
     }
 
+    function advanceToShortcutsOrCli() {
+      // On Wayland, offer to register system shortcuts
+      if (window.snip.platform === 'linux') {
+        window.snip.checkLinuxDeps().then(function(deps) {
+          if (deps.wayland) {
+            window.snip.checkCompositorShortcut('capture').then(function(status) {
+              if (!status.installed) {
+                showSetupView('shortcuts');
+              } else {
+                advanceToCliOrWelcome();
+              }
+            });
+          } else {
+            advanceToCliOrWelcome();
+          }
+        });
+      } else {
+        advanceToCliOrWelcome();
+      }
+    }
+
     function finishLocationStep() {
       window.snip.setAiEnabled(false);
       updateAiSettingsVisibility(false);
@@ -1922,17 +1943,16 @@
         window.snip.checkLinuxDeps().then(function(deps) {
           if (deps.wayland && !deps.wlCopy) {
             showSetupView('deps');
-            // Set the right install command for the distro
             var cmdEl = document.getElementById('setup-deps-cmd');
             if (deps.distro === 'fedora') cmdEl.textContent = 'sudo dnf install wl-clipboard';
             else if (deps.distro === 'arch') cmdEl.textContent = 'sudo pacman -S wl-clipboard';
             else cmdEl.textContent = 'sudo apt install wl-clipboard';
           } else {
-            advanceToCliOrWelcome();
+            advanceToShortcutsOrCli();
           }
         });
       } else {
-        advanceToCliOrWelcome();
+        advanceToShortcutsOrCli();
       }
     }
 
@@ -1967,7 +1987,7 @@
           if (deps.wlCopy) {
             depsCheckBtn.style.display = 'none';
             depsOkDiv.classList.remove('hidden');
-            setTimeout(function() { advanceToCliOrWelcome(); }, 1000);
+            setTimeout(function() { advanceToShortcutsOrCli(); }, 1000);
           } else {
             depsCheckBtn.innerHTML = 'Not found — try again';
             setTimeout(function() { depsCheckBtn.innerHTML = 'Check again <kbd class="setup-kbd">Enter</kbd>'; }, 2000);
@@ -1976,7 +1996,7 @@
       });
     }
     if (depsSkipBtn) {
-      depsSkipBtn.addEventListener('click', function() { advanceToCliOrWelcome(); });
+      depsSkipBtn.addEventListener('click', function() { advanceToShortcutsOrCli(); });
     }
     if (depsCopyBtn) {
       depsCopyBtn.addEventListener('click', function() {
@@ -1988,6 +2008,56 @@
           }, 1500);
         });
       });
+    }
+
+    // Shortcuts buttons
+    var shortcutsSetupBtn = document.getElementById('setup-shortcuts-setup-btn');
+    var shortcutsSkipBtn = document.getElementById('setup-shortcuts-skip-btn');
+    var shortcutsOkDiv = document.getElementById('setup-shortcuts-ok');
+
+    var captureCb = document.getElementById('setup-shortcut-capture-cb');
+    var searchCb = document.getElementById('setup-shortcut-search-cb');
+
+    function finishShortcutsStep(skipped) {
+      if (skipped && !isFirstLaunch) {
+        // Returning user skipped — remember so we don't nag on every launch
+        window.snip.setShortcutsSkipped(true);
+      }
+      if (isFirstLaunch) {
+        advanceToCliOrWelcome();
+      } else {
+        hideSetupOverlay();
+      }
+    }
+
+    if (shortcutsSetupBtn) {
+      shortcutsSetupBtn.addEventListener('click', function() {
+        var tasks = [];
+        if (captureCb && captureCb.checked) {
+          tasks.push(window.snip.installCompositorShortcut('capture', 'CommandOrControl+Shift+2'));
+        }
+        if (searchCb && searchCb.checked) {
+          tasks.push(window.snip.installCompositorShortcut('search', 'CommandOrControl+Shift+S'));
+        }
+        if (tasks.length === 0) {
+          finishShortcutsStep();
+          return;
+        }
+        shortcutsSetupBtn.disabled = true;
+        shortcutsSetupBtn.textContent = 'Setting up...';
+        Promise.all(tasks).then(function() {
+          window.snip.setShortcutsSkipped(false); // clear skip flag on successful setup
+          shortcutsSetupBtn.style.display = 'none';
+          shortcutsOkDiv.classList.remove('hidden');
+          setTimeout(finishShortcutsStep, 1000);
+        }).catch(function() {
+          shortcutsSetupBtn.disabled = false;
+          shortcutsSetupBtn.innerHTML = 'Failed — try again <kbd class="setup-kbd">Enter</kbd>';
+        });
+      });
+    }
+    if (shortcutsSkipBtn) {
+      shortcutsSkipBtn.addEventListener('click', function() { finishShortcutsStep(true); });
     }
 
     // CLI install buttons
@@ -2112,6 +2182,14 @@
         return;
       }
 
+      // Shortcuts screen — Enter to set up, Esc to skip
+      var shortcutsView = document.getElementById('setup-shortcuts-view');
+      if (shortcutsView && !shortcutsView.classList.contains('hidden')) {
+        if (e.key === 'Enter') { shortcutsSetupBtn.click(); return; }
+        if (e.key === 'Escape') { shortcutsSkipBtn.click(); return; }
+        return;
+      }
+
       // CLI screen — Enter to install/continue, Esc to skip
       var cliView = document.getElementById('setup-cli-view');
       if (cliView && !cliView.classList.contains('hidden')) {
@@ -2230,7 +2308,24 @@
       return;
     }
 
-    // Returning user with permission — no overlay
+    // Returning user on Wayland — check compositor shortcuts are still linked
+    if (window.snip.platform === 'linux') {
+      var deps = await window.snip.checkLinuxDeps();
+      var skippedBefore = await window.snip.getShortcutsSkipped();
+      if (deps.wayland && !skippedBefore) {
+        var captureStatus = await window.snip.checkCompositorShortcut('capture');
+        var searchStatus = await window.snip.checkCompositorShortcut('search');
+        if (!captureStatus.installed && !searchStatus.installed) {
+          document.getElementById('setup-overlay').classList.remove('hidden');
+          document.getElementById('setup-shortcuts-title').textContent = 'Shortcuts not set up';
+          document.getElementById('setup-shortcuts-desc').textContent = 'Register system shortcuts to capture and search from anywhere.';
+          showSetupView('shortcuts');
+          return;
+        }
+      }
+    }
+
+    // Returning user with everything set up — no overlay
     return;
   }
 
@@ -2357,6 +2452,9 @@
     if (pathEl && results[1]) {
       pathEl.textContent = shortenPath(results[1]);
     }
+
+    // Refresh shortcuts (compositor status may have changed during onboarding)
+    renderShortcutsFromStore();
   }
 
   async function refreshSetupOverlay() {
@@ -2374,7 +2472,7 @@
   }
 
   function showSetupView(viewName) {
-    var views = { permission: 'setup-permission-view', location: 'setup-location-view', deps: 'setup-deps-view', cli: 'setup-cli-view', steps: 'setup-steps-view', welcome: 'setup-welcome-view', failed: 'setup-failed-view' };
+    var views = { permission: 'setup-permission-view', location: 'setup-location-view', deps: 'setup-deps-view', shortcuts: 'setup-shortcuts-view', cli: 'setup-cli-view', steps: 'setup-steps-view', welcome: 'setup-welcome-view', failed: 'setup-failed-view' };
     var keys = Object.keys(views);
     for (var i = 0; i < keys.length; i++) {
       document.getElementById(views[keys[i]]).classList.add('hidden');
@@ -2403,6 +2501,9 @@
       startSparkles();
     } else if (viewName === 'deps') {
       document.getElementById(views.deps).classList.remove('hidden');
+      startSparkles();
+    } else if (viewName === 'shortcuts') {
+      document.getElementById(views.shortcuts).classList.remove('hidden');
       startSparkles();
     } else if (viewName === 'permission') {
       document.getElementById(views.permission).classList.remove('hidden');

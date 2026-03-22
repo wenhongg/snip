@@ -47,6 +47,8 @@ contextBridge.exposeInMainWorld('snip', {
 
   // Linux dependency check
   checkLinuxDeps: () => ipcRenderer.invoke('check-linux-deps'),
+  getShortcutsSkipped: () => ipcRenderer.invoke('get-shortcuts-skipped'),
+  setShortcutsSkipped: (skipped) => ipcRenderer.invoke('set-shortcuts-skipped', skipped),
 
   // AI preference
   getAiEnabled: () => ipcRenderer.invoke('get-ai-enabled'),

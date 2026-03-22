@@ -2432,6 +2432,57 @@ kbd {
   gap: 12px;
 }
 
+/* Shortcuts — onboarding step */
+.setup-shortcuts-list {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+.setup-shortcut-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 20px;
+  min-width: 140px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.setup-shortcut-card:hover {
+  border-color: var(--accent);
+}
+.setup-shortcut-card input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.setup-shortcut-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.setup-shortcut-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.setup-shortcut-keys {
+  font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-bright);
+}
+.setup-shortcuts-btns {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
 /* CLI install — onboarding step */
 .setup-cli-tools {
   display: flex;

@@ -19,21 +19,10 @@ function registerGlobalShortcuts() {
   const useCompositor = platform.getShortcutMode && platform.getShortcutMode() === 'compositor';
 
   if (useCompositor) {
-    // On Wayland, Electron's globalShortcut can't grab keys — register via GNOME compositor instead.
-    // Compositor shortcuts invoke the snip CLI, so they work even across desktop sessions.
-    var captureAccel = shortcuts['capture'] || defaults['capture'];
-    var searchAccel = shortcuts['search'] || defaults['search'];
-    platform.installCompositorShortcut('capture', captureAccel).then(function (r) {
-      console.log('[Snip] Compositor shortcut: capture → %s', r.binding);
-    }).catch(function (err) {
-      console.error('[Snip] Failed to install compositor capture shortcut:', err.message);
-    });
-    platform.installCompositorShortcut('search', searchAccel).then(function (r) {
-      console.log('[Snip] Compositor shortcut: search → %s', r.binding);
-    }).catch(function (err) {
-      console.error('[Snip] Failed to install compositor search shortcut:', err.message);
-    });
-    // quick-snip has no CLI command, so try Electron's globalShortcut as best-effort
+    // On Wayland, Electron's globalShortcut can't grab keys.
+    // Compositor shortcuts (capture, search) are registered via gsettings by the
+    // onboarding flow or settings page — not here. They persist across reboots.
+    // quick-snip has no CLI command, so try Electron's globalShortcut as best-effort.
     var quickSnipAccel = shortcuts['quick-snip'] || defaults['quick-snip'];
     try {
       globalShortcut.register(quickSnipAccel, function () {
@@ -111,12 +100,8 @@ function registerGlobalShortcuts() {
 
 function unregisterShortcuts() {
   globalShortcut.unregisterAll();
-  // Compositor shortcuts persist across sessions (they're system-level),
-  // so we only clean them up on explicit unregister, not on every restart.
-  if (platform.getShortcutMode && platform.getShortcutMode() === 'compositor') {
-    platform.removeCompositorShortcut('capture').catch(function () {});
-    platform.removeCompositorShortcut('search').catch(function () {});
-  }
+  // Compositor shortcuts (gsettings) are managed by onboarding/settings — not here.
+  // They persist across reboots and should not be removed on re-register.
 }
 
 function reregisterShortcuts() {
