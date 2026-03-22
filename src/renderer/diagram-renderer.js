@@ -33,8 +33,12 @@
       ? code
       : '<!DOCTYPE html><html><head><style>*{margin:0;padding:0;}body{display:inline-block;padding:24px;}</style></head><body>' + code + '</body></html>';
 
-    // Create sandboxed iframe — allow-same-origin for measurement, no allow-scripts
+    // Clean up previous iframe to abort any pending resource loads
+    var existing = overlay.querySelector('iframe');
+    if (existing) { existing.srcdoc = ''; existing.src = 'about:blank'; }
     overlay.innerHTML = '';
+
+    // Create sandboxed iframe — allow-same-origin for measurement, no allow-scripts
     var iframe = document.createElement('iframe');
     iframe.sandbox = 'allow-same-origin';
     // Start wide so content lays out without wrapping; height 1px so scrollHeight
@@ -150,9 +154,13 @@
         await renderMermaid(data.code);
       }
     } catch (err) {
+      // Normalize error — don't leak internal V8/Electron paths to MCP callers
+      var safeMsg = (data.format === 'mermaid')
+        ? (err.message || 'Mermaid render failed')
+        : 'HTML render failed';
       window.snip.diagramRendered({
         success: false,
-        error: err.message || String(err)
+        error: safeMsg
       });
     }
   });

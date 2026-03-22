@@ -485,7 +485,7 @@ function registerIpcHandlers(getOverlayWindow, createEditorWindowFn, reregisterS
     '',
     '## HTML authoring tips',
     'When generating HTML for `snip render --format html`:',
-    '- Use `body { display: inline-block; padding: 24px; }` so the capture shrink-wraps to content. Avoid setting an explicit `width` on body.',
+    '- For full `<!DOCTYPE>` documents, use `body { display: inline-block; }` so the capture shrink-wraps to content. Avoid setting an explicit `width` on body. Fragments are wrapped automatically.',
     '- Use fixed grid column widths (`200px 200px`) not `1fr` — fractional units need a container width that the renderer does not provide.',
     '- Use full `<!DOCTYPE html>` documents for dark backgrounds, custom fonts, or complex layouts. Bare fragments work for simple content.',
     '- Keep CSS in `<style>` tags or inline — external stylesheets won\'t load. External images (https) work but have a 500ms load timeout.',

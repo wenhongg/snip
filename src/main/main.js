@@ -486,6 +486,8 @@ function requireCategory(category) {
 
 const DIAGRAM_HTML = path.join(__dirname, '..', 'renderer', 'diagram.html');
 const DIAGRAM_PRELOAD = path.join(__dirname, '..', 'preload', 'diagram-preload.js');
+const SUPPORTED_RENDER_FORMATS = { mermaid: true, html: true };
+const FORMAT_MAX_SIZE = { mermaid: 100 * 1024, html: 500 * 1024 };
 
 var cachedDiagramWin = null;
 
@@ -819,11 +821,10 @@ function startSocketHandlers() {
         throw new Error('Missing "code" parameter');
       }
       var format = params.format || 'mermaid';
-      var SUPPORTED_FORMATS = { mermaid: true, html: true };
-      if (!SUPPORTED_FORMATS[format]) {
-        throw new Error('Unsupported format: ' + format + ' (supported: mermaid, html)');
+      if (!SUPPORTED_RENDER_FORMATS[format]) {
+        throw new Error('Unsupported format: ' + format + ' (supported: ' + Object.keys(SUPPORTED_RENDER_FORMATS).join(', ') + ')');
       }
-      var maxSize = format === 'html' ? 500 * 1024 : 100 * 1024;
+      var maxSize = FORMAT_MAX_SIZE[format] || 100 * 1024;
       if (params.code.length > maxSize) {
         throw new Error('Content too large (max ' + (maxSize / 1024) + ' KB)');
       }
