@@ -556,7 +556,7 @@
       </div>
 
       <div class="guide-image">
-        <video controls muted playsinline preload="metadata" width="1640" height="1080" poster="assets/setup-poster.jpg" aria-label="Snip first launch setup walkthrough">
+        <video controls muted playsinline preload="metadata" width="3664" height="2160" poster="assets/setup-poster.jpg" aria-label="Snip first launch setup walkthrough">
           <source src="assets/setup.mp4" type="video/mp4">
         </video>
       </div>
@@ -572,15 +572,22 @@
         <div class="guide-step">
           <div class="guide-step-num">2</div>
           <div class="guide-step-content">
-            <h3>Choose AI setup</h3>
-            <p>After restart, Snip shows an AI choice screen. Pick <strong>"Set up AI"</strong> for automatic naming, tagging, and search — or <strong>"Continue without AI"</strong> to skip.</p>
+            <h3>Choose save location</h3>
+            <p>Pick where Snip saves your screenshots. The default is <strong>~/Documents/snip/screenshots</strong>. You can change this later in Settings.</p>
           </div>
         </div>
         <div class="guide-step">
           <div class="guide-step-num">3</div>
           <div class="guide-step-content">
-            <h3>Automatic Ollama install &amp; model download</h3>
-            <p>If you chose AI, Snip downloads and installs Ollama automatically (macOS), then pulls the vision model (~5 GB). A progress bar shows each step. On Linux, install Ollama manually first — see <a href="#linux-setup" class="inline-link">Linux Setup</a>.</p>
+            <h3>Install the CLI</h3>
+            <p>Snip offers to install the <code>snip</code> command-line tool so AI agents (like Claude Code) can capture, search, and render visuals. Click <strong>Install</strong> to add it to your PATH.</p>
+          </div>
+        </div>
+        <div class="guide-step">
+          <div class="guide-step-num">4</div>
+          <div class="guide-step-content">
+            <h3>Ready to go</h3>
+            <p>You land on the Welcome screen. Use the global shortcut to take your first snip.</p>
           </div>
         </div>
       </div>
@@ -588,8 +595,8 @@
       <div class="guide-callout">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
         <div>
-          <strong>Changed your mind?</strong>
-          <p>You can enable or disable AI anytime in Settings. If you skipped AI during first launch, click "Set up" in Settings to start the guided install.</p>
+          <strong>Everything is in Settings</strong>
+          <p>Save location, CLI, AI, and all other options can be accessed and toggled in Settings at any time.</p>
         </div>
       </div>
     </section>
