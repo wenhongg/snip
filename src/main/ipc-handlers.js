@@ -459,7 +459,7 @@ function registerIpcHandlers(getOverlayWindow, createEditorWindowFn, reregisterS
   var snipRulesContent = [
     '# Snip — Visual Communication Tool',
     '<!-- ' + SNIP_RULES_VERSION + ' -->',
-    'Use `snip` CLI for visual communication. Run `snip --help` for full command reference.',
+    'Use `snip` CLI for visual communication. You MUST run `snip --help` before your first snip call in a session.',
     '',
     '## ALWAYS use Snip for these:',
     '- **Diagrams/architecture/flows** → `echo \'<mermaid>\' | snip render --format mermaid`',
