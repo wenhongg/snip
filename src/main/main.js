@@ -477,6 +477,9 @@ function requireScreenshotPath(filepath) {
 
 function requireCategory(category) {
   var config = getMcpConfig();
+  if (!config.enabled) {
+    throw new Error('MCP is disabled in settings');
+  }
   if (!config.categories[category]) {
     throw new Error(category + ' is disabled in MCP settings');
   }
@@ -934,6 +937,7 @@ function startSocketHandlers() {
       return { shown: true };
     },
     install_extension: async function (params) {
+      requireCategory('upload');
       if (!params.name || !params.manifest) throw new Error('Provide name and manifest');
 
       var extName = String(params.name);
