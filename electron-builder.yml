@@ -75,13 +75,19 @@ linux:
     - target: AppImage
       arch:
         - x64
-        - arm64
     - target: deb
       arch:
         - x64
         - arm64
   category: Utility
   icon: assets/icon.png
+
+deb:
+  depends:
+    - libgtk-3-0
+    - libnss3
+    - libatspi2.0-0
+    - xdg-utils
 
 publish:
   provider: github

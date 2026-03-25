@@ -35,9 +35,9 @@
     },
     'linux': {
       pattern: /Snip-.*-x86_64\.AppImage$/,
-      altPattern: /Snip-.*-arm64\.AppImage$/,
+      altPattern: /Snip-.*-arm64\.deb$/,
       label: 'Download for Linux (x86_64)',
-      altLabel: 'Download for Linux (ARM64)',
+      altLabel: 'Download for Linux (ARM64 .deb)',
       note: 'Linux AppImage — x86_64 and ARM64. Free and open source.',
       ctaNote: 'Linux x86_64 & ARM64. Free and open source.',
       showBrew: false

@@ -152,6 +152,7 @@ All artifacts use the format `Snip-{version}-{arch}.{ext}` (configured via `arti
 | macOS | Apple Silicon | `Snip-1.2.0-arm64.dmg` |
 | Linux | x64 | `Snip-1.2.0-x86_64.AppImage` |
 | Linux | x64 | `Snip-1.2.0-amd64.deb` |
+| Linux | arm64 | `Snip-1.2.0-arm64.deb` |
 
 ### Production Build (Signed + Notarized)
 
@@ -214,7 +215,7 @@ The workflow runs three jobs:
 
 **2. build-linux** (depends on build-macos, matrix: x64 + arm64):
 1. Builds AI runtime bundle and downloads Node.js binary for each arch
-2. Builds AppImage + deb with `electron-builder --linux --publish never`
+2. Builds with `electron-builder --linux --publish never` (x64: AppImage + deb; arm64: deb only — ARM64 AppImage dropped due to AppImageKit libz.so bug #964)
 3. Uploads all Linux artifacts via `gh release upload` (AppImage, deb, `latest-linux.yml`, runtime tarball)
 
 **Note:** Linux uses `--publish never` + `gh release upload` instead of `--publish always` because electron-builder refuses to upload to a non-draft release (the macOS job already published it).
