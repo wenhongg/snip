@@ -11,16 +11,17 @@
   var FALLBACK_URL = 'https://github.com/' + REPO + '/releases/latest';
 
   // --- Platform detection ---
+  // Note: Firefox and Chrome freeze navigator.platform to "Linux x86_64" on
+  // all Linux builds (including ARM64) for fingerprinting reduction, so we
+  // cannot reliably detect ARM vs x86. We show both Linux downloads instead.
   function detectPlatform() {
     var ua = navigator.userAgent || '';
     var platform = navigator.platform || '';
     var isMac = /Mac/.test(platform) || /Macintosh/.test(ua);
     var isLinux = /Linux/.test(platform) || /Linux/.test(ua);
-    var isArm = /aarch64|arm64/i.test(ua) || /aarch64/i.test(platform);
 
     if (isMac) return 'mac-arm64';
-    if (isLinux && isArm) return 'linux-arm64';
-    if (isLinux) return 'linux-x64';
+    if (isLinux) return 'linux';
     return 'unknown';
   }
 
@@ -32,18 +33,13 @@
       ctaNote: 'Requires macOS 14+ with Apple M-series chip.',
       showBrew: true
     },
-    'linux-x64': {
+    'linux': {
       pattern: /Snip-.*-x86_64\.AppImage$/,
+      altPattern: /Snip-.*-arm64\.AppImage$/,
       label: 'Download for Linux (x86_64)',
-      note: 'Linux x86_64 AppImage. Free and open source.',
-      ctaNote: 'Linux x86_64. Free and open source.',
-      showBrew: false
-    },
-    'linux-arm64': {
-      pattern: /Snip-.*-arm64\.AppImage$/,
-      label: 'Download for Linux (ARM64)',
-      note: 'Linux ARM64 AppImage. Free and open source.',
-      ctaNote: 'Linux ARM64. Free and open source.',
+      altLabel: 'Download for Linux (ARM64)',
+      note: 'Linux AppImage — x86_64 and ARM64. Free and open source.',
+      ctaNote: 'Linux x86_64 & ARM64. Free and open source.',
       showBrew: false
     },
     'unknown': {
@@ -180,17 +176,44 @@
     var brewInstall = document.querySelector('.brew-install');
     if (brewInstall) brewInstall.style.display = PLATFORM.showBrew ? '' : 'none';
 
+    // Show alt download button + "all platforms" link for Linux
+    if (PLATFORM.altPattern) {
+      document.querySelectorAll('.download-link-alt').forEach(function (link) {
+        link.style.display = '';
+        var svg = link.querySelector('svg');
+        link.textContent = '';
+        if (svg) link.appendChild(svg);
+        link.appendChild(document.createTextNode(' ' + PLATFORM.altLabel));
+        link.href = FALLBACK_URL;
+      });
+      document.querySelectorAll('.all-platforms-link').forEach(function (el) {
+        el.style.display = '';
+      });
+    }
+
     // Fetch latest release asset for this platform
     if (!PLATFORM.pattern) return;
 
     fetch('https://api.github.com/repos/' + REPO + '/releases/latest')
       .then(function (res) { return res.json(); })
       .then(function (release) {
-        var asset = (release.assets || []).find(function (a) {
+        var assets = release.assets || [];
+        var asset = assets.find(function (a) {
           return PLATFORM.pattern.test(a.name);
         });
         if (asset && asset.browser_download_url) {
           setDownloadHref(asset.browser_download_url);
+        }
+        // Set alt download link (ARM64 for Linux)
+        if (PLATFORM.altPattern) {
+          var altAsset = assets.find(function (a) {
+            return PLATFORM.altPattern.test(a.name);
+          });
+          if (altAsset && altAsset.browser_download_url) {
+            document.querySelectorAll('.download-link-alt').forEach(function (link) {
+              link.href = altAsset.browser_download_url;
+            });
+          }
         }
       })
       .catch(function () {

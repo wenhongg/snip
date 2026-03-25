@@ -321,7 +321,8 @@ kbd {
   flex-wrap: wrap;
 }
 
-.download-link {
+.download-link,
+.download-link-alt {
   display: inline-flex;
   align-items: center;
   gap: 8px;
