@@ -14,7 +14,9 @@ const TextTool = (() => {
 
   function attach(canvas, getColor, getFont, getFontSize) {
     function onMouseDown(opt) {
-      if (opt.target && opt.target.type === 'textbox') return;
+      // Let Fabric handle clicks on existing textboxes (for editing);
+      // don't create new textboxes on top of other objects
+      if (opt.target) return;
       // If a textbox is currently selected, deselect it instead of creating a new one
       var active = canvas.getActiveObject();
       if (active && active.type === 'textbox') {

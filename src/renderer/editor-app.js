@@ -42,6 +42,10 @@
     // Set background image on <img> element
     EditorCanvasManager.setBackgroundImage(croppedDataURL, canvasW, canvasH);
 
+    // Scale default font size based on image width (16px at 1000px, clamped 12–48)
+    var scaledFontSize = Math.round(Math.min(Math.max(cssWidth * 16 / 1000, 12), 48));
+    Toolbar.setActiveFontSize(scaledFontSize);
+
     // Scale image area to fit viewport if image is larger than available space
     scaleImageToFit(canvasW, canvasH);
 
@@ -1214,7 +1218,7 @@
       if (active && active.type === 'textbox' && active.isEditing) {
         if (e.key === 'Escape') {
           active.exitEditing();
-          canvas.discardActiveObject();
+          // Keep textbox selected so user can delete it with Backspace/Delete
           canvas.renderAll();
           e.preventDefault();
         }
