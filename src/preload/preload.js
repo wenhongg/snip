@@ -23,7 +23,9 @@ contextBridge.exposeInMainWorld('snip', {
     ipcRenderer.on('editor-image-data', (event, data) => callback(data));
   },
   onEditorResized: (callback) => {
-    ipcRenderer.on('editor-resized', () => callback());
+    var handler = () => callback();
+    ipcRenderer.on('editor-resized', handler);
+    return () => ipcRenderer.removeListener('editor-resized', handler);
   },
   closeEditor: () => ipcRenderer.send('close-editor'),
   sendEditorResult: (dataURL) => ipcRenderer.send('editor-result', dataURL),

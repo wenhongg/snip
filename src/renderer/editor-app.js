@@ -391,11 +391,12 @@
 
   var MIN_ZOOM = 0.25;
   var MAX_ZOOM = 8;
+  var TOOLBAR_HEIGHT = 48;
 
   function scaleImageToFit(imgW, imgH) {
     var container = document.getElementById('editor-container');
-    var availW = container.clientWidth - 48;
-    var availH = container.clientHeight - 48;
+    var availW = Math.max(1, container.clientWidth - TOOLBAR_HEIGHT);
+    var availH = Math.max(1, container.clientHeight - TOOLBAR_HEIGHT);
 
     var fitScale = Math.min(1, Math.min(availW / imgW, availH / imgH));
 
@@ -497,10 +498,10 @@
         // Zoom toward cursor position
         var rect = container.getBoundingClientRect();
         var cursorX = e.clientX - rect.left;
-        var cursorY = e.clientY - rect.top - 48; // subtract toolbar height
+        var cursorY = e.clientY - rect.top - TOOLBAR_HEIGHT;
 
         var containerCenterX = (rect.width) / 2;
-        var containerCenterY = (rect.height - 48) / 2;
+        var containerCenterY = (rect.height - TOOLBAR_HEIGHT) / 2;
 
         // Point relative to image center (accounting for current pan)
         var imgCenterX = containerCenterX + _zoomState.panX;
@@ -523,14 +524,26 @@
       }
     }, { passive: false });
 
+    // Pan helpers — shared by middle-click, space+drag, and empty-canvas-drag
+    var spaceDown = false;
+
+    function startPan(clientX, clientY) {
+      _zoomState.isPanning = true;
+      _zoomState.lastPanX = clientX;
+      _zoomState.lastPanY = clientY;
+      container.style.cursor = 'grabbing';
+    }
+
+    function endPan() {
+      _zoomState.isPanning = false;
+      container.style.cursor = spaceDown ? 'grab' : '';
+    }
+
     // Middle-click drag to pan
     container.addEventListener('mousedown', function(e) {
-      if (e.button === 1) { // middle mouse
+      if (e.button === 1) {
         e.preventDefault();
-        _zoomState.isPanning = true;
-        _zoomState.lastPanX = e.clientX;
-        _zoomState.lastPanY = e.clientY;
-        container.style.cursor = 'grabbing';
+        startPan(e.clientX, e.clientY);
       }
     });
 
@@ -544,10 +557,8 @@
     });
 
     // Space+drag to pan
-    var spaceDown = false;
     document.addEventListener('keydown', function(e) {
       if (e.key === ' ' && !e.repeat && !e.target.closest('input, textarea, select')) {
-        // Don't activate space-pan if a textbox is being edited on canvas
         if (canvas) {
           var active = canvas.getActiveObject();
           if (active && active.type === 'textbox' && active.isEditing) return;
@@ -561,7 +572,6 @@
       if (e.key === ' ' && !e.target.closest('input, textarea, select')) {
         spaceDown = false;
         if (!_zoomState.isPanning) container.style.cursor = '';
-        // Prevent space keyup from clicking the focused toolbar button
         e.preventDefault();
       }
     });
@@ -570,10 +580,7 @@
       if (spaceDown && e.button === 0) {
         e.preventDefault();
         e.stopPropagation();
-        _zoomState.isPanning = true;
-        _zoomState.lastPanX = e.clientX;
-        _zoomState.lastPanY = e.clientY;
-        container.style.cursor = 'grabbing';
+        startPan(e.clientX, e.clientY);
       }
     }, true);
 
@@ -582,24 +589,20 @@
       canvas.on('mouse:down', function(opt) {
         if (opt.target) return;
         if (Toolbar.getActiveTool() !== TOOLS.SELECT) return;
-        _zoomState.isPanning = true;
-        _zoomState.lastPanX = opt.e.clientX;
-        _zoomState.lastPanY = opt.e.clientY;
-        container.style.cursor = 'grabbing';
-      });
-      canvas.on('mouse:up', function() {
-        if (_zoomState.isPanning) {
-          _zoomState.isPanning = false;
-          container.style.cursor = '';
-        }
+        startPan(opt.e.clientX, opt.e.clientY);
       });
     }
 
+    // Single authority for pan-end — covers all pan modes
     window.addEventListener('mouseup', function(e) {
       if (_zoomState.isPanning && (e.button === 0 || e.button === 1)) {
-        _zoomState.isPanning = false;
-        container.style.cursor = spaceDown ? 'grab' : '';
+        endPan();
       }
+    });
+
+    // Cancel pan if window loses focus (e.g., mouse released outside window)
+    window.addEventListener('blur', function() {
+      if (_zoomState.isPanning) endPan();
     });
 
     // Keyboard shortcuts: Cmd+0 = reset zoom, Cmd+= zoom in, Cmd+- zoom out

@@ -52,6 +52,8 @@ const OVERLAY_WINDOW_OPTIONS = {
 };
 
 const OVERLAY_HTML = path.join(__dirname, '..', 'renderer', 'index.html');
+const EDITOR_MIN_WIDTH = 600;
+const EDITOR_MIN_HEIGHT = 400;
 
 /**
  * Pre-warm a hidden overlay window so it's ready instantly on next capture.
@@ -88,8 +90,8 @@ function prewarmEditor() {
       show: false,
       frame: true,
       resizable: true,
-      minWidth: 600,
-      minHeight: 400,
+      minWidth: EDITOR_MIN_WIDTH,
+      minHeight: EDITOR_MIN_HEIGHT,
       webPreferences: { ...BASE_WEB_PREFERENCES }
     }, platform.getWindowOptions('editor')));
     prewarmedEditor.setMenuBarVisibility(false);
@@ -193,8 +195,8 @@ function createHomeWindow() {
 function computeEditorBounds(cssWidth, cssHeight) {
   const TOOLBAR_HEIGHT = 48;
   const PADDING = 48;
-  const MIN_W = 600;
-  const MIN_H = 400;
+  const MIN_W = EDITOR_MIN_WIDTH;
+  const MIN_H = EDITOR_MIN_HEIGHT;
   const primaryDisplay = screen.getPrimaryDisplay();
   const { width: screenW, height: screenH } = primaryDisplay.workAreaSize;
 
@@ -237,8 +239,8 @@ function createEditorWindow(cssWidth, cssHeight) {
       show: false,
       frame: true,
       resizable: true,
-      minWidth: 600,
-      minHeight: 400,
+      minWidth: EDITOR_MIN_WIDTH,
+      minHeight: EDITOR_MIN_HEIGHT,
       webPreferences: { ...BASE_WEB_PREFERENCES }
     }, platform.getWindowOptions('editor'));
 
@@ -281,10 +283,17 @@ function createEditorWindow(cssWidth, cssHeight) {
     overlayWindow = null;
   }
 
-  // Notify renderer to re-fit image when window is resized
+  // Notify renderer to re-fit image when window is resized (throttled)
+  var _resizeThrottle = null;
   editorWindow.on('resize', () => {
     if (!editorWindow || editorWindow.isDestroyed()) return;
-    editorWindow.webContents.send('editor-resized');
+    if (_resizeThrottle) return;
+    _resizeThrottle = setTimeout(() => {
+      _resizeThrottle = null;
+      if (editorWindow && !editorWindow.isDestroyed()) {
+        editorWindow.webContents.send('editor-resized');
+      }
+    }, 50);
   });
 
   editorWindow.on('closed', () => {
