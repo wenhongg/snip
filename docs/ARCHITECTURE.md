@@ -386,7 +386,7 @@ Only app-saved files trigger AI processing. The `pendingFiles` Set in `watcher.j
 
 - `shapeColorIndex` — wraps mod palette length each draw
 - `manualColorOverride` — set when the user picks via `#color-picker`; consumed (one-shot) on the next `getNextShapeColor()` call without advancing the cycle
-- After each call, `#color-picker.value` is written to the *next* palette color so the picker truthfully previews the next shape's color (writing `.value` programmatically does NOT fire the `input` event, so this is non-recursive)
+- After each *cycle-advance* call, `#color-picker.value` is written to the next palette color so the picker swatch previews the next cycled shape's color (writing `.value` programmatically does NOT fire the `input` event, so this is non-recursive). When consuming a manual override, the picker is intentionally left untouched — the user's pick already set its value via the native `<input type="color">` behavior, and overwriting it would visually discard their choice.
 
 `Toolbar.getActiveColor()` is unchanged and still serves text-tool draws and rect-mode conversions in `editor-app.js` (lines ~933, ~948) — those callers are *not* new draws and intentionally do not consume cycle slots. Only the `RectangleTool.attach` and `ArrowTool.attach` wirings in `setupTools()` use `getNextShapeColor`.
 

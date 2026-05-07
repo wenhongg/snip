@@ -169,8 +169,8 @@ Detailed user flows for every feature in Snip. Each flow describes preconditions
 | 2 | Drag on canvas | Rectangle drawn in the next palette color (auto-cycles each new draw) |
 | 3 | -- | Mode dropdown visible: Outline (default), Highlight, Blur |
 | 4 | -- | Thickness dropdown visible: Thin (2px), Medium (4px), Thick (8px) |
-| 5 | -- | Color picker reflects the color the *next* shape will use |
-| 6 | Pick a color manually | That color is used for the next shape only; cycling resumes after |
+| 5 | -- | Color picker swatch advances to preview the next palette color while auto-cycling |
+| 6 | Pick a color manually | That color is used for the next shape only; cycling resumes after. The picker swatch retains your manual pick (does not auto-flip back to a palette color until the next cycled draw). |
 
 **Auto-cycling colors:**
 Box (and arrow) annotations cycle through `SHAPE_COLOR_PALETTE` so adjacent shapes are visually distinct and easy to reference verbally ("the red box vs. the blue box"). Palette: Red → Blue → Green → Yellow → Violet → Orange → wraps. A manual pick via the color picker overrides the next shape only, then the cycle resumes from where it was. Blur mode does not consume a palette slot (the rectangle is replaced by a mosaic image).

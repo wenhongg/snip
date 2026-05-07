@@ -251,17 +251,19 @@ const Toolbar = (() => {
     getActiveTool: () => activeTool,
     getActiveColor: () => activeColor,
     // Returns the next color for a new box/arrow draw. Honors a one-shot manual
-    // override (set by the color picker), otherwise cycles the palette. Also
-    // syncs the picker UI to whatever color the *next* shape will use.
+    // override (set by the color picker), otherwise cycles the palette. When
+    // cycling, the picker swatch is advanced to preview the next palette color.
+    // When consuming a manual override, the picker is left alone — the user's
+    // pick already set its value via the native <input type="color"> behavior,
+    // and overwriting it would visually discard their choice.
     getNextShapeColor: () => {
-      var color;
       if (manualColorOverride) {
-        color = manualColorOverride;
+        var override = manualColorOverride;
         manualColorOverride = null;
-      } else {
-        color = SHAPE_COLOR_PALETTE[shapeColorIndex];
-        shapeColorIndex = (shapeColorIndex + 1) % SHAPE_COLOR_PALETTE.length;
+        return override;
       }
+      var color = SHAPE_COLOR_PALETTE[shapeColorIndex];
+      shapeColorIndex = (shapeColorIndex + 1) % SHAPE_COLOR_PALETTE.length;
       var picker = document.getElementById('color-picker');
       if (picker) picker.value = SHAPE_COLOR_PALETTE[shapeColorIndex];
       return color;
